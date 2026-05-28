@@ -16,7 +16,7 @@ export default function Header() {
   ];
 
   return (
-    <Box className="sticky top-0 z-50 bg-white shadow-md">
+    <Box className="fixed w-screen top-0 z-50 bg-white shadow-md">
       {/* header */}
       <Box className="flex justify-between items-center p-3 md:px-10">
         {/* logo */}
