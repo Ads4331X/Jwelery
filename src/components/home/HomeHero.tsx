@@ -1,5 +1,5 @@
 import { Box, Button, Typography } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 import chura from "../../assets/HeroPics/chura.jpeg";
 import bracelet from "../../assets/HeroPics/bracelet.jpeg";
@@ -10,19 +10,31 @@ const images = [chura, bracelet, neckless, kindali];
 
 export function HomeHero() {
   const [current, setCurrent] = useState(0);
+  const touchStart = useRef(0);
 
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrent((p) => (p + 1) % images.length);
     }, 3500);
-
     return () => clearInterval(timer);
-  }, [images.length]);
+  }, []);
 
   return (
     <Box className="w-full overflow-hidden">
       {/* ── MOBILE / TABLET (< lg) ── */}
-      <Box className="relative block h-svh w-full overflow-hidden lg:hidden">
+      <Box
+        className="relative block h-svh w-full overflow-hidden lg:hidden"
+        onTouchStart={(e) => (touchStart.current = e.touches[0].clientX)}
+        onTouchEnd={(e) => {
+          const delta = touchStart.current - e.changedTouches[0].clientX;
+          if (Math.abs(delta) > 40)
+            setCurrent((p) =>
+              delta > 0
+                ? (p + 1) % images.length
+                : (p - 1 + images.length) % images.length,
+            );
+        }}
+      >
         {images.map((img, i) => (
           <img
             key={i}
@@ -35,10 +47,10 @@ export function HomeHero() {
           />
         ))}
 
-        {/* overlay */}
         <Box className="absolute inset-0 bg-linear-to-t from-black/85 via-black/35 to-black/10" />
 
-        <Box className="absolute inset-x-0 bottom-0 px-6 pb-8 text-center">
+        {/* centered text */}
+        <Box className="absolute inset-0 flex flex-col items-center justify-center px-6 text-center">
           <Box
             component="span"
             className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-5 py-1.5 text-[0.65rem] uppercase tracking-[0.35em] text-white/85 backdrop-blur-md"
@@ -66,23 +78,23 @@ export function HomeHero() {
             <Button className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-500 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.5)]">
               Explore Collection
             </Button>
-
             <Button className="!rounded-full !border !border-white/50 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white backdrop-blur-sm hover:!bg-white/10">
               Contact Now
             </Button>
           </Box>
+        </Box>
 
-          <Box className="mt-5 flex justify-center gap-2">
-            {images.map((_, i) => (
-              <Box
-                key={i}
-                onClick={() => setCurrent(i)}
-                className={`h-1.5 cursor-pointer rounded-full transition-all duration-300 ${
-                  current === i ? "w-6 bg-amber-400" : "w-1.5 bg-white/40"
-                }`}
-              />
-            ))}
-          </Box>
+        {/* dots pinned to bottom */}
+        <Box className="absolute inset-x-0 bottom-6 flex justify-center gap-2">
+          {images.map((_, i) => (
+            <Box
+              key={i}
+              onClick={() => setCurrent(i)}
+              className={`h-1.5 cursor-pointer rounded-full transition-all duration-300 ${
+                current === i ? "w-6 bg-amber-400" : "w-1.5 bg-white/40"
+              }`}
+            />
+          ))}
         </Box>
       </Box>
 
@@ -112,7 +124,6 @@ export function HomeHero() {
               Elegance
             </Typography>
 
-            {/* FIXED: v4 gradient */}
             <Box className="mt-4 h-0.5 w-14 rounded bg-linear-to-r from-amber-700 to-amber-500" />
 
             <Typography className="mt-5 max-w-sm text-[0.95rem] leading-8 text-gray-500">
@@ -124,7 +135,6 @@ export function HomeHero() {
               <Button className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-600 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.3)]">
                 Explore Collection
               </Button>
-
               <Button className="!rounded-full !border !border-amber-700 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-amber-700 hover:!bg-amber-100">
                 Contact Now
               </Button>
@@ -132,7 +142,7 @@ export function HomeHero() {
           </Box>
         </Box>
 
-        {/* right */}
+        {/* right grid */}
         <Box className="grid h-full w-1/2 grid-cols-2 grid-rows-2 gap-0.75 bg-[#1a1207]">
           {images.map((img, i) => (
             <Box key={i} className="group relative overflow-hidden">
