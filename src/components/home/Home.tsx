@@ -5,10 +5,22 @@ import { OurStory } from "./OurStory";
 
 export default function Home() {
   return (
-    <Box>
+    <Box className="overflow-hidden">
       <Header />
+
       <HomeHero />
-      <OurStory />
+
+      {/* Responsive spacing */}
+      <Box
+        className="
+          pt-4
+          sm:pt-6
+          md:pt-8
+          lg:pt-10
+        "
+      >
+        <OurStory />
+      </Box>
     </Box>
   );
 }
