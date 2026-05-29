@@ -70,8 +70,8 @@ export function HomeHero() {
           </Typography>
 
           <Typography className="mx-auto mb-6 max-w-xs text-sm leading-7 text-white/75">
-            Premium handcrafted gold & silver jewelry — heritage, purity &
-            luxury in every piece.
+            Premium handcrafted gold & silver jewelry heritage, purity & luxury
+            in every piece.
           </Typography>
 
           <Box className="flex flex-wrap justify-center gap-3">
