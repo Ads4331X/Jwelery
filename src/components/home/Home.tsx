@@ -4,6 +4,7 @@ import Header from "../layout/Header";
 import { OurStory } from "./OurStory";
 import { HomeGallery } from "./HomeGallery";
 import MetalRates from "../MetalRates";
+import HomeContact from "./HomeContact";
 
 export default function Home() {
   return (
@@ -25,6 +26,7 @@ export default function Home() {
         <OurStory />
       </Box>
       <HomeGallery />
+      <HomeContact />
     </Box>
   );
 }
