@@ -3,6 +3,7 @@ import { HomeHero } from "./HomeHero";
 import Header from "../layout/Header";
 import { OurStory } from "./OurStory";
 import { HomeGallery } from "./HomeGallery";
+// import MetalRates from "../MetalRates";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <Header />
 
       <HomeHero />
+      {/* <MetalRates /> */}
 
       {/* Responsive spacing */}
       <Box
