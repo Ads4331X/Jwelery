@@ -147,6 +147,7 @@ export function HomeContact() {
           <Typography
             component="h2"
             className="text-3xl sm:text-5xl font-semibold text-stone-900 leading-tight"
+            style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Visit the Showroom
           </Typography>

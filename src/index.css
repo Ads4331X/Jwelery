@@ -1,31 +1,11 @@
 @import "tailwindcss";
 
-:root {
+/* Display font for headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: "Playfair Display", serif;
-}
-
-html,
-body,
-#root {
-  min-height: 100%;
-  font-family: inherit;
-}
-
-body {
-  margin: 0;
-  font-family: inherit;
-}
-
-.MuiTypography-root,
-.MuiButton-root,
-button,
-input,
-textarea,
-select,
-label,
-a,
-p,
-span,
-div {
-  font-family: inherit !important;
 }

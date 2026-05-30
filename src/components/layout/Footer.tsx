@@ -1,5 +1,4 @@
 import { Box, Typography, IconButton, Link } from "@mui/material";
-
 import {
   Facebook,
   Instagram,
@@ -7,7 +6,6 @@ import {
   EmailOutlined,
   PhoneOutlined,
 } from "@mui/icons-material";
-
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/logo.png";
 
@@ -53,6 +51,16 @@ const SOCIAL_LINKS = [
   },
 ];
 
+// Shared heading style — same as header nav label tracking
+const SECTION_HEADING_SX = {
+  mb: 3,
+  fontSize: "0.72rem",
+  letterSpacing: "0.28em",
+  textTransform: "uppercase" as const,
+  color: "#b45309",
+  fontWeight: 600,
+};
+
 export default function Footer() {
   return (
     <Box
@@ -64,44 +72,35 @@ export default function Footer() {
         py: 8,
       }}
     >
-      <Box
-        sx={{
-          maxWidth: "1200px",
-          mx: "auto",
-        }}
-      >
+      <Box sx={{ maxWidth: "1200px", mx: "auto" }}>
         {/* Main Footer */}
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: {
-              xs: "1fr",
-              md: "1.2fr 0.8fr 1fr",
-            },
+            gridTemplateColumns: { xs: "1fr", md: "1.2fr 0.8fr 1fr" },
             gap: 6,
             pb: 6,
             borderBottom: "1px solid rgba(180,83,9,0.08)",
           }}
         >
           {/* Brand */}
-          <Box>
+          <Box className="flex flex-col items-start gap-4">
+            {/* Logo */}
             <Box
               component="img"
               src={logo}
               alt="Pashupati Sunchadi Pasal"
-              sx={{
-                height: 60,
-                width: "auto",
-                mb: 3,
-              }}
+              className="h-14 w-auto object-contain scale-200 self-start"
             />
 
+            {/* Text */}
             <Typography
               sx={{
                 fontSize: "0.92rem",
                 color: "#6b7280",
                 lineHeight: 1.9,
                 maxWidth: 340,
+                textAlign: "left",
               }}
             >
               Premium handcrafted gold and silver jewelry from Jyotinagar Road,
@@ -111,36 +110,23 @@ export default function Footer() {
 
           {/* Navigation */}
           <Box>
-            <Typography
-              sx={{
-                mb: 3,
-                fontSize: "0.72rem",
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "#b45309",
-                fontWeight: 600,
-              }}
-            >
-              Navigation
-            </Typography>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 1.8,
-              }}
-            >
+            <Typography sx={SECTION_HEADING_SX}>Navigation</Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 1.8 }}>
               {NAV_LINKS.map(({ label, path }) => (
                 <NavLink
                   key={path}
                   to={path}
-                  style={{
-                    textDecoration: "none",
-                    color: "#6b7280",
-                    fontSize: "0.92rem",
-                    transition: "0.2s",
-                  }}
+                  // mirrors header: black when active, gray otherwise, underline grows on hover/active
+                  className={({ isActive }) =>
+                    `relative text-[0.92rem] no-underline transition-colors duration-200 w-fit
+                    after:content-[''] after:absolute after:left-0 after:-bottom-0.5
+                    after:h-px after:bg-stone-900 after:transition-all after:duration-300
+                    ${
+                      isActive
+                        ? "text-stone-900 font-medium after:w-full"
+                        : "text-gray-500 after:w-0 hover:text-stone-900 hover:after:w-full"
+                    }`
+                  }
                 >
                   {label}
                 </NavLink>
@@ -150,26 +136,8 @@ export default function Footer() {
 
           {/* Contact */}
           <Box>
-            <Typography
-              sx={{
-                mb: 3,
-                fontSize: "0.72rem",
-                letterSpacing: "0.28em",
-                textTransform: "uppercase",
-                color: "#b45309",
-                fontWeight: 600,
-              }}
-            >
-              Contact
-            </Typography>
-
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 2,
-              }}
-            >
+            <Typography sx={SECTION_HEADING_SX}>Contact</Typography>
+            <Box sx={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {CONTACTS.map(({ icon, label, href }) => (
                 <Link
                   key={label}
@@ -177,38 +145,27 @@ export default function Footer() {
                   target={href.startsWith("http") ? "_blank" : undefined}
                   rel="noopener noreferrer"
                   underline="none"
-                  color="inherit"
                   sx={{
                     display: "flex",
                     alignItems: "center",
                     gap: 1.5,
                     color: "#6b7280",
-                    transition: "0.2s",
-                    "&:hover": {
-                      color: "#1c1917",
-                    },
+                    transition: "color 0.2s",
+                    "&:hover": { color: "#1c1917" },
+                    "&:active": { color: "#b45309" },
                   }}
                 >
                   {icon}
-
                   <Typography
-                    sx={{
-                      fontSize: "0.9rem",
-                      wordBreak: "break-word",
-                    }}
+                    sx={{ fontSize: "0.9rem", wordBreak: "break-word" }}
                   >
                     {label}
                   </Typography>
                 </Link>
               ))}
 
-              <Box
-                sx={{
-                  display: "flex",
-                  gap: 1,
-                  mt: 1,
-                }}
-              >
+              {/* Socials */}
+              <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
                 {SOCIAL_LINKS.map(({ label, href, icon }) => (
                   <IconButton
                     key={label}
@@ -220,11 +177,13 @@ export default function Footer() {
                       height: 42,
                       border: "1px solid rgba(180,83,9,0.18)",
                       color: "#b45309",
-                      transition: "all .25s ease",
+                      transition: "all 0.25s ease",
                       "&:hover": {
                         bgcolor: "#b45309",
                         color: "#fff",
+                        borderColor: "#b45309",
                       },
+                      "&:active": { bgcolor: "#92400e", color: "#fff" },
                     }}
                   >
                     {icon}
@@ -240,25 +199,16 @@ export default function Footer() {
           sx={{
             pt: 4,
             display: "flex",
-            flexDirection: {
-              xs: "column",
-              sm: "row",
-            },
+            flexDirection: { xs: "column", sm: "row" },
             justifyContent: "space-between",
             alignItems: "center",
             gap: 2,
           }}
         >
-          <Typography
-            sx={{
-              fontSize: "0.8rem",
-              color: "rgba(0,0,0,0.45)",
-            }}
-          >
+          <Typography sx={{ fontSize: "0.8rem", color: "rgba(0,0,0,0.45)" }}>
             © {new Date().getFullYear()} Pashupati Sunchadi Pasal. All rights
             reserved.
           </Typography>
-
           <Typography
             sx={{
               fontSize: "0.72rem",

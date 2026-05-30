@@ -61,6 +61,7 @@ export function HomeHero() {
           <Typography
             component="h1"
             className="mb-3 text-[2.4rem] font-semibold leading-tight text-white sm:text-5xl"
+            style={{ fontFamily: "'Playfair Display', serif" }}
           >
             Crafting{" "}
             <Box component="span" className="text-amber-400">
@@ -115,6 +116,7 @@ export function HomeHero() {
             <Typography
               component="h1"
               className="mt-5 text-[2.7rem] font-semibold leading-tight text-[#1a1207] xl:text-[3.8rem]"
+              style={{ fontFamily: "'Playfair Display', serif" }}
             >
               Crafting <br />
               <Box component="span" className="text-amber-700">
