@@ -169,6 +169,11 @@ export function HomeContact() {
                   value: "pashupatisunchadipasal@gmail.com",
                   href: "mailto:pashupatisunchadipasal@gmail.com",
                 },
+                {
+                  label: "Phone",
+                  value: "+977 9862765445",
+                  href: "tel:+9779862765445",
+                },
               ].map(({ label, value, href }) => (
                 <Box key={label}>
                   <Typography
