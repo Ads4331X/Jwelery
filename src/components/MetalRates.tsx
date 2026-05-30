@@ -136,7 +136,7 @@ function RateTile({
       </Typography>
       <Typography
         className="text-base sm:text-lg font-semibold"
-        style={{ fontFamily: "'Playfair Display', serif", color: accent }}
+        style={{ color: accent }}
       >
         {formatNPR(val)}
       </Typography>
@@ -205,10 +205,7 @@ function MetalCard({
             <Typography
               component="h3"
               className="text-2xl font-semibold leading-tight"
-              style={{
-                fontFamily: "'Playfair Display', serif",
-                color: "#1a1207",
-              }}
+              style={{ color: "#1a1207" }}
             >
               {t.label}
             </Typography>
@@ -225,10 +222,7 @@ function MetalCard({
           </Typography>
           <Typography
             className="text-5xl sm:text-6xl font-semibold leading-none"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-              color: "#1a1207",
-            }}
+            style={{ color: "#1a1207" }}
           >
             {formatNPR(entry.tola)}
           </Typography>
@@ -327,7 +321,6 @@ export function MetalRates() {
           component="h2"
           className="font-semibold leading-tight text-[#1a1207]"
           style={{
-            fontFamily: "'Playfair Display', serif",
             fontSize: "clamp(2rem, 5vw, 3rem)",
           }}
         >

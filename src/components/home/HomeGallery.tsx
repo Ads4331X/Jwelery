@@ -122,7 +122,6 @@ function GalleryCard({
           component="h3"
           className="font-semibold leading-tight text-white"
           style={{
-            fontFamily: "'Playfair Display', serif",
             fontSize: large
               ? "clamp(1.5rem, 2.5vw, 2.2rem)"
               : "clamp(1rem, 1.8vw, 1.4rem)",
@@ -181,9 +180,6 @@ export function HomeGallery() {
           <Box
             component="h2"
             className="text-4xl sm:text-6xl font-semibold text-stone-900 text-center leading-tight"
-            style={{
-              fontFamily: "'Playfair Display', serif",
-            }}
           >
             The Gallery
           </Box>
