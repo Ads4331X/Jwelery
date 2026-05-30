@@ -1,4 +1,5 @@
 import { Box, Container } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 
 import bridal from "../../assets/FeaturedPics/bridal.jpeg";
 import silver from "../../assets/FeaturedPics/silver.jpeg";
@@ -61,12 +62,15 @@ const galleryItems: GalleryItem[] = [
 function GalleryCard({
   item,
   large = false,
+  onClick,
 }: {
   item: GalleryItem;
   large?: boolean;
+  onClick?: () => void;
 }) {
   return (
     <Box
+      onClick={onClick}
       className="relative overflow-hidden group cursor-pointer isolate"
       style={{
         gridArea: item.gridArea,
@@ -160,7 +164,10 @@ function GalleryCard({
   );
 }
 
-export function HomeGallery() {
+export function GallerySection() {
+  const navigate = useNavigate();
+  const handleCardClick = () => navigate("/products");
+
   return (
     <Box className="bg-[#fafaf8] py-16 sm:py-24">
       <Container maxWidth="xl">
@@ -224,6 +231,7 @@ export function HomeGallery() {
               key={item.gridArea}
               item={item}
               large={item.gridArea === "bridal"}
+              onClick={handleCardClick}
             />
           ))}
         </Box>
@@ -248,7 +256,11 @@ export function HomeGallery() {
                 aspectRatio: item.gridArea === "bridal" ? "4/5" : "4/5",
               }}
             >
-              <GalleryCard item={item} large={item.gridArea === "bridal"} />
+              <GalleryCard
+                item={item}
+                large={item.gridArea === "bridal"}
+                onClick={handleCardClick}
+              />
             </Box>
           ))}
         </Box>
@@ -257,6 +269,7 @@ export function HomeGallery() {
         <Box className="flex justify-center mt-12 sm:mt-16">
           <Box
             component="button"
+            onClick={() => navigate("/products")}
             className="group flex items-center gap-3 px-8 py-4 rounded-full text-sm uppercase tracking-[0.3em] font-medium transition-all duration-300 cursor-pointer"
             style={{
               border: "1px solid #b45309",

@@ -1,5 +1,6 @@
 import { Box, Button, Typography } from "@mui/material";
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 import chura from "../../assets/HeroPics/chura.jpeg";
 import bracelet from "../../assets/HeroPics/bracelet.jpeg";
@@ -8,9 +9,10 @@ import kindali from "../../assets/HeroPics/kindali.jpeg";
 
 const images = [chura, bracelet, neckless, kindali];
 
-export function HomeHero() {
+export function Hero() {
   const [current, setCurrent] = useState(0);
   const touchStart = useRef(0);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -76,10 +78,16 @@ export function HomeHero() {
           </Typography>
 
           <Box className="flex flex-wrap justify-center gap-3">
-            <Button className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-500 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.5)]">
+            <Button
+              onClick={() => navigate("/products")}
+              className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-500 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.5)]"
+            >
               Explore Collection
             </Button>
-            <Button className="!rounded-full !border !border-white/50 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white backdrop-blur-sm hover:!bg-white/10">
+            <Button
+              onClick={() => navigate("/contact")}
+              className="!rounded-full !border !border-white/50 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white backdrop-blur-sm hover:!bg-white/10"
+            >
               Contact Now
             </Button>
           </Box>
@@ -134,10 +142,16 @@ export function HomeHero() {
             </Typography>
 
             <Box className="mt-8 flex flex-wrap gap-4">
-              <Button className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-600 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.3)]">
+              <Button
+                onClick={() => navigate("/products")}
+                className="!rounded-full !bg-gradient-to-br !from-amber-700 !to-amber-600 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-white shadow-[0_8px_24px_rgba(180,83,9,0.3)]"
+              >
                 Explore Collection
               </Button>
-              <Button className="!rounded-full !border !border-amber-700 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-amber-700 hover:!bg-amber-100">
+              <Button
+                onClick={() => navigate("/contact")}
+                className="!rounded-full !border !border-amber-700 !px-6 !py-2.5 !text-xs !font-bold !uppercase !tracking-widest !text-amber-700 hover:!bg-amber-100"
+              >
                 Contact Now
               </Button>
             </Box>

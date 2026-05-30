@@ -1,10 +1,10 @@
 import { Box } from "@mui/material";
-import { HomeHero } from "./HomeHero";
+import { Hero } from "./Hero";
 import Header from "../layout/Header";
-import { OurStory } from "./OurStory";
-import { HomeGallery } from "./HomeGallery";
+import { Story } from "./Story";
+import { GallerySection } from "./GallerySection";
 import MetalRates from "../MetalRates";
-import HomeContact from "./HomeContact";
+import ContactSection from "./ContactSection";
 import Footer from "../layout/Footer";
 
 export default function Home() {
@@ -12,7 +12,7 @@ export default function Home() {
     <Box className="overflow-hidden">
       <Header />
 
-      <HomeHero />
+      <Hero />
       <MetalRates />
 
       {/* Responsive spacing */}
@@ -24,10 +24,10 @@ export default function Home() {
           lg:pt-10
         "
       >
-        <OurStory />
+        <Story />
       </Box>
-      <HomeGallery />
-      <HomeContact />
+      <GallerySection />
+      <ContactSection />
       <Footer />
     </Box>
   );

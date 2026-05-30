@@ -76,7 +76,7 @@ const inputSx = {
   },
 };
 
-export function HomeContact() {
+export function ContactSection() {
   const [form, setForm] = useState<FormState>({
     name: "",
     email: "",
@@ -330,4 +330,4 @@ export function HomeContact() {
   );
 }
 
-export default HomeContact;
+export default ContactSection;

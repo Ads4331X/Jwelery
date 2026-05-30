@@ -1,7 +1,7 @@
 import { Box, Container } from "@mui/material";
 import { ImageStack } from "./ImageStack";
 
-export function OurStory() {
+export function Story() {
   return (
     <Container maxWidth="xl">
       <Box className="py-16">
