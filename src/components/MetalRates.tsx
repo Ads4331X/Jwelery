@@ -1,241 +1,399 @@
 import { useEffect, useState } from "react";
 import { Box, Typography, Skeleton } from "@mui/material";
 
-const api_key = import.meta.env.VITE_API_KEY;
+const API_URL =
+  "https://gold-silver.sabinmagar.com.np/wp-json/v1/metal-prices/";
 
-// ---- Types ----
-interface MetalData {
-  price: number;
-  price_gram_24k?: number;
-  price_gram_22k?: number;
-  price_gram_18k?: number;
-  ch?: number;
-  chp?: number;
-  currency: string;
-  timestamp: number;
-}
-
+// Types
+type MetalEntry = { tola: number; ten_gram: number };
+type RateData = { gold: MetalEntry; silver: MetalEntry };
 type MetalKey = "gold" | "silver";
 
-const metalSymbols: Record<MetalKey, string> = {
-  gold: "XAU",
-  silver: "XAG",
+type MetalTheme = {
+  label: string;
+  symbol: string;
+  icon: string;
+  accent: string;
+  accentSoft: string;
+  tileBg: string;
+  radial: string;
+  barGradient: string;
+  shadowHover: string;
+  borderColor: string;
+  dividerGradient: string;
+  tolaLabel: string;
+  tiles: (e: MetalEntry) => { label: string; val: number }[];
 };
 
-// ---- Theme (UI only, not data) ----
-const metalTheme: Record<
-  MetalKey,
-  {
-    label: string;
-    symbol: string;
-    accent: string;
-    accentSoft: string;
-    tileBg: string;
-    radial: string;
-    icon: string;
-  }
-> = {
+// Theme config
+const THEME: Record<MetalKey, MetalTheme> = {
   gold: {
     label: "Gold",
-    symbol: "XAU · 24K",
+    symbol: "XAU · Chapawal",
+    icon: "Au",
     accent: "#b45309",
     accentSoft: "#fef3c7",
     tileBg: "#fffdf5",
     radial: "radial-gradient(ellipse at 15% 85%, #fef3c7 0%, transparent 55%)",
-    icon: "◈",
+    barGradient: "linear-gradient(90deg, #b45309, #fcd34d, #b45309)",
+    shadowHover: "0 24px 60px rgba(180,83,9,0.15)",
+    borderColor: "rgba(180,83,9,0.12)",
+    dividerGradient:
+      "linear-gradient(90deg, transparent, rgba(180,83,9,0.2), transparent)",
+    tolaLabel: "Chapawal Gold per tola",
+    tiles: (e) => [
+      { label: "Chapawal / tola", val: e.tola },
+      { label: "Chapawal / 10g", val: e.ten_gram },
+    ],
   },
   silver: {
     label: "Silver",
     symbol: "XAG · 999",
+    icon: "Ag",
     accent: "#475569",
     accentSoft: "#f1f5f9",
     tileBg: "#f8fafc",
     radial: "radial-gradient(ellipse at 85% 15%, #e2e8f0 0%, transparent 55%)",
-    icon: "◇",
+    barGradient: "linear-gradient(90deg, #475569, #94a3b8, #475569)",
+    shadowHover: "0 24px 60px rgba(71,85,105,0.15)",
+    borderColor: "rgba(71,85,105,0.12)",
+    dividerGradient:
+      "linear-gradient(90deg, transparent, rgba(71,85,105,0.2), transparent)",
+    tolaLabel: "Silver per tola",
+    tiles: (e) => [
+      { label: "Silver / tola", val: e.tola },
+      { label: "Silver / 10g", val: e.ten_gram },
+    ],
   },
 };
 
-// ---- Utils ----
-const formatINR = (n?: number) =>
-  typeof n === "number"
-    ? new Intl.NumberFormat("en-IN", {
-        style: "currency",
-        currency: "INR",
-        maximumFractionDigits: 0,
-      }).format(n)
-    : "—";
+const METAL_KEYS: MetalKey[] = ["gold", "silver"];
 
-// ---- API ----
-async function fetchMetalRates(): Promise<Record<MetalKey, MetalData>> {
-  const header = new Headers();
-  header.append("x-access-token", api_key);
-  header.append("Content-Type", "application/json");
+// Helpers
+const formatNPR = (n?: number) =>
+  typeof n === "number" && n > 0
+    ? "Rs " +
+      new Intl.NumberFormat("en-NP", { maximumFractionDigits: 0 }).format(n)
+    : "N/A";
 
-  const results = await Promise.all(
-    (Object.entries(metalSymbols) as [MetalKey, string][]).map(
-      async ([key, symbol]) => {
-        const res = await fetch(`https://www.goldapi.io/api/${symbol}/INR`, {
-          method: "GET",
-          headers: header,
-        });
+async function fetchRates(): Promise<RateData> {
+  const res = await fetch(API_URL);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const json = await res.json();
 
-        if (!res.ok) {
-          throw new Error(`API error ${res.status}`);
-        }
+  const entries: {
+    metal: { name: string };
+    price_per_tola: string;
+    price_per_ten_gram: string;
+  }[] = json.data[0];
 
-        const data = await res.json();
+  const find = (keyword: string): MetalEntry => {
+    const entry = entries.find((e) =>
+      e.metal.name.toLowerCase().includes(keyword),
+    );
+    if (!entry) throw new Error(`Missing ${keyword}`);
+    return {
+      tola: parseFloat(entry.price_per_tola) || 0,
+      ten_gram: parseFloat(entry.price_per_ten_gram) || 0,
+    };
+  };
 
-        if (data?.error) {
-          throw new Error(data.error);
-        }
-
-        return [key, data as MetalData] as const;
-      },
-    ),
-  );
-
-  return Object.fromEntries(results) as Record<MetalKey, MetalData>;
+  return { gold: find("gold"), silver: find("silver") };
 }
 
-// ---- Card ----
+// RateTile
+function RateTile({
+  label,
+  val,
+  accent,
+  accentSoft,
+  tileBg,
+}: {
+  label: string;
+  val: number;
+  accent: string;
+  accentSoft: string;
+  tileBg: string;
+}) {
+  return (
+    <Box
+      className="rounded-2xl px-3 py-3.5 text-center transition-all duration-300 hover:scale-[1.03] cursor-default"
+      style={{ backgroundColor: tileBg, border: `1px solid ${accent}15` }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = `${accent}35`;
+        (e.currentTarget as HTMLElement).style.backgroundColor = accentSoft;
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLElement).style.borderColor = `${accent}15`;
+        (e.currentTarget as HTMLElement).style.backgroundColor = tileBg;
+      }}
+    >
+      <Typography
+        className="text-[0.58rem] uppercase tracking-[0.2em] mb-1"
+        style={{ color: "rgba(0,0,0,0.4)" }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        className="text-base sm:text-lg font-semibold"
+        style={{ fontFamily: "'Playfair Display', serif", color: accent }}
+      >
+        {formatNPR(val)}
+      </Typography>
+    </Box>
+  );
+}
+
+// MetalCard
 function MetalCard({
   metalKey,
-  data,
+  entry,
+  isMock,
 }: {
   metalKey: MetalKey;
-  data: MetalData;
+  entry: MetalEntry;
+  isMock: boolean;
 }) {
-  const theme = metalTheme[metalKey];
-  const isUp = (data?.chp ?? 0) >= 0;
-
-  const gramTiles =
-    metalKey === "gold"
-      ? [
-          { label: "24K / g", val: data?.price_gram_24k },
-          { label: "22K / g", val: data?.price_gram_22k },
-          { label: "18K / g", val: data?.price_gram_18k },
-        ]
-      : [
-          { label: "999 / g", val: data?.price_gram_24k },
-          { label: "925 / g", val: data?.price_gram_22k },
-          { label: "800 / g", val: data?.price_gram_18k },
-        ];
+  const t = THEME[metalKey];
 
   return (
     <Box
-      className="rounded-3xl border bg-white p-6"
-      style={{ borderColor: `${theme.accent}22` }}
+      className="group relative overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-2 cursor-default"
+      style={{
+        background: "white",
+        borderColor: t.borderColor,
+        boxShadow: "0 4px 24px rgba(0,0,0,0.05)",
+      }}
+      onMouseEnter={(e) =>
+        ((e.currentTarget as HTMLElement).style.boxShadow = t.shadowHover)
+      }
+      onMouseLeave={(e) =>
+        ((e.currentTarget as HTMLElement).style.boxShadow =
+          "0 4px 24px rgba(0,0,0,0.05)")
+      }
     >
-      {/* Header */}
-      <Box className="flex justify-between mb-5">
-        <Box>
-          <Typography className="text-xs uppercase tracking-widest opacity-60">
-            {theme.symbol}
-          </Typography>
-          <Typography className="text-2xl font-semibold">
-            {theme.label}
-          </Typography>
-        </Box>
+      <Box
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{ background: t.radial }}
+      />
 
-        <Box
-          className="px-3 py-1 rounded-full text-xs"
-          style={{
-            background: isUp ? "#e7f7ec" : "#fdecec",
-            color: isUp ? "#15803d" : "#b91c1c",
-          }}
-        >
-          {(data?.chp ?? 0).toFixed(2)}%
-        </Box>
-      </Box>
+      <Box
+        className="absolute top-0 left-0 right-0 h-[3px]"
+        style={{ background: t.barGradient }}
+      />
 
-      {/* Price */}
-      <Typography className="text-4xl font-bold">
-        {formatINR(data?.price)}
-      </Typography>
-
-      {/* Change */}
-      <Typography
-        className="text-xs mt-1"
-        style={{ color: isUp ? "#15803d" : "#b91c1c" }}
-      >
-        {isUp ? "+" : ""}
-        {formatINR(data?.ch)} today
-      </Typography>
-
-      {/* Divider */}
-      <Box className="my-5 h-px bg-gray-200" />
-
-      {/* Gram rates */}
-      <Box className="grid grid-cols-3 gap-2">
-        {gramTiles.map((t) => (
+      <Box className="relative p-7 sm:p-8">
+        {/* Header */}
+        <Box className="flex items-center gap-3 mb-6">
           <Box
-            key={t.label}
-            className="p-2 text-center rounded-xl"
-            style={{ background: theme.tileBg }}
+            className="flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-bold"
+            style={{
+              background: t.accentSoft,
+              color: t.accent,
+              border: `1px solid ${t.accent}22`,
+            }}
           >
-            <Typography className="text-[10px] opacity-60">
+            {t.icon}
+          </Box>
+          <Box>
+            <Typography
+              className="text-[0.6rem] uppercase tracking-[0.35em]"
+              style={{ color: "rgba(0,0,0,0.4)" }}
+            >
+              {t.symbol}
+            </Typography>
+            <Typography
+              component="h3"
+              className="text-2xl font-semibold leading-tight"
+              style={{
+                fontFamily: "'Playfair Display', serif",
+                color: "#1a1207",
+              }}
+            >
               {t.label}
             </Typography>
-            <Typography className="font-semibold">
-              {formatINR(t.val)}
-            </Typography>
           </Box>
-        ))}
-      </Box>
+        </Box>
 
-      {/* Footer */}
-      <Typography className="text-[10px] text-gray-400 mt-4">
-        Updated {new Date(data.timestamp * 1000).toLocaleString("en-IN")}
-      </Typography>
+        {/* Main price */}
+        <Box className="mb-1">
+          <Typography
+            className="text-[0.6rem] uppercase tracking-[0.3em] mb-1"
+            style={{ color: "rgba(0,0,0,0.35)" }}
+          >
+            {t.tolaLabel}
+          </Typography>
+          <Typography
+            className="text-5xl sm:text-6xl font-semibold leading-none"
+            style={{
+              fontFamily: "'Playfair Display', serif",
+              color: "#1a1207",
+            }}
+          >
+            {formatNPR(entry.tola)}
+          </Typography>
+        </Box>
+
+        {/* Divider */}
+        <Box
+          className="my-6 h-px w-full"
+          style={{ background: t.dividerGradient }}
+        />
+
+        {/* Tiles */}
+        <Typography
+          className="text-[0.6rem] uppercase tracking-[0.3em] mb-3"
+          style={{ color: "rgba(0,0,0,0.35)" }}
+        >
+          Rate Breakdown
+        </Typography>
+        <Box className="grid grid-cols-2 gap-2.5">
+          {t.tiles(entry).map((tile) => (
+            <RateTile
+              key={tile.label}
+              label={tile.label}
+              val={tile.val}
+              accent={t.accent}
+              accentSoft={t.accentSoft}
+              tileBg={t.tileBg}
+            />
+          ))}
+        </Box>
+
+        {/* Footer */}
+        <Box className="mt-6 flex items-center gap-1.5">
+          <Box
+            className={`h-1.5 w-1.5 rounded-full ${
+              isMock ? "bg-amber-400" : "bg-green-500 animate-pulse"
+            }`}
+          />
+          <Typography
+            className="text-[0.65rem] tracking-wide"
+            style={{ color: "rgba(0,0,0,0.3)" }}
+          >
+            {isMock
+              ? "Indicative rate, live data unavailable"
+              : "Live · FENEGOSIDA · Updated daily after 11 AM NPT"}
+          </Typography>
+        </Box>
+      </Box>
     </Box>
   );
 }
 
-// ---- Main ----
-export default function MetalRates() {
-  const [data, setData] = useState<Record<MetalKey, MetalData> | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+// MetalRates
+export function MetalRates() {
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState<RateData | null>(null);
+  const [isMock, setIsMock] = useState(false);
 
   useEffect(() => {
-    fetchMetalRates()
+    fetchRates()
       .then(setData)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
+      .catch((err) => {
+        console.warn("API failed:", err);
+        setIsMock(true);
+        setData({
+          gold: { tola: 0, ten_gram: 0 },
+          silver: { tola: 0, ten_gram: 0 },
+        });
+      })
+      .finally(() => setIsLoading(false));
   }, []);
 
   return (
-    <Box className="p-10 bg-[#fffdf8]">
-      <Typography className="text-2xl font-bold mb-6 text-center">
-        Precious Metal Rates
+    <Box
+      component="section"
+      className="relative w-full overflow-hidden bg-[#fffdf8] px-6 py-16 sm:px-10 lg:px-16 lg:py-24"
+    >
+      <Box
+        className="pointer-events-none absolute inset-0 opacity-60"
+        style={{
+          background:
+            "radial-gradient(ellipse at 10% 10%, #fef3c7, transparent 50%), radial-gradient(ellipse at 90% 90%, #fef3c7, transparent 50%)",
+        }}
+      />
+
+      {/* Header */}
+      <Box className="relative mx-auto mb-12 flex max-w-3xl flex-col items-center text-center lg:mb-16">
+        <Box
+          component="span"
+          className="inline-flex items-center rounded-full border border-amber-700/25 bg-amber-100 px-5 py-1.5 text-[0.65rem] uppercase tracking-[0.35em] text-amber-700 mb-5"
+        >
+          Live Market Rates
+        </Box>
+
+        <Typography
+          component="h2"
+          className="font-semibold leading-tight text-[#1a1207]"
+          style={{
+            fontFamily: "'Playfair Display', serif",
+            fontSize: "clamp(2rem, 5vw, 3rem)",
+          }}
+        >
+          {"Today's "}
+          <Box component="span" className="text-amber-700">
+            Precious Metal
+          </Box>
+          {" Rates"}
+        </Typography>
+
+        <Box className="mt-5 flex items-center gap-2">
+          <Box className="w-12 h-px bg-gradient-to-r from-transparent to-amber-400" />
+          <Box className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <Box className="w-1.5 h-1.5 rounded-full border border-amber-400" />
+          <Box className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+          <Box className="w-12 h-px bg-gradient-to-l from-transparent to-amber-400" />
+        </Box>
+
+        <Typography className="mt-5 max-w-md text-[0.95rem] leading-8 text-gray-500">
+          Official FENEGOSIDA rates, transparent pricing so every piece carries
+          its true value.
+        </Typography>
+
+        {isMock && (
+          <Box
+            className="mt-6 flex items-center gap-2 rounded-full px-5 py-2 text-xs"
+            style={{
+              background: "rgba(251,191,36,0.1)",
+              border: "1px solid rgba(251,191,36,0.3)",
+              color: "#92400e",
+            }}
+          >
+            Could not reach live API, rates currently unavailable.
+          </Box>
+        )}
+      </Box>
+
+      {/* Cards */}
+      <Box className="relative mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
+        {isLoading
+          ? Array.from({ length: 2 }).map((_, i) => (
+              <Skeleton
+                key={i}
+                variant="rectangular"
+                height={380}
+                className="!rounded-3xl"
+                style={{ backgroundColor: "rgba(180,83,9,0.06)" }}
+              />
+            ))
+          : data &&
+            METAL_KEYS.map((key) => (
+              <MetalCard
+                key={key}
+                metalKey={key}
+                entry={data[key]}
+                isMock={isMock}
+              />
+            ))}
+      </Box>
+
+      <Typography className="relative mx-auto mt-10 max-w-2xl text-center text-xs italic text-gray-400">
+        Rates sourced from FENEGOSIDA. Final jewellery price includes making
+        charges and taxes.
       </Typography>
-
-      {/* Error state */}
-      {error && (
-        <Box className="text-center text-red-600 mb-4">
-          Failed to load live rates: {error}
-        </Box>
-      )}
-
-      {/* Loading */}
-      {loading && (
-        <Box className="grid md:grid-cols-2 gap-6">
-          {[1, 2].map((i) => (
-            <Skeleton key={i} height={320} className="rounded-3xl" />
-          ))}
-        </Box>
-      )}
-
-      {/* Data */}
-      {!loading && data && (
-        <Box className="grid md:grid-cols-2 gap-6">
-          {(Object.entries(data) as [MetalKey, MetalData][]).map(
-            ([key, value]) => (
-              <MetalCard key={key} metalKey={key} data={value} />
-            ),
-          )}
-        </Box>
-      )}
     </Box>
   );
 }
+
+export default MetalRates;
