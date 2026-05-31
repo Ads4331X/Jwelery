@@ -1,8 +1,8 @@
-import Home from "./components/home/Home";
+import Home from "./pages/home/Home";
 import Products from "./pages/Products";
 import AboutUs from "./pages/AboutUs";
 import Gallery from "./pages/Gallery";
-import Contact from "./pages/Contact";
+import Contact from "./pages/contact/Contact";
 import ScrollToTop from "./components/ScrollToTop";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 

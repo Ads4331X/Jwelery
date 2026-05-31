@@ -1,11 +1,11 @@
 import { Box } from "@mui/material";
 import { Hero } from "./Hero";
-import Header from "../layout/Header";
+import Header from "../../components/layout/Header";
 import { Story } from "./Story";
 import { GallerySection } from "./GallerySection";
-import MetalRates from "../MetalRates";
+import MetalRates from "../../components/MetalRates";
 import ContactSection from "./ContactSection";
-import Footer from "../layout/Footer";
+import Footer from "../../components/layout/Footer";
 
 export default function Home() {
   return (
