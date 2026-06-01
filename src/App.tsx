@@ -1,6 +1,6 @@
 import Home from "./pages/home/Home";
 import Products from "./pages/Products";
-import AboutUs from "./pages/AboutUs";
+import AboutUs from "./pages/about/AboutUs";
 import Gallery from "./pages/Gallery";
 import Contact from "./pages/contact/Contact";
 import ScrollToTop from "./components/ScrollToTop";

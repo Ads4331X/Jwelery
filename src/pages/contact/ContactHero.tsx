@@ -19,9 +19,9 @@ export function ContactHero() {
         className="text-5xl sm:text-6xl lg:text-7xl font-semibold text-stone-900 leading-tight"
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
-        Contact Our{" "}
+        Contact {" "}
         <Box component="span" className="italic text-amber-700">
-          Showroom
+          Us
         </Box>
       </Typography>
 
