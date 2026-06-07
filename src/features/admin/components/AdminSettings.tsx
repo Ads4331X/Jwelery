@@ -1,32 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  Box,
-  Card,
-  CardContent,
-  Typography,
-  TextField,
-  Button,
-  Alert,
-  Grid,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Divider,
-} from "@mui/material";
-import DeleteIcon from "@mui/icons-material/Delete";
-import VpnKeyIcon from "@mui/icons-material/VpnKey";
-import SecurityIcon from "@mui/icons-material/Security";
-import PersonIcon from "@mui/icons-material/Person";
-import GroupAddIcon from "@mui/icons-material/GroupAdd";
+import { Box, Grid, Typography } from "@mui/material";
+// Icons are used in subcomponents; no direct usage here.
 import { useAuth } from "../../../hooks/useAuth";
 import {
   updateAdminUsername,
@@ -39,6 +13,19 @@ import {
   type AdminAccount,
 } from "../utils/adminUser";
 
+// New component imports
+import ProfileSection from "./AdminSettingsTabs/ProfileSection";
+import SecuritySection from "./AdminSettingsTabs/SecuritySection";
+import AdminManagement from "./AdminSettingsTabs/AdminManagement";
+import DeleteAdminDialog from "./AdminSettingsTabs/DeleteAdminDialog";
+import ResetAdminDialog from "./AdminSettingsTabs/ResetAdminDialog";
+
+// Reusable message type for success/error feedback
+type Message = {
+  type: "success" | "error";
+  text: string;
+};
+
 export default function AdminSettings() {
   const { user } = useAuth();
   const superAdmin = isSuperAdmin(user);
@@ -47,27 +34,18 @@ export default function AdminSettings() {
   const [username, setUsername] = useState(
     user?.user_metadata?.username ?? user?.email?.split("@")[0] ?? "",
   );
-  const [profileMsg, setProfileMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [profileMsg, setProfileMsg] = useState<Message | null>(null);
 
   // Password fields
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [pwdMsg, setPwdMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [pwdMsg, setPwdMsg] = useState<Message | null>(null);
 
   // Admin Management state
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
   const [newAdminUser, setNewAdminUser] = useState("");
   const [newAdminPwd, setNewAdminPwd] = useState("");
-  const [adminMgmtMsg, setAdminMgmtMsg] = useState<{
-    type: "success" | "error";
-    text: string;
-  } | null>(null);
+  const [adminMgmtMsg, setAdminMgmtMsg] = useState<Message | null>(null);
 
   // Destructive Actions state
   const [deleteTarget, setDeleteTarget] = useState<AdminAccount | null>(null);
@@ -75,27 +53,20 @@ export default function AdminSettings() {
   const [tempPassword, setTempPassword] = useState("");
   const [resetMsg, setResetMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    const run = async () => {
-      if (!superAdmin) return;
-      const list = await listAdmins();
-      if (!cancelled) setAdmins(list);
-    };
-
-    void run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [superAdmin]);
-
+  // Function to refresh admin list for manual calls
   const refreshAdmins = async () => {
     if (!superAdmin) return;
-    const list = await listAdmins();
-    setAdmins(list);
+    setAdmins(await listAdmins());
   };
+
+  // Load admins on mount or when superAdmin changes without triggering sync setState warning
+  useEffect(() => {
+    if (!superAdmin) return;
+    (async () => {
+      const list = await listAdmins();
+      setAdmins(list);
+    })();
+  }, [superAdmin]);
 
   // Profile Update handler
   const handleUpdateUsername = async () => {
@@ -219,327 +190,65 @@ export default function AdminSettings() {
       <Grid container spacing={3}>
         {/* Profile Section */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card elevation={0} className="border border-stone-100 rounded-xl">
-            <CardContent className="p-6">
-              <Box className="flex items-center gap-2 mb-4">
-                <PersonIcon className="text-amber-700" />
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-stone-800"
-                >
-                  Profile Section
-                </Typography>
-              </Box>
-              <Divider className="mb-4" />
-
-              {profileMsg && (
-                <Alert severity={profileMsg.type} className="mb-4 text-sm">
-                  {profileMsg.text}
-                </Alert>
-              )}
-
-              <Box className="flex flex-col gap-4">
-                <TextField
-                  fullWidth
-                  label="Username"
-                  size="small"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                />
-                <Button
-                  variant="contained"
-                  disableElevation
-                  onClick={handleUpdateUsername}
-                  className="normal-case bg-stone-800 hover:bg-stone-700 rounded-lg h-9 w-fit"
-                >
-                  Update Username
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+          <ProfileSection
+            username={username}
+            setUsername={setUsername}
+            profileMsg={profileMsg}
+            onUpdateUsername={handleUpdateUsername}
+          />
         </Grid>
 
         {/* Security Section */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Card elevation={0} className="border border-stone-100 rounded-xl">
-            <CardContent className="p-6">
-              <Box className="flex items-center gap-2 mb-4">
-                <SecurityIcon className="text-amber-700" />
-                <Typography
-                  variant="subtitle1"
-                  className="font-semibold text-stone-800"
-                >
-                  Security Section
-                </Typography>
-              </Box>
-              <Divider className="mb-4" />
-
-              {pwdMsg && (
-                <Alert severity={pwdMsg.type} className="mb-4 text-sm">
-                  {pwdMsg.text}
-                </Alert>
-              )}
-
-              <Box className="flex flex-col gap-4">
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="New Password"
-                  size="small"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  type="password"
-                  label="Confirm Password"
-                  size="small"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                />
-                <Button
-                  variant="contained"
-                  disableElevation
-                  onClick={handleUpdatePassword}
-                  className="normal-case bg-stone-800 hover:bg-stone-700 rounded-lg h-9 w-fit"
-                >
-                  Update Password
-                </Button>
-              </Box>
-            </CardContent>
-          </Card>
+          <SecuritySection
+            newPassword={newPassword}
+            setNewPassword={setNewPassword}
+            confirmPassword={confirmPassword}
+            setConfirmPassword={setConfirmPassword}
+            pwdMsg={pwdMsg}
+            onUpdatePassword={handleUpdatePassword}
+          />
         </Grid>
 
         {/* Super Admin Management section */}
         {superAdmin && (
           <Grid size={{ xs: 12 }}>
-            <Card elevation={0} className="border border-stone-100 rounded-xl">
-              <CardContent className="p-6">
-                <Box className="flex items-center gap-2 mb-4">
-                  <GroupAddIcon className="text-amber-700" />
-                  <Typography
-                    variant="subtitle1"
-                    className="font-semibold text-stone-800"
-                  >
-                    Admin Management Section (Super Admin Only)
-                  </Typography>
-                </Box>
-                <Divider className="mb-6" />
-
-                {adminMgmtMsg && (
-                  <Alert severity={adminMgmtMsg.type} className="mb-6 text-sm">
-                    {adminMgmtMsg.text}
-                  </Alert>
-                )}
-
-                <Grid container spacing={4} className="mb-8">
-                  {/* Create Admin Form */}
-                  <Grid size={{ xs: 12, md: 4 }}>
-                    <Typography
-                      variant="subtitle2"
-                      className="text-stone-700 font-semibold mb-3"
-                    >
-                      Create New Admin
-                    </Typography>
-                    <Box className="flex flex-col gap-4">
-                      <TextField
-                        fullWidth
-                        label="Admin Username"
-                        size="small"
-                        value={newAdminUser}
-                        onChange={(e) => setNewAdminUser(e.target.value)}
-                      />
-                      <TextField
-                        fullWidth
-                        type="password"
-                        label="Admin Password"
-                        size="small"
-                        value={newAdminPwd}
-                        onChange={(e) => setNewAdminPwd(e.target.value)}
-                      />
-                      <Button
-                        variant="contained"
-                        disableElevation
-                        onClick={handleAddAdmin}
-                        className="normal-case bg-amber-700 hover:bg-amber-600 text-white rounded-lg h-9"
-                      >
-                        Create Account
-                      </Button>
-                    </Box>
-                  </Grid>
-
-                  {/* Admin List */}
-                  <Grid size={{ xs: 12, md: 8 }}>
-                    <Typography
-                      variant="subtitle2"
-                      className="text-stone-700 font-semibold mb-3"
-                    >
-                      Admin Accounts
-                    </Typography>
-                    <TableContainer
-                      component={Paper}
-                      elevation={0}
-                      className="border border-stone-100 rounded-xl"
-                    >
-                      <Table size="small">
-                        <TableHead className="bg-stone-50">
-                          <TableRow>
-                            <TableCell className="font-semibold text-stone-600 py-3">
-                              Username
-                            </TableCell>
-                            <TableCell className="font-semibold text-stone-600 py-3">
-                              Role
-                            </TableCell>
-                            <TableCell className="font-semibold text-stone-600 py-3">
-                              Created At
-                            </TableCell>
-                            <TableCell
-                              align="right"
-                              className="font-semibold text-stone-600 py-3"
-                            >
-                              Actions
-                            </TableCell>
-                          </TableRow>
-                        </TableHead>
-                        <TableBody>
-                          {admins.map((adm) => (
-                            <TableRow
-                              key={adm.id}
-                              className="hover:bg-stone-50/50"
-                            >
-                              <TableCell className="text-stone-800">
-                                {adm.username}
-                              </TableCell>
-                              <TableCell className="text-stone-500">
-                                {adm.username.toLowerCase() === "admin"
-                                  ? "Super Admin"
-                                  : "Admin"}
-                              </TableCell>
-                              <TableCell className="text-stone-400 text-xs">
-                                {new Date(adm.created_at).toLocaleDateString()}
-                              </TableCell>
-                              <TableCell align="right">
-                                {adm.username.toLowerCase() !== "admin" && (
-                                  <Box className="flex justify-end gap-1">
-                                    <IconButton
-                                      size="small"
-                                      color="primary"
-                                      onClick={() => setResetTarget(adm)}
-                                      title="Reset Password"
-                                    >
-                                      <VpnKeyIcon
-                                        fontSize="small"
-                                        className="text-stone-500 hover:text-stone-800"
-                                      />
-                                    </IconButton>
-                                    <IconButton
-                                      size="small"
-                                      color="error"
-                                      onClick={() => setDeleteTarget(adm)}
-                                      title="Delete Account"
-                                    >
-                                      <DeleteIcon fontSize="small" />
-                                    </IconButton>
-                                  </Box>
-                                )}
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </TableContainer>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
+            <AdminManagement
+              admins={admins}
+              newAdminUser={newAdminUser}
+              setNewAdminUser={setNewAdminUser}
+              newAdminPwd={newAdminPwd}
+              setNewAdminPwd={setNewAdminPwd}
+              adminMgmtMsg={adminMgmtMsg}
+              onAddAdmin={handleAddAdmin}
+              onSetDeleteTarget={setDeleteTarget}
+              onSetResetTarget={setResetTarget}
+            />
           </Grid>
         )}
       </Grid>
 
-      {/* Delete Confirmation Modal */}
-      <Dialog open={!!deleteTarget} onClose={() => setDeleteTarget(null)}>
-        <DialogTitle className="text-stone-800 font-semibold">
-          Delete Admin Account
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" className="text-stone-600">
-            Are you sure you want to delete the admin account{" "}
-            <strong>"{deleteTarget?.username}"</strong>? This will permanently
-            revoke their access, and they will be logged out on their next
-            action.
-          </Typography>
-        </DialogContent>
-        <DialogActions className="p-4">
-          <Button
-            onClick={() => setDeleteTarget(null)}
-            className="normal-case text-stone-500"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleDeleteConfirm}
-            variant="contained"
-            color="error"
-            className="normal-case rounded-lg"
-          >
-            Delete Account
-          </Button>
-        </DialogActions>
-      </Dialog>
+      {/* Delete Confirmation Dialog */}
+      <DeleteAdminDialog
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDeleteConfirm}
+      />
 
-      {/* Reset Password Modal */}
-      <Dialog
+      {/* Reset Password Dialog */}
+      <ResetAdminDialog
         open={!!resetTarget}
         onClose={() => {
           setResetTarget(null);
           setResetMsg(null);
           setTempPassword("");
         }}
-      >
-        <DialogTitle className="text-stone-800 font-semibold">
-          Reset Credentials
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" className="text-stone-600 mb-4">
-            Reset the password for admin{" "}
-            <strong>"{resetTarget?.username}"</strong>. The admin can log in
-            with this temporary password.
-          </Typography>
-          {resetMsg && (
-            <Alert severity="error" className="mb-4 text-xs">
-              {resetMsg}
-            </Alert>
-          )}
-          <TextField
-            autoFocus
-            fullWidth
-            type="password"
-            label="Temporary Password"
-            size="small"
-            value={tempPassword}
-            onChange={(e) => setTempPassword(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions className="p-4">
-          <Button
-            onClick={() => {
-              setResetTarget(null);
-              setResetMsg(null);
-              setTempPassword("");
-            }}
-            className="normal-case text-stone-500"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleResetConfirm}
-            variant="contained"
-            className="normal-case bg-stone-800 hover:bg-stone-700 text-white rounded-lg"
-          >
-            Reset Credentials
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleResetConfirm}
+        resetMsg={resetMsg}
+        tempPassword={tempPassword}
+        setTempPassword={setTempPassword}
+        setResetMsg={setResetMsg}
+      />
     </Box>
   );
 }
