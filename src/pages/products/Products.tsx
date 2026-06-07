@@ -115,14 +115,14 @@ export default function Products() {
       <Header />
       <ProductsHero />
 
-      <Box className="max-w-screen-xl mx-auto px-4 sm:px-6 py-10 md:py-14">
+      <Box className="max-w-7xl mx-auto px-4 sm:px-6 py-10 md:py-14">
         <Stack direction="row" sx={{ gap: { lg: 3 } }}>
           {/* ── Desktop sidebar ── */}
           {isDesktop && (
             <Paper
               component="aside"
               elevation={0}
-              className="w-56 shrink-0 sticky top-24 !bg-white !rounded-[20px] !border !border-amber-900/[0.08] p-5 !shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
+              className="w-56 shrink-0 sticky top-24 bg-white! rounded-[20px]! border! border-amber-900/8! p-5 shadow-[0_4px_24px_rgba(0,0,0,0.04)]!"
             >
               <FilterPanel
                 filters={filters}
@@ -183,7 +183,7 @@ export default function Products() {
                 direction="row"
                 sx={{ flexWrap: "wrap", alignItems: "center", gap: 1, mb: 2 }}
               >
-                <Typography className="!text-[0.6rem] !uppercase !tracking-[0.15em] !text-black/30">
+                <Typography className="text-[0.6rem]! uppercase! tracking-[0.15em]! text-black/30!">
                   Active:
                 </Typography>
                 {filters.metal !== "All" && (
@@ -203,7 +203,7 @@ export default function Products() {
 
             {/* Results count */}
             {!loading && !error && (
-              <Typography className="!text-[0.68rem] !uppercase !tracking-[0.15em] !text-black/30 !mb-4">
+              <Typography className="text-[0.68rem]! uppercase! tracking-[0.15em]! text-black/30! mb-4!">
                 {filteredProducts.length} piece
                 {filteredProducts.length !== 1 ? "s" : ""} found
               </Typography>

@@ -1,0 +1,16 @@
+/* Import ReactNode type for children */
+import { Navigate } from "react-router-dom";
+import { useAuth } from "../../hooks/auth/useAuth";
+import type { ReactNode } from "react";
+
+type Props = {
+  children: ReactNode;
+};
+
+export default function ProtectedRoute({ children }: Props) {
+  const { isAuthenticated } = useAuth();
+  if (!isAuthenticated) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+}
