@@ -1,13 +1,13 @@
-import Home from "./pages/home/Home";
-import Products from "./pages/products/Products";
-import AboutUs from "./pages/about/AboutUs";
-import Contact from "./pages/contact/Contact";
-import ScrollToTop from "./components/ScrollToTop";
+import Home from "./features/home/Home";
+import Products from "./features/products/Products";
+import AboutUs from "./features/about/AboutUs";
+import Contact from "./features/contact/Contact";
+import ScrollToTop from "./components/shared/ScrollToTop";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./context/authContext/AuthProvider";
-import ProtectedRoute from "./components/common/ProtectedRoute";
-import Login from "./pages/auth/Login";
-import Dashboard from "./pages/admin/Dashboard";
+import { AuthProvider } from "./features/auth/context/AuthProvider";
+import ProtectedRoute from "./components/shared/ProtectedRoute";
+import Login from "./features/auth/Login";
+import Dashboard from "./features/admin/Dashboard";
 
 function App() {
   return (

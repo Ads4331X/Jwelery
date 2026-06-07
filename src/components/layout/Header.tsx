@@ -2,7 +2,7 @@ import { Box, IconButton } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import { NavLink } from "react-router-dom";
 import { useState } from "react";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/images/branding/logo.png";
 
 export default function Header() {
   const [open, setOpen] = useState(false);

@@ -7,7 +7,7 @@ import {
   PhoneOutlined,
 } from "@mui/icons-material";
 import { NavLink } from "react-router-dom";
-import logo from "../../assets/logo.png";
+import logo from "../../assets/images/branding/logo.png";
 
 const NAV_LINKS = [
   { label: "Home", path: "/" },
