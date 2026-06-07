@@ -63,14 +63,14 @@ export function HeroSection() {
             <Box className="mt-8 flex flex-wrap gap-4">
               <Button
                 onClick={() => navigate("/products")}
-                className="!rounded-full !bg-amber-700 !px-6 !py-3 !text-xs !font-semibold !uppercase !tracking-[0.28em] !text-white !transition-all hover:!bg-amber-800 hover:!shadow-[0_14px_30px_rgba(180,83,9,0.22)]"
+                className="rounded-full! bg-amber-700! px-6! py-3! text-xs! font-semibold! uppercase! tracking-[0.28em]! text-white! transition-all! hover:bg-amber-800! hover:shadow-[0_14px_30px_rgba(180,83,9,0.22)]!"
               >
                 Explore Collections
               </Button>
 
               <Button
                 onClick={() => navigate("/contact")}
-                className="!rounded-full !border !border-amber-700 !px-6 !py-3 !text-xs !font-semibold !uppercase !tracking-[0.28em] !text-amber-800 !transition-all hover:!bg-amber-100"
+                className="rounded-full! border! border-amber-700! px-6! py-3! text-xs! font-semibold! uppercase! tracking-[0.28em]! text-amber-800! transition-all! hover:bg-amber-100!"
               >
                 Private Inquiry
               </Button>
@@ -79,7 +79,7 @@ export function HeroSection() {
 
           {/* RIGHT IMAGE GRID */}
           <Box className="relative">
-            <Box className="absolute -inset-6 rounded-[2rem] bg-amber-200/20 blur-3xl" />
+            <Box className="absolute -inset-6 rounded-4xl bg-amber-200/20 blur-3xl" />
 
             <Box className="relative grid gap-4 sm:grid-cols-[1.2fr_0.8fr]">
               {/* BIG IMAGE */}
