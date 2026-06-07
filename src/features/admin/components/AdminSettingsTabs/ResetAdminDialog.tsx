@@ -29,8 +29,21 @@ export default function ResetAdminDialog({
   setTempPassword,
   setResetMsg,
 }: ResetAdminDialogProps) {
+  // Helper to close the dialog and clear any reset message
+  const handleClose = () => {
+    // Clear the reset message if present
+    setResetMsg(null);
+    onClose();
+  };
+
+  // Helper to confirm reset and also clear the reset message
+  const handleConfirm = () => {
+    setResetMsg(null);
+    onConfirm();
+  };
+
   return (
-    <Dialog open={open} onClose={onClose}>
+    <Dialog open={open} onClose={handleClose}>
       <DialogTitle className="text-stone-800 font-semibold">
         Reset Credentials
       </DialogTitle>
@@ -57,11 +70,11 @@ export default function ResetAdminDialog({
         />
       </DialogContent>
       <DialogActions className="p-4">
-        <Button onClick={onClose} className="normal-case text-stone-500">
+        <Button onClick={handleClose} className="normal-case text-stone-500">
           Cancel
         </Button>
         <Button
-          onClick={onConfirm}
+          onClick={handleConfirm}
           variant="contained"
           className="normal-case bg-stone-800 hover:bg-stone-700 text-white rounded-lg"
         >
