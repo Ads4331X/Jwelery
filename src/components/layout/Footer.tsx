@@ -13,7 +13,6 @@ const NAV_LINKS = [
   { label: "Home", path: "/" },
   { label: "About Us", path: "/about_us" },
   { label: "Products", path: "/products" },
-  { label: "Gallery", path: "/gallery" },
   { label: "Contact", path: "/contact" },
 ];
 

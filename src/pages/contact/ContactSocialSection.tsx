@@ -1,6 +1,6 @@
 import { Box, Typography } from "@mui/material";
 import { Facebook, Instagram } from "@mui/icons-material";
-import ContactRing from "../../assets/ContactRing.jpeg"; // ✅ correct from src/components/
+import ContactPic from "../../assets/ContactSection.jpeg";
 
 const SOCIAL_LINKS = [
   {
@@ -26,7 +26,7 @@ export function ContactSocialSection() {
           <Box className="group relative min-h-[320px] overflow-hidden md:min-h-[520px]">
             <Box
               component="img"
-              src={ContactRing}
+              src={ContactPic}
               alt="Jewelry craftsmanship"
               className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
             />
