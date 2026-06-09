@@ -14,11 +14,11 @@ const CATEGORY_OPTIONS = [
   "Bridal",
 ];
 
-export type Filters = { metal: string; category: string };
+export type Filters = { metal: string; categories: string[] };
 
 interface FilterPanelProps {
   filters: Filters;
-  onChange: (key: keyof Filters, value: string) => void;
+  onChange: (key: keyof Filters, value: Filters[keyof Filters]) => void;
   onClear: () => void;
   activeCount: number;
 }
@@ -79,14 +79,42 @@ export function FilterPanel({
           Category
         </Typography>
         <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
-          {CATEGORY_OPTIONS.map((c) => (
-            <FilterChip
-              key={c}
-              label={c}
-              active={filters.category === c}
-              onClick={() => onChange("category", c)}
-            />
-          ))}
+          {CATEGORY_OPTIONS.map((c) => {
+            const isAll = c === "All";
+            const allActive = isAll && filters.categories.length === 0;
+            const active =
+              allActive || (!isAll && filters.categories.includes(c));
+
+            return (
+              <FilterChip
+                key={c}
+                label={c}
+                active={active}
+                onClick={() => {
+                  if (isAll) {
+                    onChange("categories", []);
+                    return;
+                  }
+
+                  const currentlyAll = filters.categories.length === 0;
+
+                  // If switching from All -> specific: selecting any category disables All
+                  if (currentlyAll) {
+                    onChange("categories", [c]);
+                    return;
+                  }
+
+                  // Toggle multi-select (OR logic is implemented in Products.tsx)
+                  const next = filters.categories.includes(c)
+                    ? filters.categories.filter((x) => x !== c)
+                    : [...filters.categories, c];
+
+                  // If the last category is deselected, show All again (empty array means no filter)
+                  onChange("categories", next);
+                }}
+              />
+            );
+          })}
         </Stack>
       </Box>
     </Box>

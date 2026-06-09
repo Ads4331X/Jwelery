@@ -52,11 +52,12 @@ export default function LazyImage({ src, alt, height = 260 }: LazyImageProps) {
           alt={alt}
           loading="lazy"
           onLoad={() => setLoaded(true)}
+          onError={() => setLoaded(true)}
           sx={{
             width: "100%",
             height,
             objectFit: "cover",
-            display: loaded ? "block" : "none",
+            display: "block",
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
           }}

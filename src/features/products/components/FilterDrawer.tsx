@@ -6,7 +6,7 @@ interface FilterDrawerProps {
   open: boolean;
   onClose: () => void;
   filters: Filters;
-  onChange: (key: keyof Filters, value: string) => void;
+  onChange: (key: keyof Filters, value: Filters[keyof Filters]) => void;
   onClear: () => void;
   activeCount: number;
   resultCount: number;

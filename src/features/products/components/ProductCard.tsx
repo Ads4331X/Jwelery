@@ -44,7 +44,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             {product.title}
           </Typography>
           <Typography className="!text-[0.95rem] !font-bold !text-amber-700 !whitespace-nowrap">
-            {product.price}
+            Nrs: {product.price}
           </Typography>
         </Box>
 

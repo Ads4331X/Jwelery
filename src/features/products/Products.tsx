@@ -25,11 +25,21 @@ export default function Products() {
 
   const initialFilters = useMemo<Filters>(() => {
     const state = location.state as {
-      filter?: { metal?: string; category?: string };
+      filter?: { metal?: string; categories?: string[] | string };
     } | null;
+    const incoming = state?.filter?.categories;
+    const categories =
+      typeof incoming === "string"
+        ? incoming.split("|").filter(Boolean)
+        : Array.isArray(incoming)
+          ? incoming
+          : [];
+
+    const normalizedCategories = categories.includes("All") ? [] : categories;
+
     return {
       metal: state?.filter?.metal ?? "All",
-      category: state?.filter?.category ?? "All",
+      categories: normalizedCategories,
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -63,7 +73,7 @@ export default function Products() {
   }, []);
 
   const handleFilterChange = useCallback(
-    (key: keyof Filters, value: string) => {
+    (key: keyof Filters, value: Filters[keyof Filters]) => {
       setFilters((prev) => ({ ...prev, [key]: value }));
       setPage(1);
     },
@@ -71,7 +81,7 @@ export default function Products() {
   );
 
   const clearFilters = useCallback(() => {
-    setFilters({ metal: "All", category: "All" });
+    setFilters({ metal: "All", categories: [] });
     setPage(1);
   }, []);
 
@@ -81,7 +91,8 @@ export default function Products() {
   }, []);
 
   const activeFilterCount =
-    (filters.metal !== "All" ? 1 : 0) + (filters.category !== "All" ? 1 : 0);
+    (filters.metal !== "All" ? 1 : 0) +
+    (filters.categories.length > 0 ? filters.categories.length : 0);
 
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -101,11 +112,13 @@ export default function Products() {
         p.title.toLowerCase().includes(filters.metal.toLowerCase());
 
       const matchesCategory =
-        filters.category === "All" ||
-        p.tags.some((t) =>
-          t.toLowerCase().includes(filters.category.toLowerCase()),
+        filters.categories.length === 0 ||
+        filters.categories.some((cat) =>
+          p.tags.some((t) => t.toLowerCase().includes(cat.toLowerCase())),
         ) ||
-        p.title.toLowerCase().includes(filters.category.toLowerCase());
+        filters.categories.some((cat) =>
+          p.title.toLowerCase().includes(cat.toLowerCase()),
+        );
 
       return matchesSearch && matchesMetal && matchesCategory;
     });
@@ -201,12 +214,18 @@ export default function Products() {
                     onRemove={() => handleFilterChange("metal", "All")}
                   />
                 )}
-                {filters.category !== "All" && (
+                {filters.categories.map((cat) => (
                   <ActiveFilterPill
-                    label={filters.category}
-                    onRemove={() => handleFilterChange("category", "All")}
+                    key={cat}
+                    label={cat}
+                    onRemove={() =>
+                      handleFilterChange(
+                        "categories",
+                        filters.categories.filter((x) => x !== cat),
+                      )
+                    }
                   />
-                )}
+                ))}
               </Stack>
             )}
 
