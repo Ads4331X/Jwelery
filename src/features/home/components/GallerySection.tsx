@@ -14,6 +14,7 @@ type GalleryItem = {
   image: string;
   gridArea: string;
   objectPosition?: string;
+  filter?: { metal?: string; category?: string };
 };
 
 const galleryItems: GalleryItem[] = [
@@ -24,6 +25,7 @@ const galleryItems: GalleryItem[] = [
     image: bridal,
     gridArea: "bridal",
     objectPosition: "50% 20%",
+    filter: { category: "Bridal" },
   },
   {
     title: "Gold Necklaces",
@@ -32,6 +34,7 @@ const galleryItems: GalleryItem[] = [
     image: neckless,
     gridArea: "necklace",
     objectPosition: "center center",
+    filter: { metal: "Gold", category: "Necklace" },
   },
   {
     title: "Silver Jewelry",
@@ -40,6 +43,7 @@ const galleryItems: GalleryItem[] = [
     image: silver,
     gridArea: "silver",
     objectPosition: "center center",
+    filter: { metal: "Silver" },
   },
   {
     title: "Earrings",
@@ -48,6 +52,7 @@ const galleryItems: GalleryItem[] = [
     image: earing,
     gridArea: "earring",
     objectPosition: "center top",
+    filter: { category: "Earring" },
   },
   {
     title: "More Collections",
@@ -166,7 +171,10 @@ function GalleryCard({
 
 export function GallerySection() {
   const navigate = useNavigate();
-  const handleCardClick = () => navigate("/products");
+
+  const handleCardClick = (item: GalleryItem) => {
+    navigate("/products", { state: { filter: item.filter ?? {} } });
+  };
 
   return (
     <Box className="bg-[#fafaf8] py-16 sm:py-24">
@@ -190,7 +198,7 @@ export function GallerySection() {
             className="text-4xl sm:text-6xl font-semibold text-stone-900 text-center leading-tight"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            The Gallery
+            Our Products
           </Box>
 
           {/* SUBTITLE */}
@@ -231,7 +239,7 @@ export function GallerySection() {
               key={item.gridArea}
               item={item}
               large={item.gridArea === "bridal"}
-              onClick={handleCardClick}
+              onClick={() => handleCardClick(item)}
             />
           ))}
         </Box>
@@ -259,7 +267,7 @@ export function GallerySection() {
               <GalleryCard
                 item={item}
                 large={item.gridArea === "bridal"}
-                onClick={handleCardClick}
+                onClick={() => handleCardClick(item)}
               />
             </Box>
           ))}

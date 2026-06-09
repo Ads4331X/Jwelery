@@ -222,16 +222,6 @@ function MetalCard({
             />
           ))}
         </Box>
-
-        <Box className="mt-6 flex items-center gap-1.5">
-          <Box className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
-          <Typography
-            className="text-[0.65rem] tracking-wide"
-            style={{ color: "rgba(0,0,0,0.3)" }}
-          >
-            Live · FENEGOSIDA · Updated daily after 11 AM NPT
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

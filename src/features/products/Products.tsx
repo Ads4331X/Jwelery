@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery, useTheme } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import { Box, Paper, Stack, Typography } from "@mui/material";
+import { useLocation } from "react-router-dom";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { SearchBar } from "./components/SearchBar";
@@ -20,13 +21,21 @@ const PAGE_SIZE_OPTIONS = [9, 12, 18];
 export default function Products() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
+  const location = useLocation();
+
+  const initialFilters = useMemo<Filters>(() => {
+    const state = location.state as {
+      filter?: { metal?: string; category?: string };
+    } | null;
+    return {
+      metal: state?.filter?.metal ?? "All",
+      category: state?.filter?.category ?? "All",
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [filters, setFilters] = useState<Filters>({
-    metal: "All",
-    category: "All",
-  });
+  const [filters, setFilters] = useState<Filters>(initialFilters);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
