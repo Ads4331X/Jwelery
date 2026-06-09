@@ -16,18 +16,7 @@ export type AdminResult = {
 };
 
 // ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Derives a clean display name from an internal email.
- * e.g. "admin@internal.admin" → "admin"
- */
-export const displayNameFromEmail = (email: string): string =>
-  email.split("@")[0];
-
-// ---------------------------------------------------------------------------
-// Admin CRUD  (requires `admins` table with columns: id, email, display_name, role, created_at)
+// Read
 // ---------------------------------------------------------------------------
 
 export const listAdmins = async (): Promise<AdminAccount[]> => {
@@ -40,15 +29,18 @@ export const listAdmins = async (): Promise<AdminAccount[]> => {
   return data as AdminAccount[];
 };
 
+// ---------------------------------------------------------------------------
+// Create
+// ---------------------------------------------------------------------------
+
 /**
- * Creates a new admin account.
+ * Creates a new admin auth account + admins table record.
  *
- * - email must be a full email (e.g. "alice@internal.admin")
- * - role defaults to "admin"; pass "super_admin" for elevated access
+ * Problem: supabase.auth.signUp() replaces the current session with the
+ * newly created user's session, logging the super admin out mid-flow.
  *
- * NOTE: This calls supabase.auth.signUp which requires service-role key
- * in a server context for production. In dev / local Supabase this works
- * from the client because email confirmation is disabled.
+ * Fix: capture the super admin's session before signUp, then restore it
+ * immediately after so the super admin stays logged in.
  */
 export const createAdmin = async (
   email: string,
@@ -56,6 +48,11 @@ export const createAdmin = async (
   displayName: string,
   role: AdminRole = "admin",
 ): Promise<AdminResult> => {
+  // 1. Save current (super admin) session
+  const { data: sessionData } = await supabase.auth.getSession();
+  const currentSession = sessionData.session;
+
+  // 2. Create the new auth user
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -63,6 +60,14 @@ export const createAdmin = async (
       data: { role, display_name: displayName },
     },
   });
+
+  // 3. Restore the super admin's session regardless of outcome
+  if (currentSession) {
+    await supabase.auth.setSession({
+      access_token: currentSession.access_token,
+      refresh_token: currentSession.refresh_token,
+    });
+  }
 
   if (error) {
     if (error.message.toLowerCase().includes("already registered")) {
@@ -86,21 +91,16 @@ export const createAdmin = async (
 
     if (dbError) {
       console.error("Failed to insert admin record:", dbError.message);
-      // Auth account was created; proceed — the DB row can be re-synced
     }
   }
 
   return { user: newUser ?? null, error: null };
 };
 
-/**
- * Deletes an admin from the `admins` table.
- *
- * Removing the Supabase Auth user requires the service-role key and should
- * be done via a server function / edge function in production.
- * Here we remove the DB record so the account can no longer pass the
- * role check in AuthProvider.
- */
+// ---------------------------------------------------------------------------
+// Delete
+// ---------------------------------------------------------------------------
+
 export const deleteAdmin = async (id: string): Promise<boolean> => {
   const { error } = await supabase.from("admins").delete().eq("id", id);
   if (error) {
@@ -110,10 +110,10 @@ export const deleteAdmin = async (id: string): Promise<boolean> => {
   return true;
 };
 
-/**
- * Updates the password for the currently signed-in admin.
- * Call this only when the user is already authenticated.
- */
+// ---------------------------------------------------------------------------
+// Password (own account only)
+// ---------------------------------------------------------------------------
+
 export const updateOwnPassword = async (
   newPassword: string,
 ): Promise<{ error: string | null }> => {

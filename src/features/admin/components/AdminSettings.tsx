@@ -1,4 +1,4 @@
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useCallback } from "react";
 import { Box, Grid, Typography } from "@mui/material";
 import { AuthContext } from "../../auth/context/context";
 
@@ -24,30 +24,34 @@ export default function AdminSettings() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwdMsg, setPwdMsg] = useState<Message | null>(null);
 
-  // Admin management state (super admin only)
+  // Admin management state
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
+  const [adminsLoaded, setAdminsLoaded] = useState(false);
   const [newAdminEmail, setNewAdminEmail] = useState("");
   const [newAdminDisplayName, setNewAdminDisplayName] = useState("");
   const [newAdminPwd, setNewAdminPwd] = useState("");
   const [adminMgmtMsg, setAdminMgmtMsg] = useState<Message | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminAccount | null>(null);
 
-  const refreshAdmins = async () => {
-    if (!isSuperAdmin) return;
-    setAdmins(await listAdmins());
-  };
+  // Stable refresh function — always fetches fresh from DB
+  const refreshAdmins = useCallback(async () => {
+    const list = await listAdmins();
+    setAdmins(list);
+    setAdminsLoaded(true);
+  }, []);
 
   useEffect(() => {
     if (!isSuperAdmin) return;
-    listAdmins().then(setAdmins);
-  }, [isSuperAdmin]);
+    void (async () => {
+      await refreshAdmins();
+    })();
+  }, [isSuperAdmin, refreshAdmins]);
 
   // -------------------------------------------------------------------------
-  // Password update (own account)
+  // Password update
   // -------------------------------------------------------------------------
   const handleUpdatePassword = async () => {
     setPwdMsg(null);
-
     if (!newPassword) {
       setPwdMsg({ type: "error", text: "Please enter a new password." });
       return;
@@ -63,11 +67,8 @@ export default function AdminSettings() {
       setPwdMsg({ type: "error", text: "Passwords do not match." });
       return;
     }
-
-    // Dynamic import to keep the bundle tidy and avoid circular deps
     const { updateOwnPassword } = await import("../utils/adminUser");
     const { error } = await updateOwnPassword(newPassword);
-
     if (error) {
       setPwdMsg({ type: "error", text: error });
     } else {
@@ -78,7 +79,7 @@ export default function AdminSettings() {
   };
 
   // -------------------------------------------------------------------------
-  // Create admin (super admin only)
+  // Create admin
   // -------------------------------------------------------------------------
   const handleAddAdmin = async () => {
     setAdminMgmtMsg(null);
@@ -111,20 +112,24 @@ export default function AdminSettings() {
 
     if (error) {
       setAdminMgmtMsg({ type: "error", text: error });
-    } else {
-      setAdminMgmtMsg({
-        type: "success",
-        text: `Admin account "${newAdminDisplayName}" created.`,
-      });
-      setNewAdminEmail("");
-      setNewAdminDisplayName("");
-      setNewAdminPwd("");
-      refreshAdmins();
+      return;
     }
+
+    setAdminMgmtMsg({
+      type: "success",
+      text: `Admin account "${newAdminDisplayName}" created.`,
+    });
+    setNewAdminEmail("");
+    setNewAdminDisplayName("");
+    setNewAdminPwd("");
+
+    // Wait briefly for session restore in createAdmin to fully settle,
+    // then refresh the list
+    setTimeout(() => refreshAdmins(), 500);
   };
 
   // -------------------------------------------------------------------------
-  // Delete admin (super admin only)
+  // Delete admin
   // -------------------------------------------------------------------------
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
@@ -162,6 +167,7 @@ export default function AdminSettings() {
           <Grid size={{ xs: 12 }}>
             <AdminManagement
               admins={admins}
+              adminsLoaded={adminsLoaded}
               newAdminEmail={newAdminEmail}
               setNewAdminEmail={setNewAdminEmail}
               newAdminDisplayName={newAdminDisplayName}

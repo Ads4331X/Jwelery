@@ -16,6 +16,7 @@ import {
   TableBody,
   IconButton,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -23,6 +24,7 @@ import type { AdminAccount } from "../../utils/adminUser";
 
 type Props = {
   admins: AdminAccount[];
+  adminsLoaded: boolean;
   newAdminEmail: string;
   setNewAdminEmail: (v: string) => void;
   newAdminDisplayName: string;
@@ -36,6 +38,7 @@ type Props = {
 
 export default function AdminManagement({
   admins,
+  adminsLoaded,
   newAdminEmail,
   setNewAdminEmail,
   newAdminDisplayName,
@@ -97,7 +100,7 @@ export default function AdminManagement({
                 value={newAdminEmail}
                 onChange={(e) => setNewAdminEmail(e.target.value)}
                 placeholder="e.g. jane@internal.admin"
-                helperText="Use any email format. Internal emails like name@internal.admin won't trigger verification."
+                helperText="Use name@internal.admin to avoid sending verification emails."
               />
               <TextField
                 fullWidth
@@ -126,7 +129,12 @@ export default function AdminManagement({
             >
               Admin Accounts
             </Typography>
-            {admins.length === 0 ? (
+
+            {!adminsLoaded ? (
+              <Box className="flex justify-center py-6">
+                <CircularProgress size={24} className="text-stone-400" />
+              </Box>
+            ) : admins.length === 0 ? (
               <Typography
                 variant="body2"
                 className="text-stone-400 py-4 text-center"
