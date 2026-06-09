@@ -1,36 +1,38 @@
-import Home from "./features/home/Home";
-import Products from "./features/products/Products";
-import AboutUs from "./features/about/AboutUs";
-import Contact from "./features/contact/Contact";
-import ScrollToTop from "./components/shared/ScrollToTop";
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./features/auth/context/AuthProvider";
 import ProtectedRoute from "./components/shared/ProtectedRoute";
-import Login from "./features/auth/Login";
-import Dashboard from "./features/admin/Dashboard";
+import ScrollToTop from "./components/shared/ScrollToTop";
+
+const Home = lazy(() => import("./features/home/Home"));
+const Products = lazy(() => import("./features/products/Products"));
+const AboutUs = lazy(() => import("./features/about/AboutUs"));
+const Contact = lazy(() => import("./features/contact/Contact"));
+const Login = lazy(() => import("./features/auth/Login"));
+const Dashboard = lazy(() => import("./features/admin/Dashboard"));
 
 function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
-        <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/products" element={<Products />} />
-          <Route path="/about_us" element={<AboutUs />} />
-          <Route path="/contact" element={<Contact />} />
-          {/* Auth routes */}
-          <Route path="/login" element={<Login />} />
-          {/* Protected admin routes */}
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-        </Routes>
+        <Suspense fallback={null}>
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/about_us" element={<AboutUs />} />
+            <Route path="/contact" element={<Contact />} />
+            <Route path="/login" element={<Login />} />
+            <Route
+              path="/admin/*"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );

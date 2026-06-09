@@ -36,7 +36,7 @@ export default function SecuritySection({
             variant="subtitle1"
             className="font-semibold text-stone-800"
           >
-            Security Section
+            Change Password
           </Typography>
         </Box>
         <Divider className="mb-4" />

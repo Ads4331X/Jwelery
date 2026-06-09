@@ -1,11 +1,11 @@
 import { Box } from "@mui/material";
 import { Route, Routes } from "react-router-dom";
-import Sidebar from "./components/Sidebar";
-import Topbar from "./components/Topbar";
+import Sidebar from "./components/layout/Sidebar";
+import Topbar from "./components/layout/Topbar";
 import AdminSettings from "./components/AdminSettings";
-import Overview from "./components/Overview";
-import AdminProducts from "./components/AdminProducts";
-import AdminAnalytics from "./components/AdminAnalytics";
+import Overview from "./components/overview/Overview";
+import AdminProducts from "./components/products/AdminProducts";
+import AdminAnalytics from "./components/analytics/AdminAnalytics";
 
 export default function Dashboard() {
   return (

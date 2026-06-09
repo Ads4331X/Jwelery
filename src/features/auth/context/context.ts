@@ -1,10 +1,13 @@
 import { createContext } from "react";
 import type { User } from "@supabase/supabase-js";
 
+export type AdminRole = "super_admin" | "admin";
+
 export interface AuthContextType {
   isAuthenticated: boolean;
   user: User | null;
-  login: (username: string, password: string) => Promise<string | null>;
+  role: AdminRole | null;
+  login: (email: string, password: string) => Promise<string | null>;
   logout: () => Promise<void>;
 }
 

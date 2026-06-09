@@ -1,94 +1,53 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { Box, Grid, Typography } from "@mui/material";
-// Icons are used in subcomponents; no direct usage here.
-import { useAuth } from "../../../hooks/useAuth";
+import { AuthContext } from "../../auth/context/context";
+
 import {
-  updateAdminUsername,
-  updateAdminPassword,
   listAdmins,
   createAdmin,
-  deleteAdminAccount,
-  resetAdminAccount,
-  isSuperAdmin,
+  deleteAdmin,
   type AdminAccount,
 } from "../utils/adminUser";
 
-// New component imports
-import ProfileSection from "./AdminSettingsTabs/ProfileSection";
-import SecuritySection from "./AdminSettingsTabs/SecuritySection";
-import AdminManagement from "./AdminSettingsTabs/AdminManagement";
-import DeleteAdminDialog from "./AdminSettingsTabs/DeleteAdminDialog";
-import ResetAdminDialog from "./AdminSettingsTabs/ResetAdminDialog";
+import SecuritySection from "./settings/SecuritySection";
+import AdminManagement from "./settings/AdminManagement";
+import DeleteAdminDialog from "./settings/DeleteAdminDialog";
 
-// Reusable message type for success/error feedback
-type Message = {
-  type: "success" | "error";
-  text: string;
-};
+type Message = { type: "success" | "error"; text: string };
 
 export default function AdminSettings() {
-  const { user } = useAuth();
-  const superAdmin = isSuperAdmin(user);
+  const auth = useContext(AuthContext);
+  const isSuperAdmin = auth?.role === "super_admin";
 
-  // Profile fields
-  const [username, setUsername] = useState(
-    user?.user_metadata?.username ?? user?.email?.split("@")[0] ?? "",
-  );
-  const [profileMsg, setProfileMsg] = useState<Message | null>(null);
-
-  // Password fields
+  // Password change state
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [pwdMsg, setPwdMsg] = useState<Message | null>(null);
 
-  // Admin Management state
+  // Admin management state (super admin only)
   const [admins, setAdmins] = useState<AdminAccount[]>([]);
-  const [newAdminUser, setNewAdminUser] = useState("");
+  const [newAdminEmail, setNewAdminEmail] = useState("");
+  const [newAdminDisplayName, setNewAdminDisplayName] = useState("");
   const [newAdminPwd, setNewAdminPwd] = useState("");
   const [adminMgmtMsg, setAdminMgmtMsg] = useState<Message | null>(null);
-
-  // Destructive Actions state
   const [deleteTarget, setDeleteTarget] = useState<AdminAccount | null>(null);
-  const [resetTarget, setResetTarget] = useState<AdminAccount | null>(null);
-  const [tempPassword, setTempPassword] = useState("");
-  const [resetMsg, setResetMsg] = useState<string | null>(null);
 
-  // Function to refresh admin list for manual calls
   const refreshAdmins = async () => {
-    if (!superAdmin) return;
+    if (!isSuperAdmin) return;
     setAdmins(await listAdmins());
   };
 
-  // Load admins on mount or when superAdmin changes without triggering sync setState warning
   useEffect(() => {
-    if (!superAdmin) return;
-    (async () => {
-      const list = await listAdmins();
-      setAdmins(list);
-    })();
-  }, [superAdmin]);
+    if (!isSuperAdmin) return;
+    listAdmins().then(setAdmins);
+  }, [isSuperAdmin]);
 
-  // Profile Update handler
-  const handleUpdateUsername = async () => {
-    setProfileMsg(null);
-    if (!username.trim()) {
-      setProfileMsg({ type: "error", text: "Username cannot be empty." });
-      return;
-    }
-    const ok = await updateAdminUsername(username.trim(), user?.id ?? "");
-    if (ok) {
-      setProfileMsg({
-        type: "success",
-        text: "Username updated successfully. Changes will apply on reload.",
-      });
-    } else {
-      setProfileMsg({ type: "error", text: "Failed to update username." });
-    }
-  };
-
-  // Password Update handler
+  // -------------------------------------------------------------------------
+  // Password update (own account)
+  // -------------------------------------------------------------------------
   const handleUpdatePassword = async () => {
     setPwdMsg(null);
+
     if (!newPassword) {
       setPwdMsg({ type: "error", text: "Please enter a new password." });
       return;
@@ -96,7 +55,7 @@ export default function AdminSettings() {
     if (newPassword.length < 6) {
       setPwdMsg({
         type: "error",
-        text: "Password must be at least 6 characters long.",
+        text: "Password must be at least 6 characters.",
       });
       return;
     }
@@ -105,23 +64,34 @@ export default function AdminSettings() {
       return;
     }
 
-    const currentUsername =
-      user?.user_metadata?.username ?? user?.email?.split("@")[0] ?? "";
-    const ok = await updateAdminPassword(newPassword, currentUsername);
-    if (ok) {
+    // Dynamic import to keep the bundle tidy and avoid circular deps
+    const { updateOwnPassword } = await import("../utils/adminUser");
+    const { error } = await updateOwnPassword(newPassword);
+
+    if (error) {
+      setPwdMsg({ type: "error", text: error });
+    } else {
       setPwdMsg({ type: "success", text: "Password updated successfully." });
       setNewPassword("");
       setConfirmPassword("");
-    } else {
-      setPwdMsg({ type: "error", text: "Failed to update password." });
     }
   };
 
-  // Add Admin handler
+  // -------------------------------------------------------------------------
+  // Create admin (super admin only)
+  // -------------------------------------------------------------------------
   const handleAddAdmin = async () => {
     setAdminMgmtMsg(null);
-    if (!newAdminUser.trim() || !newAdminPwd) {
-      setAdminMgmtMsg({ type: "error", text: "Please fill all fields." });
+
+    if (!newAdminEmail.trim() || !newAdminDisplayName.trim() || !newAdminPwd) {
+      setAdminMgmtMsg({ type: "error", text: "Please fill in all fields." });
+      return;
+    }
+    if (!newAdminEmail.includes("@")) {
+      setAdminMgmtMsg({
+        type: "error",
+        text: "Please enter a valid email address.",
+      });
       return;
     }
     if (newAdminPwd.length < 6) {
@@ -132,46 +102,35 @@ export default function AdminSettings() {
       return;
     }
 
-    const { error } = await createAdmin(newAdminUser.trim(), newAdminPwd);
+    const { error } = await createAdmin(
+      newAdminEmail.trim(),
+      newAdminPwd,
+      newAdminDisplayName.trim(),
+      "admin",
+    );
+
     if (error) {
       setAdminMgmtMsg({ type: "error", text: error });
     } else {
       setAdminMgmtMsg({
         type: "success",
-        text: `Admin account "${newAdminUser}" created.`,
+        text: `Admin account "${newAdminDisplayName}" created.`,
       });
-      setNewAdminUser("");
+      setNewAdminEmail("");
+      setNewAdminDisplayName("");
       setNewAdminPwd("");
       refreshAdmins();
     }
   };
 
-  // Delete Admin handler
+  // -------------------------------------------------------------------------
+  // Delete admin (super admin only)
+  // -------------------------------------------------------------------------
   const handleDeleteConfirm = async () => {
     if (!deleteTarget) return;
-    const ok = await deleteAdminAccount(deleteTarget.id, deleteTarget.username);
+    const ok = await deleteAdmin(deleteTarget.id);
     if (ok) {
       setDeleteTarget(null);
-      refreshAdmins();
-    }
-  };
-
-  // Reset Admin Password handler
-  const handleResetConfirm = async () => {
-    if (!resetTarget || !tempPassword) return;
-    if (tempPassword.length < 6) {
-      setResetMsg("Password must be at least 6 characters.");
-      return;
-    }
-    const ok = await resetAdminAccount(resetTarget.username, tempPassword);
-    if (ok) {
-      setResetTarget(null);
-      setTempPassword("");
-      setResetMsg(null);
-      setAdminMgmtMsg({
-        type: "success",
-        text: `Successfully reset credentials for "${resetTarget.username}".`,
-      });
       refreshAdmins();
     }
   };
@@ -183,22 +142,11 @@ export default function AdminSettings() {
           Settings
         </Typography>
         <Typography variant="body2" className="text-stone-400">
-          Manage your account profile, password, and administrative users.
+          Manage your password and admin accounts.
         </Typography>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Profile Section */}
-        <Grid size={{ xs: 12, md: 6 }}>
-          <ProfileSection
-            username={username}
-            setUsername={setUsername}
-            profileMsg={profileMsg}
-            onUpdateUsername={handleUpdateUsername}
-          />
-        </Grid>
-
-        {/* Security Section */}
         <Grid size={{ xs: 12, md: 6 }}>
           <SecuritySection
             newPassword={newPassword}
@@ -210,44 +158,29 @@ export default function AdminSettings() {
           />
         </Grid>
 
-        {/* Super Admin Management section */}
-        {superAdmin && (
+        {isSuperAdmin && (
           <Grid size={{ xs: 12 }}>
             <AdminManagement
               admins={admins}
-              newAdminUser={newAdminUser}
-              setNewAdminUser={setNewAdminUser}
+              newAdminEmail={newAdminEmail}
+              setNewAdminEmail={setNewAdminEmail}
+              newAdminDisplayName={newAdminDisplayName}
+              setNewAdminDisplayName={setNewAdminDisplayName}
               newAdminPwd={newAdminPwd}
               setNewAdminPwd={setNewAdminPwd}
               adminMgmtMsg={adminMgmtMsg}
               onAddAdmin={handleAddAdmin}
               onSetDeleteTarget={setDeleteTarget}
-              onSetResetTarget={setResetTarget}
             />
           </Grid>
         )}
       </Grid>
 
-      {/* Delete Confirmation Dialog */}
       <DeleteAdminDialog
         open={!!deleteTarget}
+        target={deleteTarget}
         onClose={() => setDeleteTarget(null)}
         onConfirm={handleDeleteConfirm}
-      />
-
-      {/* Reset Password Dialog */}
-      <ResetAdminDialog
-        open={!!resetTarget}
-        onClose={() => {
-          setResetTarget(null);
-          setResetMsg(null);
-          setTempPassword("");
-        }}
-        onConfirm={handleResetConfirm}
-        resetMsg={resetMsg}
-        tempPassword={tempPassword}
-        setTempPassword={setTempPassword}
-        setResetMsg={setResetMsg}
       />
     </Box>
   );

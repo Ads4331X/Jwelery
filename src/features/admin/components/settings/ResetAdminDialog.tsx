@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import type { ChangeEvent } from "react";
 
-type ResetAdminDialogProps = {
+type Props = {
   open: boolean;
   onClose: () => void;
   onConfirm: () => void;
@@ -28,15 +28,12 @@ export default function ResetAdminDialog({
   tempPassword,
   setTempPassword,
   setResetMsg,
-}: ResetAdminDialogProps) {
-  // Helper to close the dialog and clear any reset message
+}: Props) {
   const handleClose = () => {
-    // Clear the reset message if present
     setResetMsg(null);
     onClose();
   };
 
-  // Helper to confirm reset and also clear the reset message
   const handleConfirm = () => {
     setResetMsg(null);
     onConfirm();

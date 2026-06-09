@@ -1,20 +1,31 @@
-import { AppBar, Toolbar, Typography, Button, Avatar } from "@mui/material";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Avatar,
+  Chip,
+} from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useAuth } from "../../../hooks/useAuth";
+import { useContext } from "react";
+import { AuthContext } from "../../../../features/auth/context/context";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar() {
-  const { logout, user } = useAuth();
+  const auth = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-    await logout();
+    await auth?.logout();
     navigate("/login");
   };
 
-  // Derive display name from stored username metadata or email
   const displayName =
-    user?.user_metadata?.username ?? user?.email?.split("@")[0] ?? "Admin";
+    auth?.user?.user_metadata?.display_name ??
+    auth?.user?.email?.split("@")[0] ??
+    "Admin";
+
+  const isSuperAdmin = auth?.role === "super_admin";
 
   return (
     <AppBar
@@ -38,6 +49,13 @@ export default function Topbar() {
             <Typography variant="body2" className="text-stone-600">
               {displayName}
             </Typography>
+            {isSuperAdmin && (
+              <Chip
+                label="Super Admin"
+                size="small"
+                className="text-xs bg-amber-100 text-amber-800 border-0 h-5"
+              />
+            )}
           </div>
 
           <Button
