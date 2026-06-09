@@ -36,6 +36,53 @@ type Props = {
   onSetDeleteTarget: (admin: AdminAccount) => void;
 };
 
+function AdminCard({
+  adm,
+  onDelete,
+}: {
+  adm: AdminAccount;
+  onDelete: (adm: AdminAccount) => void;
+}) {
+  const isSuperAdmin = adm.role === "super_admin";
+  return (
+    <Box className="flex items-start justify-between gap-3 p-4 rounded-xl border border-stone-100 bg-white">
+      <Box className="flex flex-col gap-1 min-w-0">
+        <Box className="flex items-center gap-2 flex-wrap">
+          <Typography variant="body2" className="font-semibold text-stone-800">
+            {adm.display_name}
+          </Typography>
+          <Chip
+            label={isSuperAdmin ? "Super Admin" : "Admin"}
+            size="small"
+            className={
+              isSuperAdmin
+                ? "text-xs bg-amber-50 text-amber-700 border border-amber-200"
+                : "text-xs bg-stone-50 text-stone-500 border border-stone-200"
+            }
+          />
+        </Box>
+        <Typography variant="caption" className="text-stone-400 break-all">
+          {adm.email}
+        </Typography>
+        <Typography variant="caption" className="text-stone-300">
+          {new Date(adm.created_at).toLocaleDateString()}
+        </Typography>
+      </Box>
+      {!isSuperAdmin && (
+        <IconButton
+          size="small"
+          color="error"
+          onClick={() => onDelete(adm)}
+          title="Delete Account"
+          className="shrink-0"
+        >
+          <DeleteIcon fontSize="small" />
+        </IconButton>
+      )}
+    </Box>
+  );
+}
+
 export default function AdminManagement({
   admins,
   adminsLoaded,
@@ -121,7 +168,7 @@ export default function AdminManagement({
             </Box>
           </Box>
 
-          {/* Admin accounts table */}
+          {/* Admin accounts list */}
           <Box>
             <Typography
               variant="subtitle2"
@@ -142,77 +189,94 @@ export default function AdminManagement({
                 No admin accounts found.
               </Typography>
             ) : (
-              <TableContainer
-                component={Paper}
-                elevation={0}
-                className="border border-stone-100 rounded-xl"
-              >
-                <Table size="small">
-                  <TableHead className="bg-stone-50">
-                    <TableRow>
-                      <TableCell className="font-semibold text-stone-600 py-3">
-                        Name
-                      </TableCell>
-                      <TableCell className="font-semibold text-stone-600 py-3">
-                        Email
-                      </TableCell>
-                      <TableCell className="font-semibold text-stone-600 py-3">
-                        Role
-                      </TableCell>
-                      <TableCell className="font-semibold text-stone-600 py-3">
-                        Created
-                      </TableCell>
-                      <TableCell
-                        align="right"
-                        className="font-semibold text-stone-600 py-3"
-                      >
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {admins.map((adm) => {
-                      const isSuperAdmin = adm.role === "super_admin";
-                      return (
-                        <TableRow key={adm.id} className="hover:bg-stone-50/50">
-                          <TableCell className="text-stone-800">
-                            {adm.display_name}
-                          </TableCell>
-                          <TableCell className="text-stone-500 text-xs">
-                            {adm.email}
-                          </TableCell>
-                          <TableCell>
-                            <Chip
-                              label={isSuperAdmin ? "Super Admin" : "Admin"}
-                              size="small"
-                              className={
-                                isSuperAdmin
-                                  ? "text-xs bg-amber-50 text-amber-700 border border-amber-200"
-                                  : "text-xs bg-stone-50 text-stone-500 border border-stone-200"
-                              }
-                            />
-                          </TableCell>
-                          <TableCell className="text-stone-400 text-xs">
-                            {new Date(adm.created_at).toLocaleDateString()}
-                          </TableCell>
-                          <TableCell align="right">
-                            {!isSuperAdmin && (
-                              <IconButton
+              <>
+                {/* Mobile: stacked cards */}
+                <Box className="flex flex-col gap-3 md:hidden">
+                  {admins.map((adm) => (
+                    <AdminCard
+                      key={adm.id}
+                      adm={adm}
+                      onDelete={onSetDeleteTarget}
+                    />
+                  ))}
+                </Box>
+
+                {/* Desktop: table */}
+                <TableContainer
+                  component={Paper}
+                  elevation={0}
+                  className="border border-stone-100 rounded-xl hidden md:block"
+                >
+                  <Table size="small">
+                    <TableHead className="bg-stone-50">
+                      <TableRow>
+                        <TableCell className="font-semibold text-stone-600 py-3">
+                          Name
+                        </TableCell>
+                        <TableCell className="font-semibold text-stone-600 py-3">
+                          Email
+                        </TableCell>
+                        <TableCell className="font-semibold text-stone-600 py-3">
+                          Role
+                        </TableCell>
+                        <TableCell className="font-semibold text-stone-600 py-3">
+                          Created
+                        </TableCell>
+                        <TableCell
+                          align="right"
+                          className="font-semibold text-stone-600 py-3"
+                        >
+                          Actions
+                        </TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {admins.map((adm) => {
+                        const isSuperAdmin = adm.role === "super_admin";
+                        return (
+                          <TableRow
+                            key={adm.id}
+                            className="hover:bg-stone-50/50"
+                          >
+                            <TableCell className="text-stone-800">
+                              {adm.display_name}
+                            </TableCell>
+                            <TableCell className="text-stone-500 text-xs">
+                              {adm.email}
+                            </TableCell>
+                            <TableCell>
+                              <Chip
+                                label={isSuperAdmin ? "Super Admin" : "Admin"}
                                 size="small"
-                                color="error"
-                                onClick={() => onSetDeleteTarget(adm)}
-                                title="Delete Account"
-                              >
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            )}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                                className={
+                                  isSuperAdmin
+                                    ? "text-xs bg-amber-50 text-amber-700 border border-amber-200"
+                                    : "text-xs bg-stone-50 text-stone-500 border border-stone-200"
+                                }
+                              />
+                            </TableCell>
+                            <TableCell className="text-stone-400 text-xs">
+                              {new Date(adm.created_at).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell align="right">
+                              {!isSuperAdmin && (
+                                <IconButton
+                                  size="small"
+                                  color="error"
+                                  onClick={() => onSetDeleteTarget(adm)}
+                                  title="Delete Account"
+                                >
+                                  <DeleteIcon fontSize="small" />
+                                </IconButton>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </>
             )}
           </Box>
         </Box>

@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import type { ReactNode } from "react";
 import DashboardIcon from "@mui/icons-material/Dashboard";
 import DiamondIcon from "@mui/icons-material/Diamond";
-import BarChartIcon from "@mui/icons-material/BarChart";
+import ShowChartIcon from "@mui/icons-material/ShowChart";
 import SettingsIcon from "@mui/icons-material/Settings";
 
 const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
@@ -24,9 +24,9 @@ const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
     icon: <DiamondIcon fontSize="small" />,
   },
   {
-    name: "Analytics",
-    to: "/admin/analytics",
-    icon: <BarChartIcon fontSize="small" />,
+    name: "Metal Rates",
+    to: "/admin/metal-rates",
+    icon: <ShowChartIcon fontSize="small" />,
   },
   {
     name: "Settings",
@@ -77,9 +77,7 @@ export default function SidebarContent({ onClose }: { onClose?: () => void }) {
                 }`}
               >
                 <ListItemIcon
-                  className={`min-w-0 mr-3 ${
-                    isActive ? "text-white" : "text-stone-400"
-                  }`}
+                  className={`min-w-0 mr-3 ${isActive ? "text-white" : "text-stone-400"}`}
                 >
                   {item.icon}
                 </ListItemIcon>
@@ -87,10 +85,7 @@ export default function SidebarContent({ onClose }: { onClose?: () => void }) {
                   primary={item.name}
                   slotProps={{
                     primary: {
-                      style: {
-                        fontSize: 14,
-                        fontWeight: isActive ? 600 : 400,
-                      },
+                      style: { fontSize: 14, fontWeight: isActive ? 600 : 400 },
                     },
                   }}
                 />

@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
-import { Box, Typography, Skeleton } from "@mui/material";
-
-const API_URL =
-  "https://gold-silver.sabinmagar.com.np/wp-json/v1/metal-prices/";
+import { Box, Typography } from "@mui/material";
+import { getMetalRates } from "../../features/admin/utils/metalRates";
 
 // Types
 type MetalEntry = { tola: number; ten_gram: number };
@@ -25,7 +23,6 @@ type MetalTheme = {
   tiles: (e: MetalEntry) => { label: string; val: number }[];
 };
 
-// Theme config
 const THEME: Record<MetalKey, MetalTheme> = {
   gold: {
     label: "Gold",
@@ -69,37 +66,11 @@ const THEME: Record<MetalKey, MetalTheme> = {
 
 const METAL_KEYS: MetalKey[] = ["gold", "silver"];
 
-// Helpers
 const formatNPR = (n?: number) =>
   typeof n === "number" && n > 0
     ? "Rs " +
       new Intl.NumberFormat("en-NP", { maximumFractionDigits: 0 }).format(n)
     : "N/A";
-
-async function fetchRates(): Promise<RateData> {
-  const res = await fetch(API_URL);
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const json = await res.json();
-
-  const entries: {
-    metal: { name: string };
-    price_per_tola: string;
-    price_per_ten_gram: string;
-  }[] = json.data[0];
-
-  const find = (keyword: string): MetalEntry => {
-    const entry = entries.find((e) =>
-      e.metal.name.toLowerCase().includes(keyword),
-    );
-    if (!entry) throw new Error(`Missing ${keyword}`);
-    return {
-      tola: parseFloat(entry.price_per_tola) || 0,
-      ten_gram: parseFloat(entry.price_per_ten_gram) || 0,
-    };
-  };
-
-  return { gold: find("gold"), silver: find("silver") };
-}
 
 // RateTile
 function RateTile({
@@ -148,14 +119,11 @@ function RateTile({
 function MetalCard({
   metalKey,
   entry,
-  isMock,
 }: {
   metalKey: MetalKey;
   entry: MetalEntry;
-  isMock: boolean;
 }) {
   const t = THEME[metalKey];
-
   return (
     <Box
       className="group relative overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-2 cursor-default"
@@ -176,14 +144,12 @@ function MetalCard({
         className="pointer-events-none absolute inset-0 opacity-60"
         style={{ background: t.radial }}
       />
-
       <Box
         className="absolute top-0 left-0 right-0 h-[3px]"
         style={{ background: t.barGradient }}
       />
 
       <Box className="relative p-7 sm:p-8">
-        {/* Header */}
         <Box className="flex items-center gap-3 mb-6">
           <Box
             className="flex h-11 w-11 items-center justify-center rounded-2xl text-sm font-bold"
@@ -215,7 +181,6 @@ function MetalCard({
           </Box>
         </Box>
 
-        {/* Main price */}
         <Box className="mb-1">
           <Typography
             className="text-[0.6rem] uppercase tracking-[0.3em] mb-1"
@@ -234,13 +199,11 @@ function MetalCard({
           </Typography>
         </Box>
 
-        {/* Divider */}
         <Box
           className="my-6 h-px w-full"
           style={{ background: t.dividerGradient }}
         />
 
-        {/* Tiles */}
         <Typography
           className="text-[0.6rem] uppercase tracking-[0.3em] mb-3"
           style={{ color: "rgba(0,0,0,0.35)" }}
@@ -260,20 +223,13 @@ function MetalCard({
           ))}
         </Box>
 
-        {/* Footer */}
         <Box className="mt-6 flex items-center gap-1.5">
-          <Box
-            className={`h-1.5 w-1.5 rounded-full ${
-              isMock ? "bg-amber-400" : "bg-green-500 animate-pulse"
-            }`}
-          />
+          <Box className="h-1.5 w-1.5 rounded-full bg-green-500 animate-pulse" />
           <Typography
             className="text-[0.65rem] tracking-wide"
             style={{ color: "rgba(0,0,0,0.3)" }}
           >
-            {isMock
-              ? "Indicative rate, live data unavailable"
-              : "Live · FENEGOSIDA · Updated daily after 11 AM NPT"}
+            Live · FENEGOSIDA · Updated daily after 11 AM NPT
           </Typography>
         </Box>
       </Box>
@@ -281,25 +237,29 @@ function MetalCard({
   );
 }
 
-// MetalRates
-export function MetalRates() {
+// MetalRates — reads from Supabase, respects visibility toggle
+function MetalRates() {
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState<RateData | null>(null);
-  const [isMock, setIsMock] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    fetchRates()
-      .then(setData)
-      .catch((err) => {
-        console.warn("API failed:", err);
-        setIsMock(true);
+    void (async () => {
+      const row = await getMetalRates();
+      if (row) {
+        setVisible(row.visible);
         setData({
-          gold: { tola: 0, ten_gram: 0 },
-          silver: { tola: 0, ten_gram: 0 },
+          gold: { tola: row.gold_tola, ten_gram: row.gold_ten_gram },
+          silver: { tola: row.silver_tola, ten_gram: row.silver_ten_gram },
         });
-      })
-      .finally(() => setIsLoading(false));
+      }
+      setIsLoading(false);
+    })();
   }, []);
+
+  // Hidden by admin toggle or still loading
+  if (isLoading) return null;
+  if (!visible) return null;
 
   return (
     <Box
@@ -314,7 +274,6 @@ export function MetalRates() {
         }}
       />
 
-      {/* Header */}
       <Box className="relative mx-auto mb-12 flex max-w-3xl flex-col items-center text-center lg:mb-16">
         <Box
           component="span"
@@ -350,42 +309,13 @@ export function MetalRates() {
           Official FENEGOSIDA rates, transparent pricing so every piece carries
           its true value.
         </Typography>
-
-        {isMock && (
-          <Box
-            className="mt-6 flex items-center gap-2 rounded-full px-5 py-2 text-xs"
-            style={{
-              background: "rgba(251,191,36,0.1)",
-              border: "1px solid rgba(251,191,36,0.3)",
-              color: "#92400e",
-            }}
-          >
-            Could not reach live API, rates currently unavailable.
-          </Box>
-        )}
       </Box>
 
-      {/* Cards */}
       <Box className="relative mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
-        {isLoading
-          ? Array.from({ length: 2 }).map((_, i) => (
-              <Skeleton
-                key={i}
-                variant="rectangular"
-                height={380}
-                className="!rounded-3xl"
-                style={{ backgroundColor: "rgba(180,83,9,0.06)" }}
-              />
-            ))
-          : data &&
-            METAL_KEYS.map((key) => (
-              <MetalCard
-                key={key}
-                metalKey={key}
-                entry={data[key]}
-                isMock={isMock}
-              />
-            ))}
+        {data &&
+          METAL_KEYS.map((key) => (
+            <MetalCard key={key} metalKey={key} entry={data[key]} />
+          ))}
       </Box>
 
       <Typography className="relative mx-auto mt-10 max-w-2xl text-center text-xs italic text-gray-400">

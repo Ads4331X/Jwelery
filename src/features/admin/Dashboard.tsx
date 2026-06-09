@@ -5,7 +5,7 @@ import Topbar from "./components/layout/Topbar";
 import AdminSettings from "./components/AdminSettings";
 import Overview from "./components/overview/Overview";
 import AdminProducts from "./components/products/AdminProducts";
-import AdminAnalytics from "./components/analytics/AdminAnalytics";
+import AdminMetalRates from "./components/AdminMetalRates";
 
 export default function Dashboard() {
   return (
@@ -19,7 +19,7 @@ export default function Dashboard() {
           <Routes>
             <Route path="/" element={<Overview />} />
             <Route path="/products" element={<AdminProducts />} />
-            <Route path="/analytics" element={<AdminAnalytics />} />
+            <Route path="/metal-rates" element={<AdminMetalRates />} />
             <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </Box>
