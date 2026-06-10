@@ -1,7 +1,9 @@
 # TODO
 
-- [x] Update ProductForm to add Metal selector, fix EMPTY/validation for optional price (number|null), change category+status grid to 3 columns.
-- [x] Update ProductTable to add Metal column after Category and format optional price as “—” when null.
-- [x] Update ProductFilters to add Metal toggle UI and wire up props.
-- [x] Update AdminProducts to add metal state, extend filtering to include metal, and pass metal props to ProductFilters.
-- [x] Run typecheck/build to ensure no TS/ESLint errors.
+- [ ] Add/verify `src/services/contacts.ts` implements submit/fetch/markRead/delete with Supabase.
+- [ ] Update `src/features/home/components/ContactSection.tsx` to use `submitContact` and adjust `handleSubmit` accordingly.
+- [ ] Ensure `src/features/admin/components/contacts/AdminContacts.tsx` exists and uses real `fetchContacts/markRead/deleteContact`.
+- [ ] Update `src/features/admin/components/overview/Overview.tsx` stats: product count + unread enquiries count.
+- [ ] Update admin routing (`src/features/admin/Dashboard.tsx`) to include `/contacts` route (Enquiries page).
+- [ ] Confirm sidebar nav item includes Enquiries -> `/admin/contacts`.
+- [ ] Run typecheck/lint/build/tests.

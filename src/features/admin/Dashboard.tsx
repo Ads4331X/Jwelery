@@ -6,6 +6,7 @@ import AdminSettings from "./components/AdminSettings";
 import Overview from "./components/overview/Overview";
 import AdminProducts from "./components/products/AdminProducts";
 import AdminMetalRates from "./components/AdminMetalRates";
+import AdminContacts from "./components/contacts/AdminContacts";
 
 export default function Dashboard() {
   return (
@@ -20,6 +21,7 @@ export default function Dashboard() {
             <Route path="/" element={<Overview />} />
             <Route path="/products" element={<AdminProducts />} />
             <Route path="/metal-rates" element={<AdminMetalRates />} />
+            <Route path="/contacts" element={<AdminContacts />} />
             <Route path="/settings" element={<AdminSettings />} />
           </Routes>
         </Box>

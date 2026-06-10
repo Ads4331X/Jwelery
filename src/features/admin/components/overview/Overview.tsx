@@ -1,11 +1,28 @@
+import { useEffect, useState } from "react";
 import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import DiamondOutlinedIcon from "@mui/icons-material/DiamondOutlined";
-import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
+
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
 import PeopleIcon from "@mui/icons-material/People";
+import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 import StatCard from "./StatCard";
+import { fetchAdminProducts } from "../../../../services/productsApi";
+import { fetchContacts } from "../../../../services/contacts";
 
 export default function Overview() {
+  const [productCount, setProductCount] = useState<string>("—");
+  const [unreadCount, setUnreadCount] = useState<string>("—");
+
+  useEffect(() => {
+    fetchAdminProducts()
+      .then((p) => setProductCount(String(p.length)))
+      .catch(() => setProductCount("—"));
+
+    fetchContacts()
+      .then((c) => setUnreadCount(String(c.filter((x) => !x.is_read).length)))
+      .catch(() => setUnreadCount("—"));
+  }, []);
+
   return (
     <Box>
       <Typography variant="h5" className="font-semibold text-stone-800 mb-1">
@@ -19,15 +36,15 @@ export default function Overview() {
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
             title="Products"
-            value="248"
+            value={productCount}
             icon={<DiamondOutlinedIcon fontSize="small" />}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>
           <StatCard
-            title="Orders"
-            value="64"
-            icon={<ShoppingBagOutlinedIcon fontSize="small" />}
+            title="Unread Enquiries"
+            value={unreadCount}
+            icon={<MailOutlinedIcon fontSize="small" />}
           />
         </Grid>
         <Grid size={{ xs: 12, sm: 6, lg: 3 }}>

@@ -15,6 +15,7 @@ import DashboardIcon from "@mui/icons-material/Dashboard";
 import DiamondIcon from "@mui/icons-material/Diamond";
 import ShowChartIcon from "@mui/icons-material/ShowChart";
 import SettingsIcon from "@mui/icons-material/Settings";
+import MailOutlinedIcon from "@mui/icons-material/MailOutlined";
 
 const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
   { name: "Dashboard", to: "/admin", icon: <DashboardIcon fontSize="small" /> },
@@ -27,6 +28,11 @@ const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
     name: "Metal Rates",
     to: "/admin/metal-rates",
     icon: <ShowChartIcon fontSize="small" />,
+  },
+  {
+    name: "Enquiries",
+    to: "/admin/contacts",
+    icon: <MailOutlinedIcon fontSize="small" />,
   },
   {
     name: "Settings",
