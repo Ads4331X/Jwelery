@@ -1,9 +1,13 @@
 export interface Product {
   id: string;
-  title: string;
-  price: string;
-  shortDescription: string;
+  name: string;
+  category: string;
+  metal: string;
   description: string;
-  image: string;
-  tags: string[];
+  price: number | null;
+  image_url: string;
+  is_featured: boolean;
+  status: "Available" | "Sold Out";
+  created_at: string;
+  updated_at: string;
 }

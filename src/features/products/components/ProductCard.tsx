@@ -1,4 +1,3 @@
-// components/ProductCard.tsx
 import { Box, Chip, Typography } from "@mui/material";
 import LazyImage from "../../../components/ui/LazyImage";
 import type { Product } from "../types";
@@ -11,19 +10,38 @@ export default function ProductCard({ product }: ProductCardProps) {
   return (
     <Box className="group relative rounded-[20px] overflow-hidden bg-white border border-amber-900/[0.08] cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(180,83,9,0.12)]">
       {/* Image */}
-      <Box className="relative overflow-hidden h-64">
-        <Box className="h-full transition-transform duration-700 group-hover:scale-105">
-          <LazyImage src={product.image} alt={product.title} height={256} />
-        </Box>
-
-        {/* Tag badge */}
-        {product.tags[0] && (
-          <Box className="absolute top-3.5 left-3.5 inline-flex items-center px-3 py-1 rounded-full backdrop-blur-md bg-white/85 border border-amber-700/15">
-            <Typography className="!text-[0.6rem] !uppercase !tracking-[0.2em] !font-semibold !text-amber-900">
-              {product.tags[0]}
+      <Box className="relative overflow-hidden h-64 bg-stone-100">
+        {product.image_url ? (
+          <Box className="h-full transition-transform duration-700 group-hover:scale-105">
+            <LazyImage
+              src={product.image_url}
+              alt={product.name}
+              height={256}
+            />
+          </Box>
+        ) : (
+          <Box className="h-full flex items-center justify-center">
+            <Typography className="!text-stone-300 !text-xs !uppercase !tracking-widest">
+              No image
             </Typography>
           </Box>
         )}
+
+        {/* Badges row */}
+        <Box className="absolute top-3.5 left-3.5 flex gap-1.5">
+          <Box className="inline-flex items-center px-3 py-1 rounded-full backdrop-blur-md bg-white/85 border border-amber-700/15">
+            <Typography className="!text-[0.6rem] !uppercase !tracking-[0.2em] !font-semibold !text-amber-900">
+              {product.metal}
+            </Typography>
+          </Box>
+          {product.is_featured && (
+            <Box className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-700/90 backdrop-blur-md">
+              <Typography className="!text-[0.6rem] !uppercase !tracking-[0.15em] !font-semibold !text-white">
+                Featured
+              </Typography>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Content */}
@@ -41,41 +59,47 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="flex-1 !text-[1.05rem] !font-semibold !text-stone-900 !leading-snug"
             style={{ fontFamily: "'Playfair Display', serif" }}
           >
-            {product.title}
+            {product.name}
           </Typography>
-          <Typography className="!text-[0.95rem] !font-bold !text-amber-700 !whitespace-nowrap">
-            Nrs: {product.price}
-          </Typography>
+          {product.price != null && (
+            <Typography className="!text-[0.95rem] !font-bold !text-amber-700 !whitespace-nowrap">
+              Rs {Number(product.price).toLocaleString("en-NP")}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Category + status row */}
+        <Box className="flex items-center gap-2 mb-2.5">
+          <Chip
+            label={product.category}
+            size="small"
+            className="!bg-stone-100 !text-[0.58rem] !uppercase !tracking-[0.15em] !text-stone-500 !font-medium !rounded-full !h-auto !py-0.5 !border-0"
+          />
+          <Chip
+            label={product.status}
+            size="small"
+            sx={{
+              fontSize: "0.58rem",
+              height: "auto",
+              py: "2px",
+              fontWeight: 500,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              borderRadius: "9999px",
+              border: "none",
+              backgroundColor:
+                product.status === "Available" ? "#f0fdf4" : "#fef2f2",
+              color: product.status === "Available" ? "#15803d" : "#dc2626",
+            }}
+          />
         </Box>
 
         {/* Description */}
-        <Typography className="!text-[0.8rem] !text-black/45 !leading-relaxed !mb-3 !min-h-[48px] line-clamp-2">
-          {product.shortDescription}
-        </Typography>
-
-        {/* Tags */}
-        {product.tags.length > 1 && (
-          <Box className="flex flex-wrap gap-1.5 mb-4">
-            {product.tags.slice(1, 4).map((tag) => (
-              <Chip
-                key={tag}
-                label={tag}
-                size="small"
-                className="!bg-amber-50 !border !border-amber-700/12 !text-[0.58rem] !uppercase !tracking-[0.15em] !text-amber-900 !font-medium !rounded-full !h-auto !py-0.5"
-              />
-            ))}
-          </Box>
+        {product.description && (
+          <Typography className="!text-[0.8rem] !text-black/45 !leading-relaxed !mb-3 line-clamp-2">
+            {product.description}
+          </Typography>
         )}
-
-        {/* CTA */}
-        <Box className="inline-flex items-center gap-1.5 opacity-40 translate-y-0.5 transition-all duration-250 group-hover:opacity-100 group-hover:translate-y-0">
-          <Typography className="!text-[0.62rem] !uppercase !tracking-[0.25em] !font-semibold !text-amber-700">
-            View Details
-          </Typography>
-          <Typography className="!text-amber-700 !text-sm !leading-none">
-            →
-          </Typography>
-        </Box>
       </Box>
     </Box>
   );

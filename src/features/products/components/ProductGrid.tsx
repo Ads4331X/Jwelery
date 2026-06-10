@@ -2,7 +2,6 @@
 import { Box, Grid, Skeleton, Typography } from "@mui/material";
 import ProductCard from "./ProductCard";
 import type { Product } from "../types";
-
 interface ProductGridProps {
   products: Product[];
   loading: boolean;

@@ -1,12 +1,23 @@
 import { supabase } from "./supabase";
+import type { Product } from "../features/products/types";
 import type {
   AdminProduct,
   ProductFormData,
 } from "../features/admin/components/products/types";
-import type { Product } from "../features/products/types";
 
 const TABLE = "products";
 const BUCKET = "product-images";
+
+export const fetchProducts = async (): Promise<Product[]> => {
+  const { data, error } = await supabase
+    .from(TABLE)
+    .select("*")
+    .eq("status", "Available")
+    .order("created_at", { ascending: false });
+
+  if (error) throw new Error(error.message);
+  return (data ?? []) as Product[];
+};
 
 export const fetchAdminProducts = async (): Promise<AdminProduct[]> => {
   const { data, error } = await supabase
@@ -16,47 +27,6 @@ export const fetchAdminProducts = async (): Promise<AdminProduct[]> => {
 
   if (error) throw new Error(error.message);
   return (data ?? []) as AdminProduct[];
-};
-
-// Used by the public Products page.
-export const fetchProducts = async (): Promise<Product[]> => {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select(
-      `
-      id,
-      name,
-      category,
-      description,
-      price,
-      image_url
-    `,
-    )
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-
-  return (data ?? []).map((item) => {
-    // `image_url` may be either:
-    // - a fully qualified public URL
-    // - or a storage path/key (e.g. `170000-abc.jpg`)
-    const maybeUrl = item.image_url ?? "";
-
-    const isLikelyHttp = /^https?:\/\//i.test(maybeUrl);
-    const image = isLikelyHttp
-      ? maybeUrl
-      : supabase.storage.from(BUCKET).getPublicUrl(maybeUrl).data.publicUrl;
-
-    return {
-      id: item.id,
-      title: item.name,
-      shortDescription: item.description,
-      description: item.description,
-      image,
-      tags: [item.category],
-      price: String(item.price),
-    };
-  });
 };
 
 export const createProduct = async (

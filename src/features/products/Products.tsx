@@ -99,25 +99,19 @@ export default function Products() {
     return products.filter((p) => {
       const matchesSearch =
         !q ||
-        p.title.toLowerCase().includes(q) ||
-        p.shortDescription.toLowerCase().includes(q) ||
+        p.name.toLowerCase().includes(q) ||
         p.description.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q));
+        p.category.toLowerCase().includes(q) ||
+        p.metal.toLowerCase().includes(q);
 
       const matchesMetal =
         filters.metal === "All" ||
-        p.tags.some((t) =>
-          t.toLowerCase().includes(filters.metal.toLowerCase()),
-        ) ||
-        p.title.toLowerCase().includes(filters.metal.toLowerCase());
+        p.metal.toLowerCase().includes(filters.metal.toLowerCase());
 
       const matchesCategory =
         filters.categories.length === 0 ||
         filters.categories.some((cat) =>
-          p.tags.some((t) => t.toLowerCase().includes(cat.toLowerCase())),
-        ) ||
-        filters.categories.some((cat) =>
-          p.title.toLowerCase().includes(cat.toLowerCase()),
+          p.category.toLowerCase().includes(cat.toLowerCase()),
         );
 
       return matchesSearch && matchesMetal && matchesCategory;

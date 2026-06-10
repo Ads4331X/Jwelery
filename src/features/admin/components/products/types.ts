@@ -1,17 +1,6 @@
 export type ProductStatus = "Available" | "Sold Out";
 
-export interface AdminProduct {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  price: number;
-  image_url: string;
-  is_featured: boolean;
-  status: ProductStatus;
-  created_at: string;
-  updated_at: string;
-}
+export const METALS = ["Gold", "Silver", "Gold & Silver", "Other"];
 
 export const CATEGORIES = [
   "All",
@@ -24,6 +13,20 @@ export const CATEGORIES = [
   "Bridal",
   "Other",
 ];
+
+export interface AdminProduct {
+  id: string;
+  name: string;
+  category: string;
+  metal: string;
+  description: string;
+  price: number | null;
+  image_url: string;
+  is_featured: boolean;
+  status: ProductStatus;
+  created_at: string;
+  updated_at: string;
+}
 
 export type ProductFormData = Omit<
   AdminProduct,

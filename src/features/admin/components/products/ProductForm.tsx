@@ -18,15 +18,16 @@ import {
 import AddPhotoAlternateIcon from "@mui/icons-material/AddPhotoAlternate";
 import { uploadProductImage } from "../../../../services/productsApi";
 import type { AdminProduct, ProductFormData } from "./types";
-import { CATEGORIES } from "./types";
+import { CATEGORIES, METALS } from "./types";
 
 const STATUSES = ["Available", "Sold Out"] as const;
 
 const EMPTY: ProductFormData = {
   name: "",
   category: "Necklace",
+  metal: "Gold",
   description: "",
-  price: 0,
+  price: null,
   image_url: "",
   is_featured: false,
   status: "Available",
@@ -57,6 +58,7 @@ export default function ProductForm({
       ? {
           name: editing.name,
           category: editing.category,
+          metal: editing.metal,
           description: editing.description,
           price: editing.price,
           image_url: editing.image_url,
@@ -92,11 +94,10 @@ export default function ProductForm({
 
   const handleSubmit = () => {
     if (!form.name.trim()) return;
-    if (form.price <= 0) return;
     onSave(form);
   };
 
-  const isValid = form.name.trim() !== "" && form.price > 0;
+  const isValid = form.name.trim() !== "";
 
   return (
     <Dialog
@@ -179,8 +180,8 @@ export default function ProductForm({
           sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
         />
 
-        {/* Category + Status row */}
-        <Box className="grid grid-cols-2 gap-3">
+        {/* Category + Metal + Status row */}
+        <Box className="grid grid-cols-3 gap-3">
           <TextField
             select
             label="Category"
@@ -193,6 +194,22 @@ export default function ProductForm({
             {CATEGORIES.filter((c) => c !== "All").map((c: string) => (
               <MenuItem key={c} value={c}>
                 {c}
+              </MenuItem>
+            ))}
+          </TextField>
+
+          <TextField
+            select
+            label="Metal"
+            size="small"
+            fullWidth
+            value={form.metal}
+            onChange={(e) => set("metal", e.target.value)}
+            sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+          >
+            {METALS.map((m) => (
+              <MenuItem key={m} value={m}>
+                {m}
               </MenuItem>
             ))}
           </TextField>
@@ -221,10 +238,12 @@ export default function ProductForm({
           label="Price (Rs)"
           size="small"
           fullWidth
-          required
           type="number"
-          value={form.price === 0 ? "" : form.price}
-          onChange={(e) => set("price", Number(e.target.value))}
+          value={form.price ?? ""}
+          onChange={(e) =>
+            set("price", e.target.value === "" ? null : Number(e.target.value))
+          }
+          placeholder="Optional"
           sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
         />
 

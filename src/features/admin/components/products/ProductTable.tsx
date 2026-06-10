@@ -26,6 +26,7 @@ const headCells = [
   "Image",
   "Name",
   "Category",
+  "Metal",
   "Price",
   "Status",
   "Featured",
@@ -100,10 +101,19 @@ export default function ProductTable({ products, onEdit, onDelete }: Props) {
                 </Typography>
               </TableCell>
 
+              {/* Metal */}
+              <TableCell>
+                <Typography className="text-stone-600 text-sm">
+                  {p.metal}
+                </Typography>
+              </TableCell>
+
               {/* Price */}
               <TableCell>
                 <Typography className="text-stone-800 text-sm font-medium">
-                  Rs {Number(p.price).toLocaleString("en-NP")}
+                  {p.price != null
+                    ? `Rs ${Number(p.price).toLocaleString("en-NP")}`
+                    : "—"}
                 </Typography>
               </TableCell>
 

@@ -42,6 +42,7 @@ export default function AdminProducts() {
   // filters
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
+  const [metal, setMetal] = useState("All");
 
   // toast
   const [toast, setToast] = useState<Toast | null>(null);
@@ -72,9 +73,10 @@ export default function AdminProducts() {
     return products.filter((p) => {
       const matchesSearch = !q || p.name.toLowerCase().includes(q);
       const matchesCategory = category === "All" || p.category === category;
-      return matchesSearch && matchesCategory;
+      const matchesMetal = metal === "All" || p.metal === metal;
+      return matchesSearch && matchesCategory && matchesMetal;
     });
-  }, [products, search, category]);
+  }, [products, search, category, metal]);
 
   const openAdd = () => {
     setEditing(null);
@@ -178,8 +180,10 @@ export default function AdminProducts() {
           <ProductFilters
             search={search}
             category={category}
+            metal={metal}
             onSearchChange={(v) => setSearch(v)}
             onCategoryChange={(v) => setCategory(v)}
+            onMetalChange={(v) => setMetal(v)}
           />
 
           {/* States */}
