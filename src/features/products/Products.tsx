@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMediaQuery, useTheme } from "@mui/material";
 import TuneIcon from "@mui/icons-material/Tune";
 import { Box, Paper, Stack, Typography } from "@mui/material";
-import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
 import { SearchBar } from "./components/SearchBar";
@@ -21,27 +21,24 @@ const PAGE_SIZE_OPTIONS = [9, 12, 18];
 export default function Products() {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up("lg"));
-  const location = useLocation();
+  const [searchParams, setSearchParams] = useSearchParams();
 
+  /** Derive initial filters directly from URL search params.
+   *  This runs on every render so that browser refresh restores state correctly. */
   const initialFilters = useMemo<Filters>(() => {
-    const state = location.state as {
-      filter?: { metal?: string; categories?: string[] | string };
-    } | null;
-    const incoming = state?.filter?.categories;
-    const categories =
-      typeof incoming === "string"
-        ? incoming.split("|").filter(Boolean)
-        : Array.isArray(incoming)
-          ? incoming
-          : [];
-
-    const normalizedCategories = categories.includes("All") ? [] : categories;
+    const metal = searchParams.get("metal") ?? "All";
+    const rawCategories = searchParams.get("categories") ?? "";
+    const categories = rawCategories
+      .split(",")
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0 && c.toLowerCase() !== "all");
 
     return {
-      metal: state?.filter?.metal ?? "All",
-      categories: normalizedCategories,
+      metal: metal === "" ? "All" : metal,
+      categories,
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // intentionally run once on mount — URL params are the source of truth
 
   const [products, setProducts] = useState<Product[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -72,18 +69,35 @@ export default function Products() {
     };
   }, []);
 
+  const syncToUrl = useCallback(
+    (next: Filters) => {
+      const params = new URLSearchParams();
+      if (next.metal && next.metal !== "All") params.set("metal", next.metal);
+      if (next.categories.length > 0)
+        params.set("categories", next.categories.join(","));
+      setSearchParams(params, { replace: true });
+    },
+    [setSearchParams],
+  );
+
   const handleFilterChange = useCallback(
     (key: keyof Filters, value: Filters[keyof Filters]) => {
-      setFilters((prev) => ({ ...prev, [key]: value }));
+      setFilters((prev) => {
+        const next = { ...prev, [key]: value };
+        syncToUrl(next);
+        return next;
+      });
       setPage(1);
     },
-    [],
+    [syncToUrl],
   );
 
   const clearFilters = useCallback(() => {
-    setFilters({ metal: "All", categories: [] });
+    const cleared: Filters = { metal: "All", categories: [] };
+    setFilters(cleared);
+    syncToUrl(cleared);
     setPage(1);
-  }, []);
+  }, [syncToUrl]);
 
   const handleSearchChange = useCallback((value: string) => {
     setSearchTerm(value);

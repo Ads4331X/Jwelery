@@ -14,7 +14,7 @@ type GalleryItem = {
   image: string;
   gridArea: string;
   objectPosition?: string;
-  filter?: { metal?: string; category?: string };
+  filter?: { metal?: string; categories?: string[] };
 };
 
 const galleryItems: GalleryItem[] = [
@@ -25,7 +25,7 @@ const galleryItems: GalleryItem[] = [
     image: bridal,
     gridArea: "bridal",
     objectPosition: "50% 20%",
-    filter: { category: "Bridal" },
+    filter: { categories: ["Bridal"] },
   },
   {
     title: "Gold Necklaces",
@@ -34,16 +34,16 @@ const galleryItems: GalleryItem[] = [
     image: neckless,
     gridArea: "necklace",
     objectPosition: "center center",
-    filter: { metal: "Gold", category: "Necklace" },
+    filter: { metal: "Gold", categories: ["Necklace"] },
   },
   {
-    title: "Silver Jewelry",
+    title: "Silver Rings",
     subtitle: "Refined & contemporary",
     tag: "Shop Now",
     image: silver,
     gridArea: "silver",
     objectPosition: "center center",
-    filter: { metal: "Silver" },
+    filter: { metal: "Silver", categories: ["Ring"] },
   },
   {
     title: "Earrings",
@@ -52,7 +52,7 @@ const galleryItems: GalleryItem[] = [
     image: earing,
     gridArea: "earring",
     objectPosition: "center top",
-    filter: { category: "Earring" },
+    filter: { categories: ["Earring"] },
   },
   {
     title: "More Collections",
@@ -61,6 +61,7 @@ const galleryItems: GalleryItem[] = [
     image: kindali,
     gridArea: "more",
     objectPosition: "center center",
+    filter: {},
   },
 ];
 
@@ -173,7 +174,14 @@ export function GallerySection() {
   const navigate = useNavigate();
 
   const handleCardClick = (item: GalleryItem) => {
-    navigate("/products", { state: { filter: item.filter ?? {} } });
+    const params = new URLSearchParams();
+    const filter = item.filter ?? {};
+    if (filter.metal) params.set("metal", filter.metal);
+    if (filter.categories && filter.categories.length > 0) {
+      params.set("categories", filter.categories.join(","));
+    }
+    const qs = params.toString();
+    navigate(qs ? `/products?${qs}` : "/products");
   };
 
   return (
