@@ -288,8 +288,7 @@ export default function AdminContacts() {
         </DialogTitle>
         <DialogContent>
           <Typography variant="body2" className="text-stone-500">
-            This will permanently remove the enquiry from your dashboard. The
-            Google Sheets backup will not be affected.
+            This will permanently remove the enquiry from your dashboard.
           </Typography>
         </DialogContent>
         <DialogActions className="px-6 pb-4 gap-2">
