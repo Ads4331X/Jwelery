@@ -123,9 +123,9 @@ export default function AdminMetalRates() {
           Set today's gold and silver rates. These values are displayed on the
           public site.
           {updatedAt && (
-            <span className="ml-2 text-stone-300">
+            <Box component={"span"} className="ml-2 text-stone-300">
               Last updated: {new Date(updatedAt).toLocaleString()}
-            </span>
+            </Box>
           )}
         </Typography>
       </Box>

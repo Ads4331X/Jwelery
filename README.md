@@ -1,4 +1,4 @@
-# Pashupati Sun Chadi Pasal
+# Pashupatisunchadi Pasal
 
 A professional jewelry storefront and admin management system for showcasing and selling gold, silver, and exquisite jewelry products.
 

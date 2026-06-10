@@ -307,7 +307,12 @@ export default function ProductForm({
           {saving ? (
             <Box className="flex items-center gap-2">
               <CircularProgress size={16} className="text-white" />
-              <span className="text-white text-xs font-medium">Saving</span>
+              <Box
+                component={"span"}
+                className="text-white text-xs font-medium"
+              >
+                Saving
+              </Box>
             </Box>
           ) : editing ? (
             "Save changes"

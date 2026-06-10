@@ -84,13 +84,30 @@ export default function Footer() {
         >
           {/* Brand */}
           <Box className="flex flex-col items-start gap-4">
-            {/* Logo */}
-            <Box
-              component="img"
-              src={logo}
-              alt="Pashupati Sunchadi Pasal"
-              className="h-14 w-auto object-contain scale-200 self-start"
-            />
+            {/* Logo + shopname */}
+            <Box className="flex items-center gap-3 self-start">
+              <Box
+                component="img"
+                src={logo}
+                alt="Pashupati Sunchadi Pasal"
+                className="h-14 w-auto object-contain scale-200 flex-shrink-0"
+              />
+              <Typography
+                component="span"
+                sx={{
+                  fontSize: { xs: "0.85rem", sm: "0.98rem", md: "1.08rem" },
+                  color: "#111827",
+                  fontWeight: 700,
+                  lineHeight: 1.1,
+                  maxWidth: { xs: 170, sm: 220, md: 260 },
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                Pashupatisunchadi Pasal
+              </Typography>
+            </Box>
 
             {/* Text */}
             <Typography

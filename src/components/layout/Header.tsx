@@ -18,12 +18,22 @@ export default function Header() {
     <Box className="fixed w-screen top-0 z-50 bg-white shadow-md">
       {/* header */}
       <Box className="flex justify-between items-center p-3 md:px-10">
-        {/* logo */}
-        <Box
-          component="img"
-          src={logo}
-          className="h-14 w-auto object-contain scale-200"
-        />
+        {/* logo + shopname */}
+        <Box className="flex items-center gap-3 min-w-0">
+          <Box
+            component="img"
+            src={logo}
+            className="h-14 w-auto object-contain scale-200 flex-shrink-0"
+          />
+          <Box className="min-w-0">
+            <Box
+              component={"span"}
+              className="block truncate text-sm sm:text-base md:text-lg font-semibold text-stone-900 leading-none"
+            >
+              Pashupatisunchadi Pasal
+            </Box>
+          </Box>
+        </Box>
 
         {/* desktop nav */}
         <Box className="hidden md:flex gap-6">

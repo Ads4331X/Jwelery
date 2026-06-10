@@ -5,6 +5,7 @@ import {
   Button,
   Avatar,
   Chip,
+  Box,
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useContext } from "react";
@@ -41,8 +42,8 @@ export default function Topbar() {
           Dashboard
         </Typography>
 
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:flex items-center gap-2">
+        <Box className="flex items-center gap-3">
+          <Box className="hidden sm:flex items-center gap-2">
             <Avatar className="w-7 h-7 text-xs bg-stone-800">
               {displayName[0].toUpperCase()}
             </Avatar>
@@ -56,7 +57,7 @@ export default function Topbar() {
                 className="text-xs bg-amber-100 text-amber-800 border-0 h-5"
               />
             )}
-          </div>
+          </Box>
 
           <Button
             onClick={handleLogout}
@@ -64,9 +65,11 @@ export default function Topbar() {
             startIcon={<LogoutIcon fontSize="small" />}
             className="normal-case text-stone-500 hover:text-stone-800 hover:bg-stone-100 text-sm"
           >
-            <span className="hidden sm:inline">Logout</span>
+            <Box component={"span"} className="hidden sm:inline">
+              Logout
+            </Box>
           </Button>
-        </div>
+        </Box>
       </Toolbar>
     </AppBar>
   );

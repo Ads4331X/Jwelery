@@ -6,6 +6,7 @@ import {
   Button,
   Typography,
   CircularProgress,
+  Box,
 } from "@mui/material";
 import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 
@@ -37,9 +38,12 @@ export default function DeleteProductDialog({
     >
       <DialogTitle className="flex items-center gap-2 pb-2">
         <WarningAmberIcon className="text-amber-600" />
-        <span className="font-semibold text-stone-800 text-base">
+        <Box
+          component={"span"}
+          className="font-semibold text-stone-800 text-base"
+        >
           Delete product?
-        </span>
+        </Box>
       </DialogTitle>
       <DialogContent>
         <Typography variant="body2" className="text-stone-500">

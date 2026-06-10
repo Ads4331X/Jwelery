@@ -287,7 +287,7 @@ export function ContactSection() {
               onClick={handleSubmit}
               disabled={submitting}
               fullWidth
-              className="!rounded-full !py-3.5 !text-[0.72rem] !font-semibold !uppercase !tracking-widest !text-white"
+              className="rounded-full! py-3.5! text-[0.72rem]! font-semibold! uppercase! tracking-widest! text-white!"
               style={{
                 background: "linear-gradient(135deg, #92400e 0%, #b45309 100%)",
               }}

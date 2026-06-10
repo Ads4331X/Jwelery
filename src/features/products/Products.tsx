@@ -200,9 +200,12 @@ export default function Products() {
                 <TuneIcon style={{ fontSize: 18 }} />
                 Filters
                 {activeFilterCount > 0 && (
-                  <span className="ml-1 px-1.5 py-0.5 rounded-full bg-white/25 text-[0.6rem] font-bold text-white">
+                  <Box
+                    component={"span"}
+                    className="ml-1 px-1.5 py-0.5 rounded-full bg-white/25 text-[0.6rem] font-bold text-white"
+                  >
                     {activeFilterCount}
-                  </span>
+                  </Box>
                 )}
               </button>
             )}
