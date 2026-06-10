@@ -90,7 +90,7 @@ export default function Footer() {
                 component="img"
                 src={logo}
                 alt="Pashupati Sunchadi Pasal"
-                className="h-14 w-auto object-contain scale-200 flex-shrink-0"
+                className="h-14 w-auto object-contain scale-200 shrink-0"
               />
               <Typography
                 component="span"

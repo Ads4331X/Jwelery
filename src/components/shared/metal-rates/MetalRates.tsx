@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Box, Typography } from "@mui/material";
-import { getMetalRates } from "../../features/admin/utils/metalRates";
-import MetalCard from "./metal-rates/MetalCard";
-import { METAL_KEYS } from "./metal-rates/theme";
-import type { RateData } from "./metal-rates/types";
+import { getMetalRates } from "../../../features/admin/utils/metalRates";
+import MetalCard from "./MetalCard";
+import { METAL_KEYS } from "./theme";
+import type { RateData } from "./types";
 
 export default function MetalRates() {
   const [isLoading, setIsLoading] = useState(true);
