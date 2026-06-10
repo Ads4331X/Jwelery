@@ -1,75 +1,86 @@
-# Gold — Jewelry Web App (React + TypeScript + Vite)
+# Pashupati Sun Chadi Pasal
 
-Single-page storefront and admin dashboard built with React, TypeScript, Vite, and MUI.
+A professional jewelry storefront and admin management system for showcasing and selling gold, silver, and exquisite jewelry products.
 
-Currently, two official plugins are available:
+## Project Overview
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Pashupatisunchadi Pasal is a comprehensive web application designed for a jewelry business. It provides a high-end shopping experience for customers to explore jewelry collections and a powerful administrative dashboard for the business owner to manage inventory, update metal rates, and handle customer enquiries.
 
-## React Compiler
+## Features
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### 🛍️ Customer Experience
 
-Note: This will impact Vite dev & build performances.
+- **Product Catalog**: A visually appealing gallery of gold and silver jewelry.
+- **Advanced Filtering**: Search and filter products by category and attributes for easy discovery.
+- **Live Metal Rates**: Real-time display of current gold and silver prices.
+- **About & Story**: Dedicated sections highlighting the shop's craftsmanship, values, and history.
+- **Contact Integration**: Seamless communication through a dedicated contact page.
 
-## Expanding the ESLint configuration
+### 🛠️ Admin Dashboard
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **Inventory Management**: Full CRUD capabilities to add, edit, and remove jewelry products.
+- **Rate Control**: Ability to update gold and silver rates instantly across the site.
+- **Enquiry Management**: A centralized system to track and manage customer enquiries.
+- **User Management**: Secure admin authentication and management of administrative accounts.
+- **System Settings**: Configuration options for site-wide settings and security.
 
-```js
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+## Tech Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Frontend**: React 19, TypeScript, Vite
+- **Styling**: Material UI (MUI), Tailwind CSS, Styled Components
+- **Backend**: Supabase (PostgreSQL, Authentication, Storage)
+- **Routing**: React Router DOM
+- **Animations/Sliders**: Swiper.js
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+## Installation & Setup
+
+1. **Clone the repository**:
+
+   ```bash
+   git clone https://github.com/Ads4331X/Jwelery
+   cd gold
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Environment Configuration**:
+   Create a `.env` file in the root directory and add your Supabase credentials:
+
+   ```env
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+## Project Structure
+
+```text
+src/
+├── components/     # Shared UI components (Layout, UI, Shared)
+├── features/       # Feature-based modules
+│   ├── admin/      # Admin dashboard and management tools
+│   ├── auth/       # Authentication logic and providers
+│   ├── home/       # Landing page components
+│   ├── products/   # Product listing and filtering
+│   ├── about/      # About Us page
+│   └── contact/    # Contact page
+├── services/       # API services and Supabase configuration
+└── styles/         # Global styles and CSS
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Usage
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+- **Customers**: Visit the home page to browse products and check current metal rates.
+- **Admins**: Access the `/admin` route to manage the store's backend operations.
 
-export default defineConfig([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
-```
+## License
+
+This project is proprietary. All rights reserved.

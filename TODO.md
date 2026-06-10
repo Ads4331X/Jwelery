@@ -1,4 +1,0 @@
-- [x] Inspect Products routing filter initialization (Products.tsx) and GallerySection navigation state payload (GallerySection.tsx)
-- [x] Update Products.tsx initialFilters so it reacts to location changes and correctly normalizes categories/aliases
-- [x] Ensure "More" / "All" behavior maps to categories: [] and metal: "All"
-- [x] Build to confirm TypeScript correctness
