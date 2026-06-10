@@ -13,6 +13,11 @@ import {
   Alert,
   Tooltip,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from "@mui/material";
 import ContactMailOutlinedIcon from "@mui/icons-material/ContactMailOutlined";
 import DraftsOutlinedIcon from "@mui/icons-material/DraftsOutlined";
@@ -35,6 +40,7 @@ export default function AdminContacts() {
   const [tab, setTab] = useState<TabValue>("all");
   const [expanded, setExpanded] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -77,9 +83,14 @@ export default function AdminContacts() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    const id = deleteTarget;
+
     setContacts((prev) => prev.filter((x) => x.id !== id));
     const { error } = await deleteContact(id);
+    setDeleteTarget(null);
+
     if (error) {
       setToast("Failed to delete.");
       void load();
@@ -240,7 +251,7 @@ export default function AdminContacts() {
                     <Tooltip title="Delete">
                       <IconButton
                         size="small"
-                        onClick={() => handleDelete(c.id)}
+                        onClick={() => setDeleteTarget(c.id)}
                       >
                         <DeleteOutlinedIcon
                           sx={{ fontSize: 15, color: "#a8a29e" }}
@@ -264,6 +275,47 @@ export default function AdminContacts() {
             ))}
         </CardContent>
       </Card>
+
+      <Dialog
+        open={deleteTarget !== null}
+        onClose={() => setDeleteTarget(null)}
+        slotProps={{
+          paper: { className: "rounded-2xl", sx: { maxWidth: 360 } },
+        }}
+      >
+        <DialogTitle className="font-semibold text-stone-800 text-base pb-1">
+          Delete enquiry?
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" className="text-stone-500">
+            This will permanently remove the enquiry from your dashboard. The
+            Google Sheets backup will not be affected.
+          </Typography>
+        </DialogContent>
+        <DialogActions className="px-6 pb-4 gap-2">
+          <Button
+            onClick={() => setDeleteTarget(null)}
+            variant="outlined"
+            size="small"
+            className="normal-case rounded-lg border-stone-200 text-stone-600"
+          >
+            Cancel
+          </Button>
+          <Button
+            onClick={handleDelete}
+            variant="contained"
+            disableElevation
+            size="small"
+            className="normal-case rounded-lg"
+            sx={{
+              backgroundColor: "#dc2626",
+              "&:hover": { backgroundColor: "#b91c1c" },
+            }}
+          >
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       <Snackbar
         open={toast !== null}

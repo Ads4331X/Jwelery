@@ -13,47 +13,45 @@ export interface Contact {
 
 export type ContactFormData = Pick<
   Contact,
-  "name" | "email" | "inquiry" | "message" | "phone"
+  "name" | "phone" | "email" | "inquiry" | "message"
 >;
 
-// Replace these with your real entry IDs from the form
 const FORM_ACTION =
   "https://docs.google.com/forms/d/e/1FAIpQLSep7iTfNY_VKeIIJAzIFXIggicXDz5664wFHpi3KX9hD5z_RQ/formResponse";
-const ENTRY = {
-  name: "entry.XXXXXXXXX", // ← replace
-  email: "entry.XXXXXXXXX", // ← replace
-  phone: "entry.XXXXXXXXX", // ← replace
-  inquiry: "entry.XXXXXXXXX", // ← replace
-  message: "entry.XXXXXXXXX", // ← replace
-};
 
 const submitToGoogleForms = (data: ContactFormData) => {
-  const body = new URLSearchParams({
-    [ENTRY.name]: data.name,
-    [ENTRY.email]: data.email,
-    // Phone is optional for now (store schema supports it, but UI may not)
-    [ENTRY.inquiry]: data.inquiry,
-    [ENTRY.message]: data.message,
+  const form = document.createElement("form");
+  form.method = "POST";
+  form.action = FORM_ACTION;
+  form.target = "hidden-google-iframe";
+  form.style.display = "none";
+
+  const fields: Record<string, string> = {
+    "entry.854124261": data.name,
+    "entry.1234484138": data.phone,
+    "entry.194044286": data.email,
+    "entry.1371665099": data.inquiry,
+    "entry.768698657": data.message,
+  };
+
+  Object.entries(fields).forEach(([name, value]) => {
+    const input = document.createElement("input");
+    input.name = name;
+    input.value = value;
+    form.appendChild(input);
   });
 
-  // fire-and-forget — CORS will block the response but submission still works
-  fetch(FORM_ACTION, { method: "POST", body, mode: "no-cors" }).catch(() => {});
+  document.body.appendChild(form);
+  form.submit();
+  setTimeout(() => document.body.removeChild(form), 1000);
 };
 
 export const submitContact = async (
   data: ContactFormData,
 ): Promise<{ error: string | null }> => {
-  // Ensure phone is not required by the form currently
-  const payload = {
-    ...data,
-    phone: (data as Partial<Contact>).phone ?? "",
-  };
-
-  const { error } = await supabase.from("contacts").insert(payload);
-
+  const { error } = await supabase.from("contacts").insert(data);
   if (error) return { error: error.message };
-  submitToGoogleForms(data); // backup to Google Forms, non-blocking
-
+  submitToGoogleForms(data);
   return { error: null };
 };
 

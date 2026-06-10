@@ -16,6 +16,7 @@ function App() {
     <AuthProvider>
       <BrowserRouter>
         <ScrollToTop />
+        <iframe name="hidden-google-iframe" style={{ display: "none" }} />
         <Suspense fallback={null}>
           <Routes>
             <Route path="/" element={<Home />} />
