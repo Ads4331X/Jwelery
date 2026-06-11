@@ -159,33 +159,3 @@ export const updateDisplayName = async (
 
   return { error: null };
 };
-
-// ---------------------------------------------------------------------------
-// Username (own account)
-// ---------------------------------------------------------------------------
-/**
- * Update the current admin's username.
- *
- * The function mirrors {@link updateDisplayName} but only updates the
- * `username` column. It also updates the auth metadata so that any UI that
- * reads `user_metadata.username` reflects the change immediately.
- */
-export const updateUsername = async (
-  username: string,
-): Promise<{ error: string | null }> => {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (!user) return { error: "Not authenticated." };
-
-  const { error } = await supabase
-    .from("admins")
-    .update({ username })
-    .eq("id", user.id);
-
-  if (error) return { error: error.message };
-
-  // Update auth metadata for immediate UI refresh if needed
-  await supabase.auth.updateUser({ data: { username } });
-
-  return { error: null };
-};
