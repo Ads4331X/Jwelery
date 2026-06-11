@@ -5,12 +5,15 @@ import { AuthContext } from "./context";
 import type { AuthContextType, AdminRole } from "./context";
 import type { User } from "@supabase/supabase-js";
 
-function getRoleFromUser(user: User | null): AdminRole | null {
+async function getRoleFromDB(user: User | null): Promise<AdminRole | null> {
   if (!user) return null;
-  const role = user.user_metadata?.role as string | undefined;
-  if (role === "super_admin") return "super_admin";
-  if (role === "admin") return "admin";
-  return null;
+  const { data, error } = await supabase
+    .from("admins")
+    .select("role")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.role as AdminRole;
 }
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -23,8 +26,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const restoreSession = async () => {
       const { data } = await supabase.auth.getSession();
       const activeUser = data.session?.user ?? null;
+      const activeRole = await getRoleFromDB(activeUser);
       setUser(activeUser);
-      setRole(getRoleFromUser(activeUser));
+      setRole(activeRole);
       setIsAuthenticated(!!activeUser);
       setLoading(false);
     };
@@ -32,10 +36,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     restoreSession();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
+      async (_event, session) => {
         const activeUser = session?.user ?? null;
+        const activeRole = await getRoleFromDB(activeUser);
         setUser(activeUser);
-        setRole(getRoleFromUser(activeUser));
+        setRole(activeRole);
         setIsAuthenticated(!!activeUser);
       },
     );
@@ -52,14 +57,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       password,
     });
 
-    if (error) {
-      return "Invalid email or password.";
-    }
+    if (error) return "Invalid email or password.";
 
     const loggedInUser = data.user;
-    const userRole = getRoleFromUser(loggedInUser);
+    const userRole = await getRoleFromDB(loggedInUser);
 
-    // Only allow users with an admin role to log in
     if (!userRole) {
       await supabase.auth.signOut();
       return "Access denied. This account is not an admin.";

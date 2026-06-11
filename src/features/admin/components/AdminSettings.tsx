@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useCallback } from "react";
-import { Box, Grid, Typography } from "@mui/material";
+import { Box } from "@mui/material";
 import { AuthContext } from "../../auth/context/context";
 
 import {
@@ -9,15 +9,20 @@ import {
   type AdminAccount,
 } from "../utils/adminUser";
 
-import SecuritySection from "./settings/SecuritySection";
-import AdminManagement from "./settings/AdminManagement";
-import DeleteAdminDialog from "./settings/DeleteAdminDialog";
+import AdminSettingsHeader from "./settings/AdminSettingsHeader";
+import AdminSettingsPanels from "./settings/AdminSettingsPanels";
 
 type Message = { type: "success" | "error"; text: string };
 
 export default function AdminSettings() {
   const auth = useContext(AuthContext);
   const isSuperAdmin = auth?.role === "super_admin";
+
+  // Display name state
+  const [displayName, setDisplayName] = useState(
+    auth?.user?.user_metadata?.display_name ?? "",
+  );
+  const [nameMsg, setNameMsg] = useState<Message | null>(null);
 
   // Password change state
   const [newPassword, setNewPassword] = useState("");
@@ -50,12 +55,33 @@ export default function AdminSettings() {
   // -------------------------------------------------------------------------
   // Password update
   // -------------------------------------------------------------------------
+  const handleUpdateDisplayName = async () => {
+    setNameMsg(null);
+    if (!displayName.trim()) {
+      setNameMsg({ type: "error", text: "Display name cannot be empty." });
+      return;
+    }
+
+    const { updateDisplayName } = await import("../utils/adminUser");
+    const { error } = await updateDisplayName(displayName.trim());
+
+    if (error) {
+      setNameMsg({ type: "error", text: error });
+    } else {
+      setNameMsg({
+        type: "success",
+        text: "Display name updated successfully.",
+      });
+    }
+  };
+
   const handleUpdatePassword = async () => {
     setPwdMsg(null);
     if (!newPassword) {
       setPwdMsg({ type: "error", text: "Please enter a new password." });
       return;
     }
+
     if (newPassword.length < 6) {
       setPwdMsg({
         type: "error",
@@ -129,6 +155,23 @@ export default function AdminSettings() {
   };
 
   // -------------------------------------------------------------------------
+  // Promote admin to super_admin
+  // -------------------------------------------------------------------------
+  const handlePromote = async (admin: AdminAccount) => {
+    const { updateAdminRole } = await import("../utils/adminUser");
+    const { error } = await updateAdminRole(admin.id, "super_admin");
+    if (error) {
+      setAdminMgmtMsg({ type: "error", text: error });
+    } else {
+      setAdminMgmtMsg({
+        type: "success",
+        text: `${admin.display_name} is now a Super Admin. They must log out and log back in to access super admin features.`,
+      });
+      refreshAdmins();
+    }
+  };
+
+  // -------------------------------------------------------------------------
   // Delete admin
   // -------------------------------------------------------------------------
   const handleDeleteConfirm = async () => {
@@ -142,51 +185,35 @@ export default function AdminSettings() {
 
   return (
     <Box className="flex flex-col gap-6">
-      <Box>
-        <Typography variant="h5" className="font-semibold text-stone-800 mb-1">
-          Settings
-        </Typography>
-        <Typography variant="body2" className="text-stone-400">
-          Manage your password and admin accounts.
-        </Typography>
-      </Box>
+      <AdminSettingsHeader />
 
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, md: 6 }}>
-          <SecuritySection
-            newPassword={newPassword}
-            setNewPassword={setNewPassword}
-            confirmPassword={confirmPassword}
-            setConfirmPassword={setConfirmPassword}
-            pwdMsg={pwdMsg}
-            onUpdatePassword={handleUpdatePassword}
-          />
-        </Grid>
-
-        {isSuperAdmin && (
-          <Grid size={{ xs: 12 }}>
-            <AdminManagement
-              admins={admins}
-              adminsLoaded={adminsLoaded}
-              newAdminEmail={newAdminEmail}
-              setNewAdminEmail={setNewAdminEmail}
-              newAdminDisplayName={newAdminDisplayName}
-              setNewAdminDisplayName={setNewAdminDisplayName}
-              newAdminPwd={newAdminPwd}
-              setNewAdminPwd={setNewAdminPwd}
-              adminMgmtMsg={adminMgmtMsg}
-              onAddAdmin={handleAddAdmin}
-              onSetDeleteTarget={setDeleteTarget}
-            />
-          </Grid>
-        )}
-      </Grid>
-
-      <DeleteAdminDialog
-        open={!!deleteTarget}
-        target={deleteTarget}
-        onClose={() => setDeleteTarget(null)}
-        onConfirm={handleDeleteConfirm}
+      <AdminSettingsPanels
+        newPassword={newPassword}
+        setNewPassword={setNewPassword}
+        confirmPassword={confirmPassword}
+        setConfirmPassword={setConfirmPassword}
+        pwdMsg={pwdMsg}
+        onUpdatePassword={handleUpdatePassword}
+        displayName={displayName}
+        setDisplayName={setDisplayName}
+        nameMsg={nameMsg}
+        onUpdateDisplayName={handleUpdateDisplayName}
+        isSuperAdmin={isSuperAdmin}
+        admins={admins}
+        adminsLoaded={adminsLoaded}
+        newAdminEmail={newAdminEmail}
+        setNewAdminEmail={setNewAdminEmail}
+        newAdminDisplayName={newAdminDisplayName}
+        setNewAdminDisplayName={setNewAdminDisplayName}
+        newAdminPwd={newAdminPwd}
+        setNewAdminPwd={setNewAdminPwd}
+        adminMgmtMsg={adminMgmtMsg}
+        onAddAdmin={handleAddAdmin}
+        onSetDeleteTarget={setDeleteTarget}
+        onPromote={handlePromote}
+        deleteTarget={deleteTarget}
+        onCloseDelete={() => setDeleteTarget(null)}
+        onConfirmDelete={handleDeleteConfirm}
       />
     </Box>
   );

@@ -48,11 +48,9 @@ export const createAdmin = async (
   displayName: string,
   role: AdminRole = "admin",
 ): Promise<AdminResult> => {
-  // 1. Save current (super admin) session
   const { data: sessionData } = await supabase.auth.getSession();
   const currentSession = sessionData.session;
 
-  // 2. Create the new auth user
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
@@ -61,7 +59,9 @@ export const createAdmin = async (
     },
   });
 
-  // 3. Restore the super admin's session regardless of outcome
+  const newUser = data?.user;
+
+  // Always restore session immediately
   if (currentSession) {
     await supabase.auth.setSession({
       access_token: currentSession.access_token,
@@ -69,34 +69,37 @@ export const createAdmin = async (
     });
   }
 
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
-      return {
-        user: null,
-        error: "An account with this email already exists.",
-      };
-    }
-    return { user: null, error: error.message };
-  }
+  if (error) return { user: null, error: error.message };
+  if (!newUser) return { user: null, error: "User creation failed." };
 
-  const newUser = data.user;
-  if (newUser) {
-    const { error: dbError } = await supabase.from("admins").insert({
-      id: newUser.id,
-      email,
-      display_name: displayName,
-      role,
-      created_at: new Date().toISOString(),
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  // Re-restore session again after delay to be safe
+  if (currentSession) {
+    await supabase.auth.setSession({
+      access_token: currentSession.access_token,
+      refresh_token: currentSession.refresh_token,
     });
-
-    if (dbError) {
-      console.error("Failed to insert admin record:", dbError.message);
-    }
   }
 
-  return { user: newUser ?? null, error: null };
-};
+  const { error: dbError } = await supabase.from("admins").insert({
+    id: newUser.id,
+    email,
+    display_name: displayName,
+    username: displayName,
+    role,
+    created_at: new Date().toISOString(),
+  });
 
+  if (dbError) {
+    return {
+      user: null,
+      error: `Auth user created but DB insert failed: ${dbError.message}`,
+    };
+  }
+
+  return { user: newUser, error: null };
+};
 // ---------------------------------------------------------------------------
 // Delete
 // ---------------------------------------------------------------------------
@@ -121,5 +124,68 @@ export const updateOwnPassword = async (
   if (error) {
     return { error: error.message };
   }
+  return { error: null };
+};
+
+export const updateAdminRole = async (
+  id: string,
+  role: AdminRole,
+): Promise<{ error: string | null }> => {
+  const { error } = await supabase.from("admins").update({ role }).eq("id", id);
+  return { error: error?.message ?? null };
+};
+
+// ---------------------------------------------------------------------------
+// Display Name (own account)
+// ---------------------------------------------------------------------------
+export const updateDisplayName = async (
+  displayName: string,
+): Promise<{ error: string | null }> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user;
+  if (!user) return { error: "Not authenticated." };
+
+  const { error } = await supabase
+    .from("admins")
+    .update({ display_name: displayName, username: displayName })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  // Also update auth metadata so topbar refreshes immediately
+  await supabase.auth.updateUser({
+    data: { display_name: displayName },
+  });
+
+  return { error: null };
+};
+
+// ---------------------------------------------------------------------------
+// Username (own account)
+// ---------------------------------------------------------------------------
+/**
+ * Update the current admin's username.
+ *
+ * The function mirrors {@link updateDisplayName} but only updates the
+ * `username` column. It also updates the auth metadata so that any UI that
+ * reads `user_metadata.username` reflects the change immediately.
+ */
+export const updateUsername = async (
+  username: string,
+): Promise<{ error: string | null }> => {
+  const { data: userData } = await supabase.auth.getUser();
+  const user = userData?.user;
+  if (!user) return { error: "Not authenticated." };
+
+  const { error } = await supabase
+    .from("admins")
+    .update({ username })
+    .eq("id", user.id);
+
+  if (error) return { error: error.message };
+
+  // Update auth metadata for immediate UI refresh if needed
+  await supabase.auth.updateUser({ data: { username } });
+
   return { error: null };
 };
