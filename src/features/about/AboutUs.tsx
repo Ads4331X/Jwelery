@@ -13,12 +13,15 @@ export default function AboutUs() {
     <Box className="bg-[#fafaf7] text-stone-900">
       <Header />
 
-      <HeroSection />
-      <StatsSection />
-      <StorySection />
-      <CraftsmanshipSection />
-      <ValuesSection />
-      <CTASection />
+      <Box className="mt-16 sm:mt-8 lg:mt-0">
+        {" "}
+        <HeroSection />
+        <StatsSection />
+        <StorySection />
+        <CraftsmanshipSection />
+        <ValuesSection />
+        <CTASection />
+      </Box>
 
       <Footer />
     </Box>
