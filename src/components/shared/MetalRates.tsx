@@ -71,8 +71,8 @@ export default function MetalRates() {
         </Box>
 
         <Typography className="mt-5 max-w-md text-[0.95rem] leading-8 text-gray-500">
-          Official FENEGOSIDA rates, transparent pricing so every piece carries
-          its true value.
+          Official rates, transparent pricing so every piece carries its true
+          value.
         </Typography>
       </Box>
 
@@ -82,11 +82,6 @@ export default function MetalRates() {
             <MetalCard key={key} metalKey={key} entry={data[key]} />
           ))}
       </Box>
-
-      <Typography className="relative mx-auto mt-10 max-w-2xl text-center text-xs italic text-gray-400">
-        Rates sourced from FENEGOSIDA. Final jewellery price includes making
-        charges and taxes.
-      </Typography>
     </Box>
   );
 }
