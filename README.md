@@ -52,7 +52,7 @@ Pashupatisunchadi Pasal is a comprehensive web application designed for a jewelr
 
    ```env
    VITE_SUPABASE_URL=your_supabase_url
-   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_anon_key
    ```
 
 4. **Run the development server**:
