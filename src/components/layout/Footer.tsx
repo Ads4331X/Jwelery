@@ -17,8 +17,7 @@ const NAV_LINKS = [
 ];
 
 const MAPS_URL =
-  "https://www.google.com/maps/place/Pashupati+sunchandi+pasal/@27.7413552,85.3542036,17z";
-
+  "https://www.google.com/maps/place/Pashupati+sunchandi+pasal/@27.741355,85.354204,15z/data=!4m6!3m5!1s0x87bae54d1de46cbb:0x50398dc4114eec49!8m2!3d27.7413552!4d85.3542036!16s%2Fg%2F11yct2pnl8?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDYwOS4wIKXMDSoASAFQAw%3D%3D";
 const CONTACTS = [
   {
     icon: <LocationOnOutlined fontSize="small" />,
