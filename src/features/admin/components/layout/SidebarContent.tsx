@@ -50,7 +50,7 @@ export default function SidebarContent({ onClose }: { onClose?: () => void }) {
             Admin Panel
           </Typography>
           <Typography className="text-base font-semibold text-stone-800 mt-0.5">
-            Pashupatisunchadi
+            Jewellery Shop
           </Typography>
         </Box>
 

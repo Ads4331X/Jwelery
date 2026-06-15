@@ -23,14 +23,14 @@ export default function Header() {
           <Box
             component="img"
             src={logo}
-            className="h-14 w-auto object-contain scale-200 shrink-0"
+            className="h-14 w-auto object-contain  shrink-0"
           />
           <Box className="min-w-0">
             <Box
               component={"span"}
               className="block truncate text-sm sm:text-base md:text-lg font-semibold text-stone-900 leading-none"
             >
-              Pashupatisunchadi Pasal
+              Jewellery Shop
             </Box>
           </Box>
         </Box>

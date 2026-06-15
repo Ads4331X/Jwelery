@@ -17,34 +17,34 @@ const NAV_LINKS = [
 ];
 
 const MAPS_URL =
-  "https://www.google.com/maps/place/Pashupati+sunchandi+pasal/@27.741355,85.354204,15z/data=!4m6!3m5!1s0x87bae54d1de46cbb:0x50398dc4114eec49!8m2!3d27.7413552!4d85.3542036!16s%2Fg%2F11yct2pnl8?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDYwOS4wIKXMDSoASAFQAw%3D%3D";
+  "https://www.google.com/maps/dir/27.741275,85.354269/Prathana+colani,+P9R3%2BJM4,+Jyoti+Nagar+Rd,+Budhanilkantha+44600/@27.7413572,85.3516257,17z/data=!3m1!4b1!4m18!1m8!3m7!1s0x39eb192012fce44b:0x1b2689141d7c7f94!2sPrathana+colani!8m2!3d27.7414405!4d85.3541144!15sCg9wcmF0aGFuYSBjb2xvbnmSAQ9ob3VzaW5nX3NvY2lldHngAQA!16s%2Fg%2F11v0bqyhjy!4m8!1m1!4e1!1m5!1m1!1s0x39eb192012fce44b:0x1b2689141d7c7f94!2m2!1d85.3542075!2d27.741432?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDYxMC4wIKXMDSoASAFQAw%3D%3D";
 const CONTACTS = [
   {
     icon: <LocationOnOutlined fontSize="small" />,
-    label: "Jyotinagar Road, Kathmandu",
+    label: "Location",
     href: MAPS_URL,
   },
   {
     icon: <EmailOutlined fontSize="small" />,
-    label: "pashupatisunchadipasal@gmail.com",
-    href: "mailto:pashupatisunchadipasal@gmail.com",
+    label: "demo@gmail.com",
+    href: "mailto:demo@gmail.com",
   },
   {
     icon: <PhoneOutlined fontSize="small" />,
-    label: "986-2765445",
-    href: "tel:+9779862765445",
+    label: "980-1234567",
+    href: "tel:+9779801234567",
   },
 ];
 
 const SOCIAL_LINKS = [
   {
     label: "Facebook",
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/",
     icon: <Facebook fontSize="small" />,
   },
   {
     label: "Instagram",
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/",
     icon: <Instagram fontSize="small" />,
   },
 ];
@@ -88,8 +88,8 @@ export default function Footer() {
               <Box
                 component="img"
                 src={logo}
-                alt="Pashupati Sunchadi Pasal"
-                className="h-14 w-auto object-contain scale-200 shrink-0"
+                alt="Jewellery Shop"
+                className="h-14 w-auto object-contain  shrink-0"
               />
               <Typography
                 component="span"
@@ -104,7 +104,7 @@ export default function Footer() {
                   whiteSpace: "nowrap",
                 }}
               >
-                Pashupatisunchadi Pasal
+                Jewellery Shop
               </Typography>
             </Box>
 
@@ -118,7 +118,7 @@ export default function Footer() {
                 textAlign: "left",
               }}
             >
-              Premium handcrafted gold and silver jewelry from Jyotinagar Road,
+              Premium handcrafted gold and silver jewelry from Location,
               Kathmandu. Trusted since 2017.
             </Typography>
           </Box>
@@ -221,8 +221,7 @@ export default function Footer() {
           }}
         >
           <Typography sx={{ fontSize: "0.8rem", color: "rgba(0,0,0,0.45)" }}>
-            © {new Date().getFullYear()} Pashupati Sunchadi Pasal. All rights
-            reserved.
+            © {new Date().getFullYear()} Jewellery Shop. All rights reserved.
           </Typography>
           <Typography
             sx={{

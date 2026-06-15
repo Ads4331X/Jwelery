@@ -48,7 +48,7 @@ export default function LoginForm({
             variant="h5"
             className="font-semibold text-stone-800 mt-1"
           >
-            Pashupatisunchadi Pasal
+            Jewellery Shop
           </Typography>
         </Box>
 

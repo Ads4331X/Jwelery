@@ -1,10 +1,10 @@
-# Pashupatisunchadi Pasal
+# Jewellery Shop
 
 A professional jewelry storefront and admin management system for showcasing and selling gold, silver, and exquisite jewelry products.
 
 ## Project Overview
 
-Pashupatisunchadi Pasal is a comprehensive web application designed for a jewelry business. It provides a high-end shopping experience for customers to explore jewelry collections and a powerful administrative dashboard for the business owner to manage inventory, update metal rates, and handle customer enquiries.
+Jewellery Shop is a comprehensive web application designed for a jewelry business. It provides a high-end shopping experience for customers to explore jewelry collections and a powerful administrative dashboard for the business owner to manage inventory, update metal rates, and handle customer enquiries.
 
 ## Features
 

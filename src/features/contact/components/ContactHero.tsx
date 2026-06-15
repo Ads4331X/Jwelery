@@ -9,7 +9,7 @@ export function ContactHero() {
       <Box className="flex items-center gap-3 mb-6 justify-center">
         <Box className="w-8 h-px bg-amber-600" />
         <Typography className="text-[0.65rem] uppercase tracking-[0.45em] text-amber-700">
-          Pashupatisunchadi Pasal
+          Jewellery Shop
         </Typography>
         <Box className="w-8 h-px bg-amber-600" />
       </Box>
@@ -19,7 +19,7 @@ export function ContactHero() {
         className="text-5xl sm:text-6xl lg:text-7xl font-semibold text-stone-900 leading-tight"
         style={{ fontFamily: "'Playfair Display', serif" }}
       >
-        Contact {" "}
+        Contact{" "}
         <Box component="span" className="italic text-amber-700">
           Us
         </Box>

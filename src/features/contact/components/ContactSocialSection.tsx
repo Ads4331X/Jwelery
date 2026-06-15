@@ -81,7 +81,7 @@ export function ContactSocialSection() {
             </Box>
 
             <Typography className="mt-8 border-t border-amber-700/10 pt-4 text-xs italic text-gray-400">
-              Jyotinagar Road, Kathmandu · Open Sat to Fri, 10:00 to 19:00
+              Location, Kathmandu · Open Sat to Fri, 10:00 to 19:00
             </Typography>
           </Box>
         </Box>

@@ -12,7 +12,7 @@ export function ProductsHero() {
       <Stack className="gap-3 mb-5">
         <Box className="w-8 h-px bg-amber-700" />
         <Typography className="!text-[0.65rem] !uppercase !tracking-[0.45em] !text-amber-700">
-          Pashupatisunchadi Pasal
+          Jewellery Shop
         </Typography>
         <Box className="w-8 h-px bg-amber-700" />
       </Stack>

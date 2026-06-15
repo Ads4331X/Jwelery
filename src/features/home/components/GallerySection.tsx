@@ -1,7 +1,7 @@
 import { Box, Container } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
-import bridal from "../../../assets/images/featured/bridal.jpeg";
+import bridal from "../../../assets/images/featured/bridal.jpg";
 import silver from "../../../assets/images/featured/silver.jpeg";
 import earing from "../../../assets/images/featured/earing.jpeg";
 import neckless from "../../../assets/images/featured/neckless.jpeg";
