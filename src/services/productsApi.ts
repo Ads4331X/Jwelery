@@ -9,10 +9,12 @@ const TABLE = "products";
 const BUCKET = "product-images";
 
 export const fetchProducts = async (): Promise<Product[]> => {
+  // Fetch all products regardless of status; UI will handle Sold Out display
+  // Sort featured items first, then most recent
   const { data, error } = await supabase
     .from(TABLE)
     .select("*")
-    .eq("status", "Available")
+    .order("is_featured", { ascending: false })
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(error.message);

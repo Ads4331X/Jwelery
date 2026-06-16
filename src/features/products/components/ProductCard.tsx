@@ -1,4 +1,5 @@
 import { Box, Chip, Typography } from "@mui/material";
+import { useState } from "react";
 import LazyImage from "../../../components/ui/LazyImage";
 import type { Product } from "../types";
 
@@ -7,6 +8,7 @@ interface ProductCardProps {
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const [expanded, setExpanded] = useState(false);
   return (
     <Box className="group relative rounded-[20px] overflow-hidden bg-white border border-amber-900/[0.08] cursor-pointer transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_60px_rgba(180,83,9,0.12)]">
       {/* Image */}
@@ -96,7 +98,15 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Description */}
         {product.description && (
-          <Typography className="!text-[0.8rem] !text-black/45 !leading-relaxed !mb-3 line-clamp-2">
+          <Typography
+            onClick={(e) => {
+              e.stopPropagation();
+              setExpanded((prev) => !prev);
+            }}
+            className={`!text-[0.8rem] !text-black/45 !leading-relaxed !mb-3 cursor-pointer ${
+              expanded ? "" : "line-clamp-2"
+            }`}
+          >
             {product.description}
           </Typography>
         )}
