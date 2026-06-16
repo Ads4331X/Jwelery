@@ -12,7 +12,7 @@ export function ProductsHero() {
       <Stack className="gap-3 mb-5">
         <Box className="w-8 h-px bg-amber-700" />
         <Typography className="!text-[0.65rem] !uppercase !tracking-[0.45em] !text-amber-700">
-          Jewellery Shop
+          Anand Jewellers
         </Typography>
         <Box className="w-8 h-px bg-amber-700" />
       </Stack>
@@ -31,8 +31,8 @@ export function ProductsHero() {
 
       {/* Subtitle */}
       <Typography className="!mt-5 !text-sm sm:!text-base !text-black/40 !leading-relaxed max-w-md">
-        Handcrafted gold & silver jewelry each piece a celebration of Nepal's
-        heritage and timeless artistry.
+        Handcrafted 24 karat and 22 karat gold jewellery, each piece a
+        celebration of Nepal's heritage and timeless artistry.
       </Typography>
     </Box>
   );

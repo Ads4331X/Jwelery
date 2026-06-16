@@ -1,8 +1,9 @@
 import { Box, Container, Typography } from "@mui/material";
 import { useEffect, useRef, useState } from "react";
 
+// Updated to reflect over two decades of experience since 2003
 const STATS = [
-  { value: 8, suffix: "+", label: "Years of craftsmanship" },
+  { value: 23, suffix: "+", label: "Years of craftsmanship" },
   { value: 100, suffix: "+", label: "Pieces created" },
   { value: 100, suffix: "+", label: "Happy customers" },
   { value: 40, suffix: "+", label: "Collections designed" },

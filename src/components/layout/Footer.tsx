@@ -17,34 +17,34 @@ const NAV_LINKS = [
 ];
 
 const MAPS_URL =
-  "https://www.google.com/maps/dir/27.741275,85.354269/Prathana+colani,+P9R3%2BJM4,+Jyoti+Nagar+Rd,+Budhanilkantha+44600/@27.7413572,85.3516257,17z/data=!3m1!4b1!4m18!1m8!3m7!1s0x39eb192012fce44b:0x1b2689141d7c7f94!2sPrathana+colani!8m2!3d27.7414405!4d85.3541144!15sCg9wcmF0aGFuYSBjb2xvbnmSAQ9ob3VzaW5nX3NvY2lldHngAQA!16s%2Fg%2F11v0bqyhjy!4m8!1m1!4e1!1m5!1m1!1s0x39eb192012fce44b:0x1b2689141d7c7f94!2m2!1d85.3542075!2d27.741432?hl=en-US&entry=ttu&g_ep=EgoyMDI2MDYxMC4wIKXMDSoASAFQAw%3D%3D";
+  "https://www.google.com/maps?ll=27.705353,85.309351&z=15&t=m&hl=en&gl=NP&mapclient=embed&cid=14685289598650988311";
 const CONTACTS = [
   {
     icon: <LocationOnOutlined fontSize="small" />,
-    label: "Location",
+    label: "Sukra Path, Kathmandu",
     href: MAPS_URL,
   },
   {
     icon: <EmailOutlined fontSize="small" />,
-    label: "demo@gmail.com",
-    href: "mailto:demo@gmail.com",
+    label: "anand.jewellers.np@gmail.com",
+    href: "mailto:anand.jewellers.np@gmail.com",
   },
   {
     icon: <PhoneOutlined fontSize="small" />,
-    label: "980-1234567",
-    href: "tel:+9779801234567",
+    label: "01-5347461",
+    href: "tel:+977015347461",
   },
 ];
 
 const SOCIAL_LINKS = [
   {
     label: "Facebook",
-    href: "https://www.facebook.com/",
+    href: "https://www.facebook.com/Anand.Jewellers.np",
     icon: <Facebook fontSize="small" />,
   },
   {
     label: "Instagram",
-    href: "https://www.instagram.com/",
+    href: "https://www.instagram.com/anand.jewellers.np/?hl=en",
     icon: <Instagram fontSize="small" />,
   },
 ];
@@ -88,7 +88,7 @@ export default function Footer() {
               <Box
                 component="img"
                 src={logo}
-                alt="Jewellery Shop"
+                alt="Anand Jewellers"
                 className="h-14 w-auto object-contain  shrink-0"
               />
               <Typography
@@ -104,7 +104,7 @@ export default function Footer() {
                   whiteSpace: "nowrap",
                 }}
               >
-                Jewellery Shop
+                Anand Jewellers
               </Typography>
             </Box>
 
@@ -118,8 +118,10 @@ export default function Footer() {
                 textAlign: "left",
               }}
             >
-              Premium handcrafted gold and silver jewelry from Location,
-              Kathmandu. Trusted since 2017.
+              Anand Jewellers, established in 2003, specializes in handcrafted
+              24K and 22K gold jewellery. Combining premium materials, expert
+              craftsmanship, and timeless designs, we offer unique collections
+              that blend tradition with modern elegance.
             </Typography>
           </Box>
 
@@ -221,7 +223,7 @@ export default function Footer() {
           }}
         >
           <Typography sx={{ fontSize: "0.8rem", color: "rgba(0,0,0,0.45)" }}>
-            © {new Date().getFullYear()} Jewellery Shop. All rights reserved.
+            © {new Date().getFullYear()} Anand Jewellers. All rights reserved.
           </Typography>
           <Typography
             sx={{
@@ -231,7 +233,7 @@ export default function Footer() {
               color: "rgba(180,83,9,0.7)",
             }}
           >
-            Since 2017
+            Since 2003
           </Typography>
         </Box>
       </Box>

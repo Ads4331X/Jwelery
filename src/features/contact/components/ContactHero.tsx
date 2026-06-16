@@ -9,7 +9,7 @@ export function ContactHero() {
       <Box className="flex items-center gap-3 mb-6 justify-center">
         <Box className="w-8 h-px bg-amber-600" />
         <Typography className="text-[0.65rem] uppercase tracking-[0.45em] text-amber-700">
-          Jewellery Shop
+          Anand Jewellers
         </Typography>
         <Box className="w-8 h-px bg-amber-600" />
       </Box>

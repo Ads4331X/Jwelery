@@ -3,11 +3,11 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 import chura from "../../../assets/images/hero/chura.jpeg";
-import bracelet from "../../../assets/images/hero/bracelet.jpeg";
 import neckless from "../../../assets/images/hero/nackless.jpeg";
 import kindali from "../../../assets/images/hero/kindali.jpeg";
+import ring from "../../../assets/images/hero/ring.jpeg";
 
-const images = [chura, bracelet, neckless, kindali];
+const images = [chura, ring, neckless, kindali];
 
 export function Hero() {
   const [current, setCurrent] = useState(0);
@@ -57,7 +57,7 @@ export function Hero() {
             component="span"
             className="mb-4 inline-flex items-center rounded-full border border-white/30 bg-white/10 px-5 py-1.5 text-[0.65rem] uppercase tracking-[0.35em] text-white/85 backdrop-blur-md"
           >
-            Since 2017
+            Since 2003
           </Box>
 
           <Typography
@@ -73,8 +73,9 @@ export function Hero() {
           </Typography>
 
           <Typography className="mx-auto mb-6 max-w-xs text-sm leading-7 text-white/75">
-            Premium handcrafted gold & silver jewelry heritage, purity & luxury
-            in every piece.
+            Handcrafted 24 karat and 22 karat gold jewellery, created with the
+            highest quality materials and skilled craftsmen, offering timeless
+            elegance and personalized designs for every occasion.
           </Typography>
 
           <Box className="flex flex-wrap justify-center gap-3">
@@ -118,7 +119,7 @@ export function Hero() {
               component="span"
               className="inline-flex items-center rounded-full border border-amber-700/25 bg-amber-100 px-5 py-1.5 text-[0.65rem] uppercase tracking-[0.35em] text-amber-700"
             >
-              Since 2017
+              Since 2003
             </Box>
 
             <Typography
@@ -137,8 +138,10 @@ export function Hero() {
             <Box className="mt-4 h-0.5 w-14 rounded bg-linear-to-r from-amber-700 to-amber-500" />
 
             <Typography className="mt-5 max-w-sm text-[0.95rem] leading-8 text-gray-500">
-              Premium handcrafted gold & silver jewelry designed with trust,
-              purity, and luxury.
+              Our collection features handcrafted 24 kt and 22 kt gold pieces,
+              each crafted with meticulous attention to detail, premium
+              materials, and a commitment to exceptional service and customer
+              education.
             </Typography>
 
             <Box className="mt-8 flex flex-wrap gap-4">

@@ -9,12 +9,10 @@ import {
 } from "@mui/material";
 import { submitContact } from "../../../services/contacts";
 import type { ContactFormData } from "../../../services/contacts";
-const MAPS_URL =
-  "https://google.com/maps?gs_lcrp=EgZjaHJvbWUyBggAEEUYOTIICAEQABgNGB4yCggCEAAYCBgNGB4yDQgDEAAYhgMYgAQYigUyDQgEEAAYhgMYgAQYigUyBggFEEUYPDIGCAYQRRg9MgYIBxBFGDzSAQgyNDAwajBqN6gCALACAA&um=1&ie=UTF-8&fb=1&gl=np&sa=X&geocode=KUvk_BIgGes5MZR_fB0UiSYb&daddr=P9R3%2BJM4,+Jyoti+Nagar+Rd,+Budhanilkantha+44600";
+const MAPS_URL = "https://maps.google.com/?q=Anand+Jewellers";
 
 const EMBED_URL =
-  "https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d14124.880593302832!2d85.354204!3d27.741355!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb192012fce44b%3A0x1b2689141d7c7f94!2sPrathana%20colani!5e0!3m2!1sen!2snp!4v1781530503468!5m2!1sen!2snp";
-
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.3864351544985!2d85.30447432386777!3d27.70535251458744!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1855f647675f%3A0xcbcca1157f54b717!2sAnand%20Jewellers!5e0!3m2!1sen!2snp!4v1781603798710!5m2!1sen!2snp";
 const INQUIRY_TYPES = [
   "General Inquiry",
   "Product Query",
@@ -126,18 +124,18 @@ export function ContactSection() {
               {[
                 {
                   label: "Location",
-                  value: "Location, Jewellery Shop",
+                  value: "Sukra Path, Anand Jewellers",
                   href: MAPS_URL,
                 },
                 {
                   label: "Email",
-                  value: "demo@gmail.com",
-                  href: "mailto:demo@gmail.com",
+                  value: "anand.jewellers.np@gmail.com",
+                  href: "mailto:anand.jewellers.np@gmail.com",
                 },
                 {
                   label: "Phone",
-                  value: "+977 980-1234567",
-                  href: "tel:+9779801234567",
+                  value: "+977 01-5347461",
+                  href: "tel:+977015347461",
                 },
               ].map(({ label, value, href }) => (
                 <Box key={label}>

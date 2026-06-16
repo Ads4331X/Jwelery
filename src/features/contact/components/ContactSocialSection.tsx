@@ -5,13 +5,13 @@ import ContactPic from "../../../assets/images/common/ContactSection.jpeg";
 const SOCIAL_LINKS = [
   {
     label: "Facebook",
-    href: "https://facebook.com",
+    href: "https://www.facebook.com/Anand.Jewellers.np",
     sub: "Follow our page",
     icon: <Facebook fontSize="small" />,
   },
   {
     label: "Instagram",
-    href: "https://instagram.com",
+    href: "https://www.instagram.com/anand.jewellers.np/?hl=en",
     sub: "Behind the scenes",
     icon: <Instagram fontSize="small" />,
   },
@@ -81,7 +81,7 @@ export function ContactSocialSection() {
             </Box>
 
             <Typography className="mt-8 border-t border-amber-700/10 pt-4 text-xs italic text-gray-400">
-              Location, Kathmandu · Open Sat to Fri, 10:00 to 19:00
+              Sukra Path, Kathmandu · Open Sat to Fri, 10:00 to 19:00
             </Typography>
           </Box>
         </Box>

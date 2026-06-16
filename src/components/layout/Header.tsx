@@ -30,7 +30,7 @@ export default function Header() {
               component={"span"}
               className="block truncate text-sm sm:text-base md:text-lg font-semibold text-stone-900 leading-none"
             >
-              Jewellery Shop
+              Anand Jewellers
             </Box>
           </Box>
         </Box>
