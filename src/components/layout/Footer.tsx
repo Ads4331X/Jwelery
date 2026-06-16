@@ -8,6 +8,7 @@ import {
 } from "@mui/icons-material";
 import { NavLink } from "react-router-dom";
 import logo from "../../assets/images/branding/logo.png";
+import { useSiteSettings } from "../../features/admin/components/AdminSiteSettings/useSiteSettings";
 
 const NAV_LINKS = [
   { label: "Home", path: "/" },
@@ -16,40 +17,6 @@ const NAV_LINKS = [
   { label: "Contact", path: "/contact" },
 ];
 
-const MAPS_URL =
-  "https://www.google.com/maps?ll=27.705353,85.309351&z=15&t=m&hl=en&gl=NP&mapclient=embed&cid=14685289598650988311";
-const CONTACTS = [
-  {
-    icon: <LocationOnOutlined fontSize="small" />,
-    label: "Sukra Path, Kathmandu",
-    href: MAPS_URL,
-  },
-  {
-    icon: <EmailOutlined fontSize="small" />,
-    label: "anand.jewellers.np@gmail.com",
-    href: "mailto:anand.jewellers.np@gmail.com",
-  },
-  {
-    icon: <PhoneOutlined fontSize="small" />,
-    label: "01-5347461",
-    href: "tel:+977015347461",
-  },
-];
-
-const SOCIAL_LINKS = [
-  {
-    label: "Facebook",
-    href: "https://www.facebook.com/Anand.Jewellers.np",
-    icon: <Facebook fontSize="small" />,
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/anand.jewellers.np/?hl=en",
-    icon: <Instagram fontSize="small" />,
-  },
-];
-
-// Shared heading style — same as header nav label tracking
 const SECTION_HEADING_SX = {
   mb: 3,
   fontSize: "0.72rem",
@@ -60,6 +27,39 @@ const SECTION_HEADING_SX = {
 };
 
 export default function Footer() {
+  const { settings } = useSiteSettings();
+
+  const CONTACTS = [
+    {
+      icon: <LocationOnOutlined fontSize="small" />,
+      label: settings.address,
+      href: settings.maps_url,
+    },
+    {
+      icon: <EmailOutlined fontSize="small" />,
+      label: settings.email,
+      href: `mailto:${settings.email}`,
+    },
+    {
+      icon: <PhoneOutlined fontSize="small" />,
+      label: settings.phone,
+      href: `tel:+977${settings.phone.replace(/-/g, "")}`,
+    },
+  ];
+
+  const SOCIAL_LINKS = [
+    {
+      label: "Facebook",
+      href: settings.facebook_url,
+      icon: <Facebook fontSize="small" />,
+    },
+    {
+      label: "Instagram",
+      href: settings.instagram_url,
+      icon: <Instagram fontSize="small" />,
+    },
+  ];
+
   return (
     <Box
       component="footer"
@@ -83,13 +83,12 @@ export default function Footer() {
         >
           {/* Brand */}
           <Box className="flex flex-col items-start gap-4">
-            {/* Logo + shopname */}
             <Box className="flex items-center gap-3 self-start">
               <Box
                 component="img"
                 src={logo}
                 alt="Anand Jewellers"
-                className="h-14 w-auto object-contain  shrink-0"
+                className="h-14 w-auto object-contain shrink-0"
               />
               <Typography
                 component="span"
@@ -107,8 +106,6 @@ export default function Footer() {
                 Anand Jewellers
               </Typography>
             </Box>
-
-            {/* Text */}
             <Typography
               sx={{
                 fontSize: "0.92rem",
@@ -133,7 +130,6 @@ export default function Footer() {
                 <NavLink
                   key={path}
                   to={path}
-                  // mirrors header: black when active, gray otherwise, underline grows on hover/active
                   className={({ isActive }) =>
                     `relative text-[0.92rem] no-underline transition-colors duration-200 w-fit
                     after:content-[''] after:absolute after:left-0 after:-bottom-0.5

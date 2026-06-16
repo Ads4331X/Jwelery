@@ -1,23 +1,26 @@
 import { Box, Typography } from "@mui/material";
 import { Facebook, Instagram } from "@mui/icons-material";
 import ContactPic from "../../../assets/images/common/ContactSection.jpeg";
-
-const SOCIAL_LINKS = [
-  {
-    label: "Facebook",
-    href: "https://www.facebook.com/Anand.Jewellers.np",
-    sub: "Follow our page",
-    icon: <Facebook fontSize="small" />,
-  },
-  {
-    label: "Instagram",
-    href: "https://www.instagram.com/anand.jewellers.np/?hl=en",
-    sub: "Behind the scenes",
-    icon: <Instagram fontSize="small" />,
-  },
-];
+import { useSiteSettings } from "../../admin/components/AdminSiteSettings/useSiteSettings";
 
 export function ContactSocialSection() {
+  const { settings } = useSiteSettings();
+
+  const SOCIAL_LINKS = [
+    {
+      label: "Facebook",
+      href: settings.facebook_url,
+      sub: "Follow our page",
+      icon: <Facebook fontSize="small" />,
+    },
+    {
+      label: "Instagram",
+      href: settings.instagram_url,
+      sub: "Behind the scenes",
+      icon: <Instagram fontSize="small" />,
+    },
+  ];
+
   return (
     <Box className="border-t border-amber-700/10 bg-white py-10 lg:py-16">
       <Box className="mx-auto max-w-7xl px-6">
@@ -81,7 +84,7 @@ export function ContactSocialSection() {
             </Box>
 
             <Typography className="mt-8 border-t border-amber-700/10 pt-4 text-xs italic text-gray-400">
-              Sukra Path, Kathmandu · Open Sat to Fri, 10:00 to 19:00
+              {settings.address} · Open Sat to Fri, 10:00 to 19:00
             </Typography>
           </Box>
         </Box>

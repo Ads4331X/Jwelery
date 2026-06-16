@@ -9,10 +9,11 @@ import {
 } from "@mui/material";
 import { submitContact } from "../../../services/contacts";
 import type { ContactFormData } from "../../../services/contacts";
-const MAPS_URL = "https://maps.google.com/?q=Anand+Jewellers";
+import { useSiteSettings } from "../../admin/components/AdminSiteSettings/useSiteSettings";
 
-const EMBED_URL =
+const MAPS_EMBED_URL =
   "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3532.3864351544985!2d85.30447432386777!3d27.70535251458744!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x39eb1855f647675f%3A0xcbcca1157f54b717!2sAnand%20Jewellers!5e0!3m2!1sen!2snp!4v1781603798710!5m2!1sen!2snp";
+
 const INQUIRY_TYPES = [
   "General Inquiry",
   "Product Query",
@@ -58,6 +59,7 @@ const inputSx = {
 };
 
 export function ContactSection() {
+  const { settings } = useSiteSettings();
   const [form, setForm] = useState<ContactFormData>(EMPTY);
   const [errors, setErrors] = useState<Errors>({});
   const [submitted, setSubmitted] = useState(false);
@@ -67,16 +69,9 @@ export function ContactSection() {
   const set =
     (key: keyof ContactFormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setForm((prev: ContactFormData) => ({
-        ...prev,
-        [key]: e.target.value,
-      }));
-
+      setForm((prev: ContactFormData) => ({ ...prev, [key]: e.target.value }));
       if (errors[key])
-        setErrors((prev: Errors) => ({
-          ...prev,
-          [key]: undefined,
-        }));
+        setErrors((prev: Errors) => ({ ...prev, [key]: undefined }));
     };
 
   const handleSubmit = async () => {
@@ -124,18 +119,18 @@ export function ContactSection() {
               {[
                 {
                   label: "Location",
-                  value: "Sukra Path, Anand Jewellers",
-                  href: MAPS_URL,
+                  value: settings.address,
+                  href: settings.maps_url,
                 },
                 {
                   label: "Email",
-                  value: "anand.jewellers.np@gmail.com",
-                  href: "mailto:anand.jewellers.np@gmail.com",
+                  value: settings.email,
+                  href: `mailto:${settings.email}`,
                 },
                 {
                   label: "Phone",
-                  value: "+977 01-5347461",
-                  href: "tel:+977015347461",
+                  value: `+977 ${settings.phone}`,
+                  href: `tel:+977${settings.phone.replace(/-/g, "")}`,
                 },
               ].map(({ label, value, href }) => (
                 <Box key={label}>
@@ -159,13 +154,14 @@ export function ContactSection() {
               ))}
             </Box>
 
+            {/* Map — always uses the fixed embed URL since Google embed URLs are separate from the maps link */}
             <Box
               className="relative rounded-2xl overflow-hidden"
               style={{ height: 260, border: "1px solid rgba(180,83,9,0.1)" }}
             >
               <Box
                 component="iframe"
-                src={EMBED_URL}
+                src={MAPS_EMBED_URL}
                 width="100%"
                 height="100%"
                 style={{ border: 0 }}
@@ -227,7 +223,6 @@ export function ContactSection() {
               helperText={errors.name}
               sx={inputSx}
             />
-
             <TextField
               required
               label="Phone Number"
@@ -239,7 +234,6 @@ export function ContactSection() {
               helperText={errors.phone}
               sx={inputSx}
             />
-
             <TextField
               label="Email Address (optional)"
               variant="standard"
@@ -250,7 +244,6 @@ export function ContactSection() {
               helperText={errors.email}
               sx={inputSx}
             />
-
             <TextField
               required
               label="Inquiry Type"
@@ -269,7 +262,6 @@ export function ContactSection() {
                 </MenuItem>
               ))}
             </TextField>
-
             <TextField
               label="Message (optional)"
               variant="standard"
@@ -280,7 +272,6 @@ export function ContactSection() {
               onChange={set("message")}
               sx={inputSx}
             />
-
             <Button
               onClick={handleSubmit}
               disabled={submitting}
