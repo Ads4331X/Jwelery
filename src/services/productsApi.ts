@@ -67,12 +67,55 @@ export const deleteProduct = async (
 export const uploadProductImage = async (
   file: File,
 ): Promise<{ url: string | null; error: string | null }> => {
-  const ext = file.name.split(".").pop();
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  // Helper to resize and convert image to WebP before uploading
+  const resizeImage = (
+    inputFile: File,
+    maxWidth = 1200,
+    maxHeight = 1200,
+    quality = 0.82,
+  ): Promise<Blob> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        let { width, height } = img;
+        if (width > maxWidth || height > maxHeight) {
+          const ratio = Math.min(maxWidth / width, maxHeight / height);
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("Canvas not supported"));
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error("Compression failed"));
+          },
+          "image/webp",
+          quality,
+        );
+      };
+      img.onerror = () => reject(new Error("Could not load image"));
+      img.src = URL.createObjectURL(inputFile);
+    });
+  };
+
+  // Attempt to resize/compress; fall back to original file on failure
+  let blob: Blob = file;
+  try {
+    blob = await resizeImage(file);
+  } catch {
+    // keep original file
+  }
+
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
 
   const { error: uploadError } = await supabase.storage
     .from(BUCKET)
-    .upload(path, file, { upsert: false });
+    .upload(path, blob, { upsert: false, contentType: "image/webp" });
 
   if (uploadError) return { url: null, error: uploadError.message };
 
