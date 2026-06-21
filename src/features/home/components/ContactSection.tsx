@@ -40,7 +40,6 @@ const validate = (f: ContactFormData): Errors => {
   if (!f.inquiry) e.inquiry = "Please select an inquiry type";
   return e;
 };
-
 const inputSx = {
   "& .MuiInput-root": { fontSize: "0.9rem", color: "#1a1207" },
   "& .MuiInput-underline:before": { borderBottomColor: "rgba(180,83,9,0.2)" },

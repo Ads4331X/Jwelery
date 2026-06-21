@@ -2,7 +2,7 @@ import { Box } from "@mui/material";
 import { Route, Routes } from "react-router-dom";
 import Sidebar from "./components/layout/Sidebar";
 import Topbar from "./components/layout/Topbar";
-import AdminSettings from "./components/AdminSettings";
+import AdminSettings from "./components/settings/AdminSettings";
 import Overview from "./components/overview/Overview";
 import AdminProducts from "./components/products/AdminProducts";
 import AdminMetalRates from "./components/AdminMetalRates";

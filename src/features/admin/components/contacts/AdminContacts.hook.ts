@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-
 import {
   deleteContact,
   fetchContacts,
-  markRead,
+  updateInquiryStatus,
 } from "../../../../services/contacts";
 import type { Contact } from "../../../../services/contacts";
 
@@ -32,34 +31,44 @@ export function useAdminContacts() {
   }, []);
 
   useEffect(() => {
-    const t = window.setTimeout(() => {
-      void load();
-    }, 0);
+    const t = window.setTimeout(() => void load(), 0);
     return () => window.clearTimeout(t);
   }, [load]);
 
   const unreadCount = useMemo(
-    () => contacts.filter((c) => !c.is_read).length,
+    () => contacts.filter((c) => c.status === "UNREAD").length,
     [contacts],
   );
 
   const filtered = useMemo(() => {
-    return contacts.filter((c) =>
-      tab === "all" ? true : tab === "unread" ? !c.is_read : c.is_read,
-    );
+    return contacts.filter((c) => {
+      if (tab === "all") return true;
+      if (tab === "unread") return c.status === "UNREAD";
+      return c.status === "READ" || c.status === "REPLIED";
+    });
   }, [contacts, tab]);
 
   const handleMarkRead = useCallback(async (c: Contact) => {
-    const next = !c.is_read;
+    const nextStatus = c.status === "READ" ? "UNREAD" : "READ";
 
+    //  update both status and is_read optimistically
     setContacts((prev) =>
-      prev.map((x) => (x.id === c.id ? { ...x, is_read: next } : x)),
+      prev.map((x) =>
+        x.id === c.id
+          ? { ...x, status: nextStatus, is_read: nextStatus !== "UNREAD" }
+          : x,
+      ),
     );
 
-    const { error } = await markRead(c.id, next);
+    const { error } = await updateInquiryStatus(c.id, nextStatus);
     if (error) {
+      // Rollback
       setContacts((prev) =>
-        prev.map((x) => (x.id === c.id ? { ...x, is_read: c.is_read } : x)),
+        prev.map((x) =>
+          x.id === c.id
+            ? { ...x, status: c.status, is_read: c.status !== "UNREAD" }
+            : x,
+        ),
       );
       setToast("Failed to update.");
     }
@@ -78,8 +87,6 @@ export function useAdminContacts() {
     }
 
     setDeleting(true);
-
-    // Optimistic UI: remove immediately to reflect intent.
     setContacts((prev) => prev.filter((x) => x.id !== id));
 
     const { error } = await deleteContact(id);

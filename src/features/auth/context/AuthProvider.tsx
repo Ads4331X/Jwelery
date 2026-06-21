@@ -1,80 +1,77 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
-import { supabase } from "../../../services/supabase";
 import { AuthContext } from "./context";
-import type { AuthContextType, AdminRole } from "./context";
-import type { User } from "@supabase/supabase-js";
+import type { AuthContextType, AdminUser, AdminRole } from "./context";
+import { loginAdmin, fetchAdminRole } from "../../../services/authApi";
 
-async function getRoleFromDB(user: User | null): Promise<AdminRole | null> {
-  if (!user) return null;
-  const { data, error } = await supabase
-    .from("admins")
-    .select("role")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (error || !data) return null;
-  return data.role as AdminRole;
-}
+const TOKEN_KEY = "admin_token";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<AdminUser | null>(null);
   const [role, setRole] = useState<AdminRole | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Restore session from localStorage on mount
   useEffect(() => {
     const restoreSession = async () => {
-      const { data } = await supabase.auth.getSession();
-      const activeUser = data.session?.user ?? null;
-      const activeRole = await getRoleFromDB(activeUser);
-      setUser(activeUser);
-      setRole(activeRole);
-      setIsAuthenticated(!!activeUser);
+      const token = localStorage.getItem(TOKEN_KEY);
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
+      const data = await fetchAdminRole(token);
+      if (data) {
+        setUser({
+          id: "",
+          email: data.email,
+          username: data.username,
+          role: data.role as AdminRole,
+        });
+        setRole(data.role as AdminRole);
+        setIsAuthenticated(true);
+      } else {
+        // Token is invalid or expired — clean up
+        localStorage.removeItem(TOKEN_KEY);
+      }
+
       setLoading(false);
     };
 
     restoreSession();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const activeUser = session?.user ?? null;
-        const activeRole = await getRoleFromDB(activeUser);
-        setUser(activeUser);
-        setRole(activeRole);
-        setIsAuthenticated(!!activeUser);
-      },
-    );
-
-    return () => listener?.subscription.unsubscribe();
   }, []);
 
   const login = async (
     email: string,
     password: string,
   ): Promise<string | null> => {
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+    try {
+      const { token, user: userData } = await loginAdmin(email, password);
 
-    if (error) return "Invalid email or password.";
+      // Persist token
+      localStorage.setItem(TOKEN_KEY, token);
 
-    const loggedInUser = data.user;
-    const userRole = await getRoleFromDB(loggedInUser);
+      const adminUser: AdminUser = {
+        id: userData.id,
+        email: userData.email,
+        username: userData.username,
+        role: userData.role as AdminRole,
+      };
 
-    if (!userRole) {
-      await supabase.auth.signOut();
-      return "Access denied. This account is not an admin.";
+      setUser(adminUser);
+      setRole(adminUser.role);
+      setIsAuthenticated(true);
+      return null; // no error
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "Login failed. Please try again.";
+      return message;
     }
-
-    setIsAuthenticated(true);
-    setUser(loggedInUser);
-    setRole(userRole);
-    return null;
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    localStorage.removeItem(TOKEN_KEY);
     setIsAuthenticated(false);
     setUser(null);
     setRole(null);

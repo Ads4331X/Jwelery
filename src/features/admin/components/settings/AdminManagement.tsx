@@ -1,56 +1,65 @@
+import { useState } from "react";
 import {
-  Alert,
   Box,
   Card,
   CardContent,
   Chip,
+  CircularProgress,
   Divider,
   Typography,
 } from "@mui/material";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
-import { useState } from "react";
 import type { AdminAccount } from "../../utils/adminUser";
-
-import AdminCreatePanel from "./components/AdminCreatePanel";
-import AdminListPanel from "./components/AdminListPanel";
-import PromoteDialog from "./components/PromoteDialog";
+import type { AdminRole } from "../../../auth/context/context";
+import DialogShell from "./DialogShell";
+import PromoteDialog from "./PromoteDialog";
+import AdminCreateForm from "./AdminCreateForm";
+import AdminCard from "./AdminCard";
+import AdminTable from "./AdminTable";
 
 type Props = {
   admins: AdminAccount[];
   adminsLoaded: boolean;
-  newAdminEmail: string;
-  setNewAdminEmail: (v: string) => void;
-  newAdminDisplayName: string;
-  setNewAdminDisplayName: (v: string) => void;
-  newAdminPwd: string;
-  setNewAdminPwd: (v: string) => void;
-  adminMgmtMsg: { type: "success" | "error"; text: string } | null;
-  onAddAdmin: () => void;
-  onSetDeleteTarget: (admin: AdminAccount) => void;
-  onPromote: (admin: AdminAccount) => void;
+  onAddAdmin: (
+    email: string,
+    pwd: string,
+    name: string,
+    role: AdminRole,
+  ) => Promise<{ error?: string | null }>;
+  onDeleteAdmin: (admin: AdminAccount) => void;
+  onPromote: (admin: AdminAccount, newRole: AdminRole) => Promise<void>;
 };
 
-// ── Main component ───────────────────────────────────────────────────────────
 export default function AdminManagement({
   admins,
   adminsLoaded,
-  newAdminEmail,
-  setNewAdminEmail,
-  newAdminDisplayName,
-  setNewAdminDisplayName,
-  newAdminPwd,
-  setNewAdminPwd,
-  adminMgmtMsg,
   onAddAdmin,
-  onSetDeleteTarget,
+  onDeleteAdmin,
   onPromote,
 }: Props) {
   const [promoteTarget, setPromoteTarget] = useState<AdminAccount | null>(null);
+  const [superAdminInfo, setSuperAdminInfo] = useState<AdminAccount | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<AdminAccount | null>(null);
 
-  const handlePromoteConfirm = () => {
+  const handlePromoteConfirm = async (newRole: AdminRole) => {
     if (!promoteTarget) return;
-    onPromote(promoteTarget);
     setPromoteTarget(null);
+    try {
+      await onPromote(promoteTarget, newRole);
+      if (newRole === "SUPER_ADMIN")
+        setSuperAdminInfo({ ...promoteTarget, role: newRole });
+    } catch {
+      // Error toast handled by parent
+    }
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteTarget) {
+      onDeleteAdmin(deleteTarget);
+      setDeleteTarget(null);
+    }
   };
 
   return (
@@ -67,34 +76,59 @@ export default function AdminManagement({
           <Chip
             label="Super Admin Only"
             size="small"
-            className="text-xs bg-amber-50 text-amber-700 border border-amber-200 ml-1"
+            sx={{
+              fontSize: "0.68rem",
+              height: 20,
+              backgroundColor: "#fffbeb",
+              color: "#92400e",
+              border: "1px solid #fde68a",
+              ml: 1,
+            }}
           />
         </Box>
         <Divider className="mb-6" />
 
-        {adminMgmtMsg && (
-          <Alert severity={adminMgmtMsg.type} className="mb-6 text-sm">
-            {adminMgmtMsg.text}
-          </Alert>
-        )}
-
         <Box className="grid gap-8">
-          <AdminCreatePanel
-            newAdminEmail={newAdminEmail}
-            setNewAdminEmail={setNewAdminEmail}
-            newAdminDisplayName={newAdminDisplayName}
-            setNewAdminDisplayName={setNewAdminDisplayName}
-            newAdminPwd={newAdminPwd}
-            setNewAdminPwd={setNewAdminPwd}
-            onAddAdmin={onAddAdmin}
-          />
+          <AdminCreateForm onAdd={onAddAdmin} />
 
-          <AdminListPanel
-            admins={admins}
-            adminsLoaded={adminsLoaded}
-            onSetDeleteTarget={onSetDeleteTarget}
-            onSetPromoteTarget={setPromoteTarget}
-          />
+          <Box>
+            <Typography
+              variant="subtitle2"
+              className="text-stone-700 font-semibold mb-3"
+            >
+              Admin Accounts
+            </Typography>
+            {!adminsLoaded ? (
+              <Box className="flex justify-center py-6">
+                <CircularProgress size={24} className="text-stone-400" />
+              </Box>
+            ) : admins.length === 0 ? (
+              <Typography
+                variant="body2"
+                className="text-stone-400 py-4 text-center"
+              >
+                No admin accounts found.
+              </Typography>
+            ) : (
+              <>
+                <Box className="flex flex-col gap-3 md:hidden">
+                  {admins.map((adm) => (
+                    <AdminCard
+                      key={adm.id}
+                      adm={adm}
+                      onDelete={setDeleteTarget}
+                      onPromote={setPromoteTarget}
+                    />
+                  ))}
+                </Box>
+                <AdminTable
+                  admins={admins}
+                  onDelete={setDeleteTarget}
+                  onPromote={setPromoteTarget}
+                />
+              </>
+            )}
+          </Box>
         </Box>
       </CardContent>
 
@@ -104,6 +138,37 @@ export default function AdminManagement({
         onClose={() => setPromoteTarget(null)}
         onConfirm={handlePromoteConfirm}
       />
+      <PromoteDialog
+        open={!!superAdminInfo}
+        target={superAdminInfo}
+        onClose={() => setSuperAdminInfo(null)}
+        mode="info"
+      />
+
+      <DialogShell
+        open={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        title="Delete Admin Account"
+        actions={[
+          { label: "Cancel", onClick: () => setDeleteTarget(null) },
+          {
+            label: "Delete Account",
+            onClick: handleDeleteConfirm,
+            variant: "contained",
+            sx: {
+              backgroundColor: "#dc2626",
+              color: "#ffffff",
+              "&:hover": { backgroundColor: "#b91c1c" },
+            },
+          },
+        ]}
+      >
+        <Typography variant="body2" className="text-stone-600">
+          Are you sure you want to delete{" "}
+          <strong>{deleteTarget?.display_name ?? "this admin"}</strong>? This
+          will permanently revoke their access.
+        </Typography>
+      </DialogShell>
     </Card>
   );
 }

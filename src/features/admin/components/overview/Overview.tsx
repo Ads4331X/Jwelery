@@ -29,30 +29,33 @@ export default function Overview() {
   }, []);
 
   const activityItems: RecentActivityItem[] = useMemo(() => {
-    return recentContacts.map((c) => ({
-      id: c.id,
-      title: c.name,
-      meta: `${c.inquiry} • ${new Date(c.created_at).toLocaleDateString(
-        "en-NP",
-        {
+    return recentContacts.map((c) => {
+      const title = c.name ?? "";
+      const inquiry = c.inquiry ?? "";
+      const createdAt = c.created_at ?? c.createdAt ?? "";
+
+      return {
+        id: c.id,
+        title,
+        meta: `${inquiry} • ${new Date(createdAt).toLocaleDateString("en-NP", {
           day: "numeric",
           month: "short",
-        },
-      )}`,
-      badge: (
-        <Chip
-          size="small"
-          label={c.is_read ? "READ" : "NEW"}
-          sx={{
-            fontSize: "0.65rem",
-            height: 22,
-            backgroundColor: c.is_read ? "#f5f5f4" : "#fffbeb",
-            color: c.is_read ? "#78716c" : "#92400e",
-            fontWeight: 700,
-          }}
-        />
-      ),
-    }));
+        })}`,
+        badge: (
+          <Chip
+            size="small"
+            label={c.is_read ? "READ" : "NEW"}
+            sx={{
+              fontSize: "0.65rem",
+              height: 22,
+              backgroundColor: c.is_read ? "#f5f5f4" : "#fffbeb",
+              color: c.is_read ? "#78716c" : "#92400e",
+              fontWeight: 700,
+            }}
+          />
+        ),
+      };
+    });
   }, [recentContacts]);
 
   return (

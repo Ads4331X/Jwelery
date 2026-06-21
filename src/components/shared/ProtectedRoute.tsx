@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children }: Props) {
   }
 
   // Ensure role is admin or super_admin
-  if (role !== "admin" && role !== "super_admin") {
+  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
     return <Navigate to="/" replace />;
   }
 

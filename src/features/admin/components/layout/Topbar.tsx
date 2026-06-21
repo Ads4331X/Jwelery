@@ -22,11 +22,11 @@ export default function Topbar() {
   };
 
   const displayName =
-    auth?.user?.user_metadata?.display_name ??
+    auth?.user?.username ??
     auth?.user?.email?.split("@")[0] ??
     "Admin";
 
-  const isSuperAdmin = auth?.role === "super_admin";
+  const isSuperAdmin = auth?.role === "SUPER_ADMIN";
 
   return (
     <AppBar

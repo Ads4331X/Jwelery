@@ -1,6 +1,6 @@
-import { supabase } from "../../../services/supabase";
-import type { User } from "@supabase/supabase-js";
 import type { AdminRole } from "../../auth/context/context";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 export type AdminAccount = {
   id: string;
@@ -10,152 +10,162 @@ export type AdminAccount = {
   created_at: string;
 };
 
+export type CreatedAdminUser = {
+  id: string;
+  email: string;
+  user_metadata: {
+    username: string;
+    role: AdminRole;
+  };
+};
+
 export type AdminResult = {
-  user: User | null;
+  user: CreatedAdminUser | null;
   error: string | null;
 };
 
-// ---------------------------------------------------------------------------
+//  Reusable helper so catch blocks never need `any`
+function errorMessage(err: unknown): string {
+  return err instanceof Error ? err.message : "An unexpected error occurred.";
+}
+
+//  Auth header helper
+function authHeaders(
+  extra: Record<string, string> = {},
+): Record<string, string> {
+  const token = localStorage.getItem("admin_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...extra,
+  };
+}
+
 // Read
-// ---------------------------------------------------------------------------
 
 export const listAdmins = async (): Promise<AdminAccount[]> => {
-  const { data, error } = await supabase
-    .from("admins")
-    .select("id, email, display_name, role, created_at")
-    .order("created_at", { ascending: true });
-
-  if (error || !data) return [];
-  return data as AdminAccount[];
+  const res = await fetch(`${API_URL}/api/admin/accounts`, {
+    method: "GET",
+    headers: authHeaders(),
+  });
+  const body = await res.json();
+  if (!res.ok || !body.success) return [];
+  return body.admins as AdminAccount[];
 };
 
-// ---------------------------------------------------------------------------
 // Create
-// ---------------------------------------------------------------------------
 
-/**
- * Creates a new admin auth account + admins table record.
- *
- * Problem: supabase.auth.signUp() replaces the current session with the
- * newly created user's session, logging the super admin out mid-flow.
- *
- * Fix: capture the super admin's session before signUp, then restore it
- * immediately after so the super admin stays logged in.
- */
 export const createAdmin = async (
   email: string,
   password: string,
-  displayName: string,
-  role: AdminRole = "admin",
+  username: string,
+  role: AdminRole = "ADMIN",
 ): Promise<AdminResult> => {
-  const { data: sessionData } = await supabase.auth.getSession();
-  const currentSession = sessionData.session;
-
-  const { data, error } = await supabase.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { role, display_name: displayName },
-    },
-  });
-
-  const newUser = data?.user;
-
-  // Always restore session immediately
-  if (currentSession) {
-    await supabase.auth.setSession({
-      access_token: currentSession.access_token,
-      refresh_token: currentSession.refresh_token,
+  try {
+    const res = await fetch(`${API_URL}/api/admin/signup`, {
+      method: "POST",
+      headers: authHeaders(),
+      body: JSON.stringify({ email, password, username, role }),
     });
-  }
 
-  if (error) return { user: null, error: error.message };
-  if (!newUser) return { user: null, error: "User creation failed." };
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      return { user: null, error: body.message || "Failed to create admin." };
+    }
 
-  await new Promise((resolve) => setTimeout(resolve, 800));
-
-  // Re-restore session again after delay to be safe
-  if (currentSession) {
-    await supabase.auth.setSession({
-      access_token: currentSession.access_token,
-      refresh_token: currentSession.refresh_token,
-    });
-  }
-
-  const { error: dbError } = await supabase.from("admins").insert({
-    id: newUser.id,
-    email,
-    display_name: displayName,
-    username: displayName,
-    role,
-    created_at: new Date().toISOString(),
-  });
-
-  if (dbError) {
-    return {
-      user: null,
-      error: `Auth user created but DB insert failed: ${dbError.message}`,
+    //  Properly typed — no `as any`
+    const newUser: CreatedAdminUser = {
+      id: body.admin?.id ?? body.user?.id ?? "",
+      email: body.admin?.email ?? body.user?.email ?? email,
+      user_metadata: { username, role },
     };
-  }
 
-  return { user: newUser, error: null };
+    return { user: newUser, error: null };
+  } catch (err: unknown) {
+    return { user: null, error: errorMessage(err) };
+  }
 };
-// ---------------------------------------------------------------------------
+
 // Delete
-// ---------------------------------------------------------------------------
 
 export const deleteAdmin = async (id: string): Promise<boolean> => {
-  const { error } = await supabase.from("admins").delete().eq("id", id);
-  if (error) {
-    console.error("Failed to delete admin:", error.message);
+  try {
+    const res = await fetch(`${API_URL}/api/admin/accounts/${id}`, {
+      method: "DELETE",
+      headers: authHeaders(),
+    });
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      console.error("Failed to delete admin:", body.message);
+      return false;
+    }
+    return true;
+  } catch (err: unknown) {
+    console.error("Failed to delete admin:", errorMessage(err));
     return false;
   }
-  return true;
 };
 
-// ---------------------------------------------------------------------------
 // Password (own account only)
-// ---------------------------------------------------------------------------
 
 export const updateOwnPassword = async (
   newPassword: string,
 ): Promise<{ error: string | null }> => {
-  const { error } = await supabase.auth.updateUser({ password: newPassword });
-  if (error) {
-    return { error: error.message };
+  try {
+    const res = await fetch(`${API_URL}/api/admin/accounts/profile`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ password: newPassword }),
+    });
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      return { error: body.message || "Failed to update password." };
+    }
+    return { error: null };
+  } catch (err: unknown) {
+    return { error: errorMessage(err) };
   }
-  return { error: null };
 };
+
+// Role
 
 export const updateAdminRole = async (
   id: string,
   role: AdminRole,
 ): Promise<{ error: string | null }> => {
-  const { error } = await supabase.from("admins").update({ role }).eq("id", id);
-  return { error: error?.message ?? null };
+  try {
+    const res = await fetch(`${API_URL}/api/admin/accounts/${id}/role`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ role }),
+    });
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      return { error: body.message || "Failed to update role." };
+    }
+    return { error: null };
+  } catch (err: unknown) {
+    return { error: errorMessage(err) };
+  }
 };
 
-// ---------------------------------------------------------------------------
 // Display Name (own account)
-// ---------------------------------------------------------------------------
+
 export const updateDisplayName = async (
   displayName: string,
 ): Promise<{ error: string | null }> => {
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData?.user;
-  if (!user) return { error: "Not authenticated." };
-
-  const { error } = await supabase
-    .from("admins")
-    .update({ display_name: displayName, username: displayName })
-    .eq("id", user.id);
-
-  if (error) return { error: error.message };
-
-  // Also update auth metadata so topbar refreshes immediately
-  await supabase.auth.updateUser({
-    data: { display_name: displayName },
-  });
-
-  return { error: null };
+  try {
+    const res = await fetch(`${API_URL}/api/admin/accounts/profile`, {
+      method: "PUT",
+      headers: authHeaders(),
+      body: JSON.stringify({ username: displayName }),
+    });
+    const body = await res.json();
+    if (!res.ok || !body.success) {
+      return { error: body.message || "Failed to update username." };
+    }
+    return { error: null };
+  } catch (err: unknown) {
+    return { error: errorMessage(err) };
+  }
 };
