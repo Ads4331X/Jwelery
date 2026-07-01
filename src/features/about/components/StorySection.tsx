@@ -1,5 +1,4 @@
 import { Box, Container, Typography } from "@mui/material";
-import { useNavigate } from "react-router-dom";
 import { ImageStack } from "../../home/components/ImageStack";
 
 const PILLARS = [
@@ -26,8 +25,6 @@ const PILLARS = [
 ];
 
 export function OurStory() {
-  const navigate = useNavigate();
-
   return (
     <Box
       sx={{ bgcolor: "#fafaf7", borderTop: "1px solid rgba(180,83,9,0.06)" }}
