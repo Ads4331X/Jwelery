@@ -1,13 +1,13 @@
 import { useContext, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box } from "@mui/material";
-import { AuthContext } from "./context/context";
+import { AdminAuthContext } from "./context/adminAuthContext";
 import LoginForm from "./components/LoginForm";
 
 export default function Login() {
   const navigate = useNavigate();
-  const auth = useContext(AuthContext);
-  if (!auth) throw new Error("Login must be used within an AuthProvider");
+  const auth = useContext(AdminAuthContext);
+  if (!auth) throw new Error("Login must be used within an AdminAuthProvider");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

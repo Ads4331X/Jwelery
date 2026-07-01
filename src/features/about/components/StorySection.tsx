@@ -1,72 +1,150 @@
 import { Box, Container, Typography } from "@mui/material";
-import { SectionLabel, Card } from "./shared";
+import { useNavigate } from "react-router-dom";
+import { ImageStack } from "../../home/components/ImageStack";
 
-const ITEMS = [
+const PILLARS = [
   {
     n: "01",
-    title: "Heritage led design",
-    text: "Our collections draw from timeless forms and a refined understanding of what jewelry should feel like on the body.",
+    title: "Heritage Design",
+    text: "Drawing from timeless Nepali forms and goldsmithing traditions.",
   },
   {
     n: "02",
-    title: "Careful selection",
-    text: "We focus on clarity, finish, and balance so every piece reflects a consistent standard of quality.",
+    title: "Careful Selection",
+    text: "Every piece reviewed for clarity, finish, and balance.",
   },
   {
     n: "03",
-    title: "Made to last",
-    text: "Each piece is created to remain elegant, wearable, and meaningful across seasons and generations.",
+    title: "Made to Last",
+    text: "Crafted to remain elegant across seasons and generations.",
   },
   {
     n: "04",
-    title: "Personal service",
-    text: "We guide every client with patience, transparency, and a genuine respect for the occasion.",
+    title: "Personal Service",
+    text: "Guided with patience, transparency, and genuine care.",
   },
 ];
 
-export function StorySection() {
+export function OurStory() {
+  const navigate = useNavigate();
+
   return (
-    <Box className="bg-[#fafaf7]">
-      <Container maxWidth="xl" className="py-16 sm:py-24">
-        <Box className="grid gap-12 lg:grid-cols-2 lg:items-center lg:gap-16">
-          {/* Text */}
+    <Box
+      sx={{ bgcolor: "#fafaf7", borderTop: "1px solid rgba(180,83,9,0.06)" }}
+    >
+      <Container maxWidth="xl" sx={{ py: { xs: 10, sm: 16 } }}>
+        <Box className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Left — text */}
           <Box>
-            <SectionLabel>Our Story</SectionLabel>
+            <Box className="flex items-center gap-3 mb-4">
+              <Box className="w-6 h-px bg-amber-600" />
+              <Typography
+                sx={{
+                  fontSize: "0.62rem",
+                  letterSpacing: "0.45em",
+                  textTransform: "uppercase",
+                  color: "#b45309",
+                  fontWeight: 600,
+                }}
+              >
+                Our Story
+              </Typography>
+            </Box>
+
             <Typography
               component="h2"
-              className="text-4xl font-semibold leading-tight sm:text-5xl"
+              sx={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: { xs: "2rem", sm: "2.6rem" },
+                fontWeight: 600,
+                color: "#1c1917",
+                lineHeight: 1.15,
+                mb: 3,
+              }}
             >
-              A legacy shaped by patience and precision.
+              A Legacy Born <br />
+              in Nepal
             </Typography>
-            <Typography className="mt-5 text-sm leading-[1.9] text-stone-500 sm:text-base">
-              Our journey began with a belief that fine jewelry should do more
-              than shine. It should carry presence, sentiment, and a sense of
-              permanence.
+
+            <Typography
+              sx={{
+                fontSize: "0.95rem",
+                lineHeight: 1.9,
+                color: "#78716c",
+                mb: 2,
+              }}
+            >
+              Our journey began with a love for Nepal's culture, craftsmanship,
+              and traditions — sharing authentic handcrafted pieces that carry
+              the spirit of our homeland.
             </Typography>
-            <Typography className="mt-4 text-sm leading-[1.9] text-stone-500 sm:text-base">
-              We preserve the warmth of tradition while refining each piece for
-              a modern and sophisticated experience.
+
+            <Typography
+              sx={{
+                fontSize: "0.95rem",
+                lineHeight: 1.9,
+                color: "#78716c",
+                mb: 6,
+              }}
+            >
+              Every item is chosen to celebrate artistry and heritage while
+              supporting local makers. Established in 2003, Anand Jewellers has
+              spent over two decades building trust one piece at a time.
             </Typography>
+
+            {/* Pillars grid */}
+            <Box className="grid grid-cols-2 gap-3">
+              {PILLARS.map(({ n, title, text }) => (
+                <Box
+                  key={n}
+                  className="rounded-2xl p-5 transition-all duration-300 hover:-translate-y-0.5"
+                  sx={{
+                    bgcolor: "#fff",
+                    border: "1px solid rgba(180,83,9,0.08)",
+                    boxShadow: "0 4px 20px rgba(0,0,0,0.03)",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: "0.65rem",
+                      fontWeight: 700,
+                      letterSpacing: "0.2em",
+                      color: "#b45309",
+                      mb: 1,
+                    }}
+                  >
+                    {n}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.875rem",
+                      fontWeight: 600,
+                      color: "#1c1917",
+                      mb: 0.5,
+                    }}
+                  >
+                    {title}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: "0.78rem",
+                      lineHeight: 1.7,
+                      color: "#78716c",
+                    }}
+                  >
+                    {text}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
           </Box>
 
-          {/* Cards grid */}
-          <Box className="grid grid-cols-2 gap-4">
-            {ITEMS.map(({ n, title, text }) => (
-              <Card key={n}>
-                <Typography className="mb-3 text-xs font-semibold tracking-[0.2em] text-amber-600">
-                  {n}
-                </Typography>
-                <Typography
-                  component="h3"
-                  className="text-base font-semibold text-stone-900 leading-snug"
-                >
-                  {title}
-                </Typography>
-                <Typography className="mt-2 text-sm leading-7 text-stone-500">
-                  {text}
-                </Typography>
-              </Card>
-            ))}
+          {/* Right — image stack */}
+          <Box className="flex justify-center lg:justify-end">
+            <Box className="relative">
+              <Box className="absolute inset-0 bg-amber-200 blur-3xl opacity-25 rounded-full scale-110" />
+              <ImageStack />
+            </Box>
           </Box>
         </Box>
       </Container>

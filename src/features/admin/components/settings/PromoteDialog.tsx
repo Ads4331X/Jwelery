@@ -9,7 +9,7 @@ import WarningAmberIcon from "@mui/icons-material/WarningAmber";
 import ShieldIcon from "@mui/icons-material/Shield";
 import { useState } from "react";
 import type { AdminAccount } from "../../utils/adminUser";
-import type { AdminRole } from "../../../auth/context/context";
+import type { AdminRole } from "../../utils/adminUser";
 import DialogShell from "./DialogShell";
 import {
   ROLE_LABEL,

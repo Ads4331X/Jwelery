@@ -1,4 +1,4 @@
-import { Box, Container } from "@mui/material";
+import { Box, Container, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
 import bridal from "../../../assets/images/featured/bridal.jpg";
@@ -7,9 +7,8 @@ import earing from "../../../assets/images/featured/earing.jpeg";
 import neckless from "../../../assets/images/featured/neckless.jpeg";
 import kindali from "../../../assets/images/hero/kindali.jpeg";
 
-type GalleryItem = {
+type Category = {
   title: string;
-  subtitle: string;
   tag: string;
   image: string;
   gridArea: string;
@@ -17,10 +16,9 @@ type GalleryItem = {
   filter?: { metal?: string; categories?: string[] };
 };
 
-const galleryItems: GalleryItem[] = [
+const CATEGORIES: Category[] = [
   {
     title: "Bridal Collection",
-    subtitle: "Handcrafted for your most cherished moments",
     tag: "New Season",
     image: bridal,
     gridArea: "bridal",
@@ -29,264 +27,189 @@ const galleryItems: GalleryItem[] = [
   },
   {
     title: "Gold Necklaces",
-    subtitle: "Best sellers",
     tag: "Bestseller",
     image: neckless,
     gridArea: "necklace",
-    objectPosition: "center center",
-    filter: { metal: "Gold", categories: ["Necklace"] },
+    filter: { metal: "GOLD", categories: ["Necklace"] },
   },
   {
     title: "Silver Rings",
-    subtitle: "Refined & contemporary",
     tag: "Shop Now",
     image: silver,
     gridArea: "silver",
-    objectPosition: "center center",
-    filter: { metal: "Silver", categories: ["Ring"] },
+    filter: { metal: "SILVER", categories: ["Ring"] },
   },
   {
     title: "Earrings",
-    subtitle: "Statement styles",
     tag: "Trending",
     image: earing,
     gridArea: "earring",
-    objectPosition: "center top",
     filter: { categories: ["Earring"] },
   },
-  {
-    title: "More Collections",
-    subtitle: "Explore new arrivals",
-    tag: "New",
-    image: kindali,
-    gridArea: "more",
-    objectPosition: "center center",
-    filter: {},
-  },
+  { title: "More Collections", tag: "New", image: kindali, gridArea: "more" },
 ];
 
-function GalleryCard({
+function CategoryCard({
   item,
   large = false,
   onClick,
 }: {
-  item: GalleryItem;
+  item: Category;
   large?: boolean;
-  onClick?: () => void;
+  onClick: () => void;
 }) {
   return (
     <Box
       onClick={onClick}
       className="relative overflow-hidden group cursor-pointer isolate"
-      style={{
+      sx={{
         gridArea: item.gridArea,
-        borderRadius: "24px",
-        minHeight: "100%",
+        borderRadius: "20px",
         background: "#111",
+        minHeight: "100%",
       }}
     >
-      {/* IMAGE */}
       <Box
         component="img"
         src={item.image}
         alt={item.title}
-        className="absolute inset-0 w-full h-full transition-transform duration-900 ease-out group-hover:scale-105"
-        style={{
+        className="absolute inset-0 w-full h-full transition-transform duration-700 group-hover:scale-105"
+        sx={{
           objectFit: "cover",
           objectPosition: item.objectPosition ?? "center",
         }}
       />
+      <Box className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-black/10 transition-opacity duration-500" />
+      <Box className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-amber-950/55 via-transparent to-transparent" />
 
-      {/* DARK OVERLAY */}
-      <Box className="absolute inset-0 bg-linear-to-t from-black/90 via-black/20 to-black/10 transition-opacity duration-500" />
-
-      {/* GOLD HOVER WASH */}
-      <Box className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-linear-to-t from-amber-950/60 via-transparent to-transparent" />
-
-      {/* TAG */}
-      <Box className="absolute top-4 left-4 z-10">
-        <Box
-          className="inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.25em] font-medium backdrop-blur-md"
-          style={{
-            background: "rgba(255,255,255,0.12)",
-            border: "1px solid rgba(255,255,255,0.2)",
-            color: "rgba(255,255,255,0.9)",
-          }}
-        >
-          {item.tag}
-        </Box>
+      {/* Tag */}
+      <Box
+        className="absolute top-4 left-4 z-10 inline-flex items-center px-3 py-1 rounded-full text-[10px] uppercase tracking-[0.25em] font-medium backdrop-blur-md"
+        sx={{
+          background: "rgba(255,255,255,0.12)",
+          border: "1px solid rgba(255,255,255,0.2)",
+          color: "rgba(255,255,255,0.9)",
+        }}
+      >
+        {item.tag}
       </Box>
 
-      {/* CONTENT */}
-      <Box className="absolute bottom-0 left-0 right-0 p-5 sm:p-6 z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-500">
-        {/* GOLD LINE */}
+      {/* Content */}
+      <Box className="absolute bottom-0 left-0 right-0 p-5 z-10 translate-y-1 group-hover:translate-y-0 transition-transform duration-500">
         <Box
-          className="mb-3 w-8 h-[1.5px] rounded-full transition-all duration-500 group-hover:w-14"
-          style={{
-            background: "linear-gradient(90deg, #f59e0b, #fcd34d)",
-          }}
+          className="mb-2 w-8 h-[1.5px] rounded-full transition-all duration-500 group-hover:w-14"
+          style={{ background: "linear-gradient(90deg, #f59e0b, #fcd34d)" }}
         />
-
-        {/* TITLE */}
-        <Box
+        <Typography
           component="h3"
-          className="font-semibold leading-tight text-white"
-          style={{
+          sx={{
             fontFamily: "'Playfair Display', serif",
+            fontWeight: 600,
+            color: "#fff",
             fontSize: large
-              ? "clamp(1.5rem, 2.5vw, 2.2rem)"
-              : "clamp(1rem, 1.8vw, 1.4rem)",
+              ? "clamp(1.4rem, 2.5vw, 2rem)"
+              : "clamp(1rem, 1.8vw, 1.3rem)",
           }}
         >
           {item.title}
-        </Box>
-
-        {/* SUBTITLE */}
-        <Box className="mt-1.5 text-xs sm:text-sm text-white/70 overflow-hidden max-h-0 group-hover:max-h-10 transition-all duration-500">
-          {item.subtitle}
-        </Box>
-
-        {/* CTA */}
-        <Box className="mt-3 inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-amber-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500 delay-100">
-          Explore
-          <Box
-            component="span"
-            className="inline-block transition-transform duration-300 group-hover:translate-x-1"
-          >
+        </Typography>
+        <Box className="mt-2 inline-flex items-center gap-1.5 text-[11px] uppercase tracking-[0.2em] text-amber-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-500">
+          Explore{" "}
+          <span className="transition-transform duration-300 group-hover:translate-x-1 inline-block">
             →
-          </Box>
+          </span>
         </Box>
       </Box>
-
-      {/* CORNER LIGHT */}
-      <Box
-        className="absolute top-0 right-0 w-20 h-20 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{
-          background:
-            "radial-gradient(circle at top right, rgba(251,191,36,0.18), transparent 70%)",
-        }}
-      />
     </Box>
   );
 }
 
-export function GallerySection() {
+export function FeaturedCategories() {
   const navigate = useNavigate();
 
-  const handleCardClick = (item: GalleryItem) => {
-    const params = new URLSearchParams();
-    const filter = item.filter ?? {};
-    if (filter.metal) params.set("metal", filter.metal);
-    if (filter.categories && filter.categories.length > 0) {
-      params.set("categories", filter.categories.join(","));
-    }
-    const qs = params.toString();
-    navigate(qs ? `/products?${qs}` : "/products");
+  const go = (item: Category) => {
+    const p = new URLSearchParams();
+    if (item.filter?.metal) p.set("metal", item.filter.metal);
+    if (item.filter?.categories?.length)
+      p.set("categories", item.filter.categories.join(","));
+    navigate(p.toString() ? `/products?${p}` : "/products");
   };
 
   return (
-    <Box className="bg-[#fafaf8] py-16 sm:py-24">
+    <Box sx={{ bgcolor: "#fafaf8", py: { xs: 10, sm: 14 } }}>
       <Container maxWidth="xl">
-        {/* HEADER */}
-        <Box className="flex flex-col items-center mb-14 sm:mb-20">
-          {/* TOP LABEL */}
-          <Box className="flex items-center gap-3 mb-5">
-            <Box className="w-8 h-px bg-amber-500" />
-
-            <Box className="text-[10px] uppercase tracking-[0.5em] text-amber-600 font-medium">
+        {/* Header */}
+        <Box className="text-center mb-10 sm:mb-14">
+          <Box className="flex items-center justify-center gap-3 mb-4">
+            <Box sx={{ width: 28, height: 1, bgcolor: "#f59e0b" }} />
+            <Typography
+              sx={{
+                fontSize: "0.62rem",
+                letterSpacing: "0.5em",
+                textTransform: "uppercase",
+                color: "#b45309",
+                fontWeight: 600,
+              }}
+            >
               Curated Collections
-            </Box>
-
-            <Box className="w-8 h-px bg-amber-500" />
+            </Typography>
+            <Box sx={{ width: 28, height: 1, bgcolor: "#f59e0b" }} />
           </Box>
-
-          {/* TITLE */}
-          <Box
+          <Typography
             component="h2"
-            className="text-4xl sm:text-6xl font-semibold text-stone-900 text-center leading-tight"
-            style={{ fontFamily: "'Playfair Display', serif" }}
+            sx={{
+              fontFamily: "'Playfair Display', serif",
+              fontSize: { xs: "2rem", sm: "2.8rem" },
+              fontWeight: 600,
+              color: "#1c1917",
+            }}
           >
-            Our Products
-          </Box>
-
-          {/* SUBTITLE */}
-          <Box className="mt-4 text-sm sm:text-base text-stone-400 text-center max-w-md leading-relaxed">
-            Each piece is a testament to heritage craftsmanship and timeless
-            beauty.
-          </Box>
-
-          {/* DECORATIVE DIVIDER */}
-          <Box className="mt-6 flex items-center gap-2">
-            <Box className="w-12 h-px bg-linear-to-r from-transparent to-amber-400" />
-
-            <Box className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-
-            <Box className="w-1.5 h-1.5 rounded-full border border-amber-400" />
-
-            <Box className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-
-            <Box className="w-12 h-px bg-linear-to-l from-transparent to-amber-400" />
-          </Box>
+            Shop by Category
+          </Typography>
         </Box>
 
-        {/* DESKTOP GRID */}
+        {/* Desktop grid */}
         <Box
-          className="hidden md:grid gap-4"
-          style={{
+          className="hidden md:grid gap-3"
+          sx={{
             gridTemplateColumns: "1.3fr 1fr 1fr",
-            gridTemplateRows: "320px 320px 320px",
-            gridTemplateAreas: `
-              "bridal bridal necklace"
-              "bridal bridal more"
-              "silver earring more"
-            `,
+            gridTemplateRows: "300px 300px",
+            gridTemplateAreas: `"bridal necklace silver" "bridal earring more"`,
           }}
         >
-          {galleryItems.map((item) => (
-            <GalleryCard
+          {CATEGORIES.map((item) => (
+            <CategoryCard
               key={item.gridArea}
               item={item}
               large={item.gridArea === "bridal"}
-              onClick={() => handleCardClick(item)}
+              onClick={() => go(item)}
             />
           ))}
         </Box>
 
-        {/* MOBILE GRID */}
+        {/* Mobile grid */}
         <Box
-          className="grid md:hidden gap-3"
-          style={{
+          className="grid md:hidden gap-2.5"
+          sx={{
             gridTemplateColumns: "1fr 1fr",
-            gridTemplateAreas: `
-              "bridal bridal"
-              "necklace silver"
-              "earring more"
-            `,
+            gridTemplateAreas: `"bridal bridal" "necklace silver" "earring more"`,
           }}
         >
-          {galleryItems.map((item) => (
+          {CATEGORIES.map((item) => (
             <Box
               key={item.gridArea}
-              style={{
-                gridArea: item.gridArea,
-                aspectRatio: item.gridArea === "bridal" ? "4/5" : "4/5",
-              }}
+              sx={{ gridArea: item.gridArea, aspectRatio: "4/5" }}
             >
-              <GalleryCard
-                item={item}
-                large={item.gridArea === "bridal"}
-                onClick={() => handleCardClick(item)}
-              />
+              <CategoryCard item={item} onClick={() => go(item)} />
             </Box>
           ))}
         </Box>
 
         {/* CTA */}
-        <Box className="flex justify-center mt-12 sm:mt-16">
-          <Box
-            component="button"
+        <Box className="flex justify-center mt-10">
+          <button
             onClick={() => navigate("/products")}
-            className="group flex items-center gap-3 px-8 py-4 rounded-full text-sm uppercase tracking-[0.3em] font-medium transition-all duration-300 cursor-pointer"
+            className="px-8 py-3.5 rounded-full text-sm uppercase tracking-[0.3em] font-semibold cursor-pointer transition-all duration-300 hover:text-white"
             style={{
               border: "1px solid #b45309",
               color: "#b45309",
@@ -294,21 +217,15 @@ export function GallerySection() {
             }}
             onMouseEnter={(e) => {
               e.currentTarget.style.background = "#b45309";
-              e.currentTarget.style.color = "white";
+              e.currentTarget.style.color = "#fff";
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.background = "transparent";
               e.currentTarget.style.color = "#b45309";
             }}
           >
-            View All Collections
-            <Box
-              component="span"
-              className="transition-transform duration-300 group-hover:translate-x-1"
-            >
-              →
-            </Box>
-          </Box>
+            View All Collections →
+          </button>
         </Box>
       </Container>
     </Box>

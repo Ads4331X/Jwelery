@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import GroupAddIcon from "@mui/icons-material/GroupAdd";
 import type { AdminAccount } from "../../utils/adminUser";
-import type { AdminRole } from "../../../auth/context/context";
+import type { AdminRole } from "../../utils/adminUser";
 import DialogShell from "./DialogShell";
 import PromoteDialog from "./PromoteDialog";
 import AdminCreateForm from "./AdminCreateForm";

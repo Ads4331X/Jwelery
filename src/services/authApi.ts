@@ -1,69 +1,125 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+// src/services/authApi.ts
+import type { CustomerUser } from "../features/auth/context/context";
 
-export interface AdminLoginResponse {
-  message: string;
-  success: boolean;
-  data: {
-    id: string;
-    email: string;
-    username: string;
-    role: string;
-  };
-  token: string;
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+
+import { getAuthTokenCookie } from "../features/auth/context/authCookies";
+
+export const TOKEN_KEY = "aj_cust_token";
+
+/** Get stored JWT — used by other services to attach Authorization header */
+export function getToken(): string | null {
+  return getAuthTokenCookie();
 }
 
-export interface AdminRoleResponse {
-  message: string;
-  success: boolean;
-  data: {
-    role: string;
-    username: string;
-    email: string;
-  };
+/** Returns headers with Bearer token if logged in */
+export function authHeaders(): Record<string, string> {
+  const token = getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
-/**
- * POST /api/admin/auth — Admin login
- * Returns the token and user data on success, or throws with the error message.
- */
-export async function loginAdmin(
+/* ─── Response shapes ─────────────────────────────────────────────────────── */
+
+interface LoginResult {
+  user: CustomerUser | null;
+  token: string | null;
+  error: string | null;
+}
+
+interface SignupResult {
+  user: CustomerUser | null;
+  token: string | null;
+  error: string | null;
+  fieldErrors?: Record<string, string>;
+}
+
+/* ─── POST /api/customer/auth ─────────────────────────────────────────────── */
+
+export async function customerLogin(
   email: string,
   password: string,
-): Promise<{ token: string; user: AdminLoginResponse["data"] }> {
-  const res = await fetch(`${API_URL}/api/admin/auth`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-
-  const body = await res.json();
-
-  if (!res.ok || !body.success) {
-    throw new Error(body.message || "Login failed.");
-  }
-
-  return { token: body.token, user: body.data };
-}
-
-/**
- * GET /api/admin/role — Fetch the authenticated admin's role & info.
- * Returns user data or null if the token is invalid/expired.
- */
-export async function fetchAdminRole(
-  token: string,
-): Promise<AdminRoleResponse["data"] | null> {
+): Promise<LoginResult> {
   try {
-    const res = await fetch(`${API_URL}/api/admin/role`, {
-      headers: { Authorization: `Bearer ${token}` },
+    const res = await fetch(`${API_BASE}/api/customer/auth`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
     });
 
-    if (!res.ok) return null;
+    const json = (await res.json()) as {
+      success: boolean;
+      message?: string;
+      data?: CustomerUser;
+      token?: string;
+    };
 
-    const body = await res.json();
-    if (!body.success) return null;
+    if (!json.success) {
+      return {
+        user: null,
+        token: null,
+        error: json.message ?? "Login failed.",
+      };
+    }
 
-    return body.data;
+    return { user: json.data!, token: json.token!, error: null };
   } catch {
-    return null;
+    return {
+      user: null,
+      token: null,
+      error: "Cannot reach server. Check your connection.",
+    };
+  }
+}
+
+/* ─── POST /api/customer/signup ───────────────────────────────────────────── */
+
+export interface SignupPayload {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName?: string;
+  username?: string;
+  phone?: string;
+}
+
+export async function customerSignup(
+  payload: SignupPayload,
+): Promise<SignupResult> {
+  try {
+    const res = await fetch(`${API_BASE}/api/customer/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const json = (await res.json()) as {
+      success: boolean;
+      message?: string;
+      data?: CustomerUser;
+      token?: string;
+      errors?: { param: string; msg: string }[];
+    };
+
+    if (!json.success) {
+      // Map express-validator field errors into a flat object
+      const fieldErrors: Record<string, string> = {};
+      json.errors?.forEach((e) => {
+        fieldErrors[e.param] = e.msg;
+      });
+      return {
+        user: null,
+        token: null,
+        error: json.message ?? "Sign up failed.",
+        fieldErrors,
+      };
+    }
+
+    return { user: json.data!, token: json.token!, error: null };
+  } catch {
+    return {
+      user: null,
+      token: null,
+      error: "Cannot reach server. Check your connection.",
+    };
   }
 }

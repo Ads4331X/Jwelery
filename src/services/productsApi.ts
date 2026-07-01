@@ -1,124 +1,133 @@
-import { supabase } from "./supabase";
+// src/services/productsApi.ts
 import type { Product } from "../features/products/types";
-import type {
-  AdminProduct,
-  ProductFormData,
-} from "../features/admin/components/products/types";
+import type { AdminProduct } from "../features/admin/components/products/types";
+import { authHeaders } from "./authApi";
 
-const TABLE = "products";
-const BUCKET = "product-images";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
 
-export const fetchProducts = async (): Promise<Product[]> => {
-  // Fetch all products regardless of status; UI will handle Sold Out display
-  // Sort featured items first, then most recent
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select("*")
-    .order("is_featured", { ascending: false })
-    .order("created_at", { ascending: false });
+interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
 
-  if (error) throw new Error(error.message);
-  return (data ?? []) as Product[];
-};
+/* ─── GET /api/products  (public) ─────────────────────────────────────────── */
+export async function fetchProducts(): Promise<Product[]> {
+  const res = await fetch(`${API_BASE}/api/products`);
 
-export const fetchAdminProducts = async (): Promise<AdminProduct[]> => {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select("*")
-    .order("created_at", { ascending: false });
-
-  if (error) throw new Error(error.message);
-  return (data ?? []) as AdminProduct[];
-};
-
-export const createProduct = async (
-  form: ProductFormData,
-): Promise<{ error: string | null }> => {
-  const { error } = await supabase.from(TABLE).insert(form);
-  return { error: error?.message ?? null };
-};
-
-export const updateProduct = async (
-  id: string,
-  form: ProductFormData,
-): Promise<{ error: string | null }> => {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update({ ...form, updated_at: new Date().toISOString() })
-    .eq("id", id)
-    .select("id");
-
-  if (error) return { error: error.message };
-  if (!data || data.length === 0)
-    return {
-      error:
-        "Update blocked by database policy. Check RLS for the products table.",
-    };
-  return { error: null };
-};
-
-export const deleteProduct = async (
-  id: string,
-): Promise<{ error: string | null }> => {
-  const { error } = await supabase.from(TABLE).delete().eq("id", id);
-  return { error: error?.message ?? null };
-};
-
-export const uploadProductImage = async (
-  file: File,
-): Promise<{ url: string | null; error: string | null }> => {
-  // Helper to resize and convert image to WebP before uploading
-  const resizeImage = (
-    inputFile: File,
-    maxWidth = 1200,
-    maxHeight = 1200,
-    quality = 0.82,
-  ): Promise<Blob> => {
-    return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.onload = () => {
-        let { width, height } = img;
-        if (width > maxWidth || height > maxHeight) {
-          const ratio = Math.min(maxWidth / width, maxHeight / height);
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-        const canvas = document.createElement("canvas");
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return reject(new Error("Canvas not supported"));
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error("Compression failed"));
-          },
-          "image/webp",
-          quality,
-        );
-      };
-      img.onerror = () => reject(new Error("Could not load image"));
-      img.src = URL.createObjectURL(inputFile);
-    });
-  };
-
-  // Attempt to resize/compress; fall back to original file on failure
-  let blob: Blob = file;
-  try {
-    blob = await resizeImage(file);
-  } catch {
-    // keep original file
+  if (!res.ok) {
+    throw new Error(`Failed to fetch products (${res.status})`);
   }
 
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
+  const json = (await res.json()) as ApiResponse<Product[]>;
 
-  const { error: uploadError } = await supabase.storage
-    .from(BUCKET)
-    .upload(path, blob, { upsert: false, contentType: "image/webp" });
+  if (!json.success) {
+    throw new Error(json.message ?? "Failed to fetch products");
+  }
 
-  if (uploadError) return { url: null, error: uploadError.message };
+  // The backend does not yet compute price from metal rates.
+  // computedPrice stays null until you add that logic server-side.
+  return json.data.map((p) => ({
+    ...p,
+    computedPrice: p.computedPrice ?? null,
+  }));
+}
 
-  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
-  return { url: data.publicUrl, error: null };
+/* ─── GET /api/products/:id  (public) ─────────────────────────────────────── */
+export async function fetchProductById(id: string): Promise<Product> {
+  const res = await fetch(`${API_BASE}/api/products/${id}`);
+
+  if (!res.ok) {
+    throw new Error(`Product not found (${res.status})`);
+  }
+
+  const json = (await res.json()) as ApiResponse<Product>;
+
+  if (!json.success) {
+    throw new Error(json.message ?? "Product not found");
+  }
+
+  return { ...json.data, computedPrice: json.data.computedPrice ?? null };
+}
+
+/* ─── GET /api/categories  (public) ──────────────────────────────────────── */
+export async function fetchCategories(): Promise<
+  { id: string; name: string; slug: string }[]
+> {
+  const res = await fetch(`${API_BASE}/api/categories`);
+  const json = (await res.json()) as ApiResponse<
+    { id: string; name: string; slug: string }[]
+  >;
+  return json.data ?? [];
+}
+
+/* ─── Admin: create product (ADMIN / SUPER_ADMIN) ────────────────────────── */
+export async function createProduct(data: unknown): Promise<Product> {
+  const res = await fetch(`${API_BASE}/api/products`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  const json = (await res.json()) as ApiResponse<Product>;
+  if (!json.success) throw new Error(json.message ?? "Create failed");
+  return json.data;
+}
+
+/* ─── Admin: update product ───────────────────────────────────────────────── */
+export async function updateProduct(
+  id: string,
+  data: unknown,
+): Promise<Product> {
+  const res = await fetch(`${API_BASE}/api/products/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...authHeaders() },
+    body: JSON.stringify(data),
+  });
+  const json = (await res.json()) as ApiResponse<Product>;
+  if (!json.success) throw new Error(json.message ?? "Update failed");
+  return json.data;
+}
+
+/* ─── Admin: fetch admin products ──────────────────────────────────────── */
+// Compatibility helper: some admin pages import this name.
+export async function fetchAdminProducts(): Promise<AdminProduct[]> {
+  // Reuse the public endpoint; backend is expected to return admin-shaped products.
+  return (await fetchProducts()) as unknown as AdminProduct[];
+}
+
+/* ─── Admin: upload product image ─────────────────────────────────────── */
+export async function uploadProductImage(
+  file: File,
+): Promise<{ url: string; error?: string | null }> {
+  // Placeholder until wired to backend.
+
+  void file;
+  return { url: "" };
+}
+
+// Matches ProductForm expectations: { id, name, slug }
+export type CategoryOption = {
+  id: string;
+  name: string;
+  slug: string;
 };
+
+/* ─── Admin: delete product ────────────────────────────────────────────── */
+export async function deleteProduct(id: string): Promise<{
+  error?: string;
+  success?: boolean;
+}> {
+  const res = await fetch(`${API_BASE}/api/products/${id}`, {
+    method: "DELETE",
+    headers: authHeaders(),
+  });
+  const json = (await res.json()) as {
+    success: boolean;
+    message?: string;
+  };
+
+  if (!json.success) {
+    return { error: json.message ?? "Delete failed" };
+  }
+  return { success: true };
+}

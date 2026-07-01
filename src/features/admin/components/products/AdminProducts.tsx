@@ -44,7 +44,6 @@ export default function AdminProducts() {
   const [category, setCategory] = useState("All");
   const [metal, setMetal] = useState("All");
 
-  // toast
   const [toast, setToast] = useState<Toast | null>(null);
 
   const load = useCallback(async () => {
@@ -62,18 +61,19 @@ export default function AdminProducts() {
   }, []);
 
   useEffect(() => {
-    // avoid react cascading-renders warning by deferring to next tick
-    setTimeout(() => {
-      void load();
-    }, 0);
+    setTimeout(() => void load(), 0);
   }, [load]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return products.filter((p) => {
-      const matchesSearch = !q || p.name.toLowerCase().includes(q);
-      const matchesCategory = category === "All" || p.category === category;
-      const matchesMetal = metal === "All" || p.metal === metal;
+      const matchesSearch =
+        !q ||
+        p.name.toLowerCase().includes(q) ||
+        p.slug.toLowerCase().includes(q);
+      const matchesCategory =
+        category === "All" || p.category.name === category;
+      const matchesMetal = metal === "All" || p.metalType === metal;
       return matchesSearch && matchesCategory && matchesMetal;
     });
   }, [products, search, category, metal]);
@@ -93,9 +93,11 @@ export default function AdminProducts() {
 
   const handleSave = async (data: ProductFormData) => {
     setSaving(true);
-    const { error } = editing
+    const result = editing
       ? await updateProduct(editing.id, data)
       : await createProduct(data);
+    const error = (result as unknown as { error?: string }).error;
+
     setSaving(false);
 
     if (error) {
@@ -124,6 +126,10 @@ export default function AdminProducts() {
       void load();
     }
   };
+
+  // ── Stats ──────────────────────────────────────────────────────────────────
+  const totalStock = products.reduce((sum, p) => sum + p.stock, 0);
+  const activeCount = products.filter((p) => p.isActive).length;
 
   return (
     <Box className="flex flex-col gap-6">
@@ -155,10 +161,35 @@ export default function AdminProducts() {
         </Button>
       </Box>
 
+      {/* Quick stats */}
+      {!loading && !fetchError && (
+        <Box className="grid grid-cols-3 gap-3">
+          {[
+            { label: "Total products", value: products.length },
+            { label: "Active", value: activeCount },
+            {
+              label: "Total stock",
+              value: `${totalStock.toLocaleString("en-NP")} units`,
+            },
+          ].map((s) => (
+            <Box
+              key={s.label}
+              className="rounded-xl border border-stone-100 bg-white px-4 py-3"
+            >
+              <Typography className="text-stone-400 text-xs mb-0.5">
+                {s.label}
+              </Typography>
+              <Typography className="text-stone-800 font-semibold text-lg leading-tight">
+                {s.value}
+              </Typography>
+            </Box>
+          ))}
+        </Box>
+      )}
+
       {/* Main card */}
       <Card elevation={0} className="border border-stone-100 rounded-xl">
         <CardContent className="p-6">
-          {/* Card header */}
           <Box className="flex items-center gap-2 mb-4">
             <DiamondIcon className="text-amber-700" />
             <Typography
@@ -176,17 +207,15 @@ export default function AdminProducts() {
           </Box>
           <Divider className="mb-5" />
 
-          {/* Filters */}
           <ProductFilters
             search={search}
             category={category}
             metal={metal}
-            onSearchChange={(v) => setSearch(v)}
-            onCategoryChange={(v) => setCategory(v)}
-            onMetalChange={(v) => setMetal(v)}
+            onSearchChange={setSearch}
+            onCategoryChange={setCategory}
+            onMetalChange={setMetal}
           />
 
-          {/* States */}
           {loading && (
             <Box className="flex justify-center py-16">
               <CircularProgress size={28} className="text-stone-400" />
@@ -204,7 +233,7 @@ export default function AdminProducts() {
               <Typography className="text-stone-400 text-sm">
                 {products.length === 0
                   ? "No products yet. Add your first product to get started."
-                  : "No products match your search."}
+                  : "No products match your filters."}
               </Typography>
             </Box>
           )}

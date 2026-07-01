@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import SupervisorAccountIcon from "@mui/icons-material/SupervisorAccount";
 import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import type { AdminRole } from "../../../auth/context/context";
+import type { AdminRole } from "../../utils/adminUser";
 
 export const ROLE_LABEL: Record<AdminRole, string> = {
   DELIVERY_STAFF: "Delivery Staff",

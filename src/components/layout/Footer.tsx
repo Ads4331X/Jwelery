@@ -11,9 +11,8 @@ import logo from "../../assets/images/branding/logo.png";
 import { useSiteSettings } from "../../features/admin/components/AdminSiteSettings/useSiteSettings";
 
 const NAV_LINKS = [
-  { label: "Home", path: "/" },
+  { label: "Shop", path: "/" },
   { label: "About Us", path: "/about_us" },
-  { label: "Products", path: "/products" },
   { label: "Contact", path: "/contact" },
 ];
 

@@ -7,7 +7,7 @@ import {
   ToggleButtonGroup,
   Typography,
 } from "@mui/material";
-import type { AdminRole } from "../../../auth/context/context";
+import type { AdminRole } from "../../utils/adminUser";
 import { ROLE_OPTIONS, ROLE_TOGGLE_SX, ROLE_ICONS_MD } from "./RoleConfig";
 
 type Props = {

@@ -1,5 +1,3 @@
-import { supabase } from "./supabase";
-
 export type SiteSettings = {
   id: string;
   address: string;
@@ -11,36 +9,40 @@ export type SiteSettings = {
   updated_at: string;
 };
 
-const TABLE = "site_settings";
-const ROW_ID = "main";
+const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("admin_token");
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+};
 
 export const getSiteSettings = async (): Promise<SiteSettings | null> => {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .select(
-      "id, address, maps_url, email, phone, facebook_url, instagram_url, updated_at",
-    )
-    .eq("id", ROW_ID)
-    .maybeSingle();
-
-  if (error || !data) return null;
-  return data as SiteSettings;
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/site-settings`);
+    const json = await res.json();
+    if (json.success) return json.data;
+    return null;
+  } catch {
+    return null;
+  }
 };
 
 export const saveSiteSettings = async (
   settings: Omit<SiteSettings, "id" | "updated_at">,
 ): Promise<{ error: string | null }> => {
-  const { data, error } = await supabase
-    .from(TABLE)
-    .update({ ...settings, updated_at: new Date().toISOString() })
-    .eq("id", ROW_ID)
-    .select("id");
-
-  if (error) return { error: error.message };
-  if (!data || data.length === 0)
-    return {
-      error:
-        "Update was blocked by database policy (RLS). Check Supabase → Authentication → Policies for the site_settings table.",
-    };
-  return { error: null };
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/site-settings`, {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(settings),
+    });
+    const json = await res.json();
+    if (!json.success) return { error: json.message };
+    return { error: null };
+  } catch {
+    return { error: "Network error" };
+  }
 };

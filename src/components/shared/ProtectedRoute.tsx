@@ -1,24 +1,23 @@
-/* Import ReactNode type for children */
 import { Navigate } from "react-router-dom";
 import { useContext } from "react";
 import type { ReactNode } from "react";
-import { AuthContext } from "../../features/auth/context/context";
+import { AdminAuthContext } from "../../features/auth/context/adminAuthContext";
 
-type Props = {
-  children: ReactNode;
-};
+const ADMIN_ROLES = ["SUPER_ADMIN", "ADMIN", "DELIVERY_STAFF"] as const;
 
-export default function ProtectedRoute({ children }: Props) {
-  const auth = useContext(AuthContext);
+export default function ProtectedRoute({ children }: { children: ReactNode }) {
+  const auth = useContext(AdminAuthContext);
   if (!auth)
-    throw new Error("ProtectedRoute must be used within an AuthProvider");
-  const { isAuthenticated, role } = auth;
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
+    throw new Error("ProtectedRoute must be used within AdminAuthProvider");
 
-  // Ensure role is admin or super_admin
-  if (role !== "ADMIN" && role !== "SUPER_ADMIN") {
+  if (auth.isLoading) return null;
+
+  if (!auth.isAuthenticated) return <Navigate to="/admin/login" replace />;
+
+  if (
+    !auth.role ||
+    !ADMIN_ROLES.includes(auth.role as (typeof ADMIN_ROLES)[number])
+  ) {
     return <Navigate to="/" replace />;
   }
 

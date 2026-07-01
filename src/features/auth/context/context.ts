@@ -1,22 +1,27 @@
+// src/features/auth/context/context.ts
 import { createContext } from "react";
 
-export type AdminRole = "SUPER_ADMIN" | "ADMIN" | "DELIVERY_STAFF";
-
-export interface AdminUser {
+/** Shape returned by POST /api/customer/auth and /api/customer/signup */
+export interface CustomerUser {
   id: string;
   email: string;
-  username: string;
-  role: AdminRole;
+  username: string | null;
+  firstName: string;
+  lastName: string | null;
 }
 
-export interface AuthContextType {
+export interface AuthContextValue {
+  user: CustomerUser | null;
+  /** True if we are still fetching auth state initially. */
+  isLoading: boolean;
+  /** Derived boolean for guards that expect an authentication flag. */
   isAuthenticated: boolean;
-  user: AdminUser | null;
-  role: AdminRole | null;
+  /** Always null for customers — kept so existing admin-redirect checks
+   *  (auth.role === "ADMIN") simply evaluate to false without crashing. */
+  role: null;
   login: (email: string, password: string) => Promise<string | null>;
-  logout: () => Promise<void>;
+  logout: () => void;
+  setUser: (user: CustomerUser | null) => void;
 }
 
-export const AuthContext = createContext<AuthContextType | undefined>(
-  undefined,
-);
+export const AuthContext = createContext<AuthContextValue | null>(null);

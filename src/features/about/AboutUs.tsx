@@ -1,28 +1,30 @@
 import { Box } from "@mui/material";
 import Header from "../../components/layout/Header";
 import Footer from "../../components/layout/Footer";
-import { HeroSection } from "./components/HeroSection";
+import { Hero } from "../home/components/Hero";
+import MetalRates from "../../components/shared/MetalRates";
+import { FeaturedCategories } from "../home/components/GallerySection";
 import { StatsSection } from "./components/StatsSection";
-import { StorySection } from "./components/StorySection";
+
+import { OurStory } from "./components/StorySection";
 import { CraftsmanshipSection } from "./components/CraftsmanshipSection";
 import { ValuesSection } from "./components/ValuesSection";
 import { CTASection } from "./components/CTASection";
+import ContactSection from "../home/components/ContactSection";
 
 export default function AboutUs() {
   return (
-    <Box className="bg-[#fafaf7] text-stone-900">
+    <Box className="bg-[#fafaf7] text-stone-900 overflow-hidden">
       <Header />
-
-      <Box className="mt-16 sm:mt-8 lg:mt-0">
-        {" "}
-        <HeroSection />
-        <StatsSection />
-        <StorySection />
-        <CraftsmanshipSection />
-        <ValuesSection />
-        <CTASection />
-      </Box>
-
+      <Hero />
+      <MetalRates />
+      <FeaturedCategories />
+      <StatsSection />
+      <OurStory />
+      <CraftsmanshipSection />
+      <ValuesSection />
+      <CTASection />
+      <ContactSection />
       <Footer />
     </Box>
   );

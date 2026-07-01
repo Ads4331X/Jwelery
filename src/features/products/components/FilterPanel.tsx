@@ -2,7 +2,16 @@
 import { Box, Button, Divider, Stack, Typography } from "@mui/material";
 import { FilterChip } from "./FilterChip";
 
-const METAL_OPTIONS = ["All", "Gold", "Silver"];
+// Metal options map to MetalType enum values (All is UI-only)
+const METAL_OPTIONS = [
+  { value: "All", label: "All" },
+  { value: "GOLD", label: "Gold" },
+  { value: "SILVER", label: "Silver" },
+  { value: "DIAMOND", label: "Diamond" },
+  { value: "PLATINUM", label: "Platinum" },
+  { value: "OTHER", label: "Other" },
+] as const;
+
 const CATEGORY_OPTIONS = [
   "All",
   "Ring",
@@ -60,12 +69,12 @@ export function FilterPanel({
           Metal
         </Typography>
         <Stack direction="row" sx={{ flexWrap: "wrap", gap: 1 }}>
-          {METAL_OPTIONS.map((m) => (
+          {METAL_OPTIONS.map(({ value, label }) => (
             <FilterChip
-              key={m}
-              label={m}
-              active={filters.metal === m}
-              onClick={() => onChange("metal", m)}
+              key={value}
+              label={label}
+              active={filters.metal === value}
+              onClick={() => onChange("metal", value)}
             />
           ))}
         </Stack>
@@ -95,21 +104,13 @@ export function FilterPanel({
                     onChange("categories", []);
                     return;
                   }
-
-                  const currentlyAll = filters.categories.length === 0;
-
-                  // If switching from All -> specific: selecting any category disables All
-                  if (currentlyAll) {
+                  if (filters.categories.length === 0) {
                     onChange("categories", [c]);
                     return;
                   }
-
-                  // Toggle multi-select (OR logic is implemented in Products.tsx)
                   const next = filters.categories.includes(c)
                     ? filters.categories.filter((x) => x !== c)
                     : [...filters.categories, c];
-
-                  // If the last category is deselected, show All again (empty array means no filter)
                   onChange("categories", next);
                 }}
               />

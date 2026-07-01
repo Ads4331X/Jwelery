@@ -77,9 +77,9 @@ export function ValuesSection() {
               {ARTISAN_POINTS.map((point) => (
                 <Box
                   key={point}
-                  className="flex items-start gap-3 rounded-xl border border-amber-900/8 bg-white px-5 py-4 shadow-[0_4px_16px_rgba(0,0,0,0.03)]"
+                  className="flex items-center gap-3 rounded-xl border border-amber-900/8 bg-white px-5 py-4 shadow-[0_4px_16px_rgba(0,0,0,0.03)]"
                 >
-                  <Box className="mt-[0.45rem] h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600" />
+                  <Box className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-600" />
                   <Typography className="text-sm leading-7 text-stone-600">
                     {point}
                   </Typography>

@@ -95,7 +95,10 @@ export default function AdminMetalRates() {
     const { error } = await saveVisibility(checked);
     if (error) {
       setVisible(!checked);
-      setVisibilityMsg({ type: "error", text: "Failed to update visibility." });
+      setVisibilityMsg({
+        type: "error",
+        text: error || "Failed to update visibility.",
+      });
     } else {
       setVisibilityMsg({
         type: "success",

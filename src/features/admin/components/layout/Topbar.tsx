@@ -18,15 +18,13 @@ export default function Topbar() {
 
   const handleLogout = async () => {
     await auth?.logout();
-    navigate("/login");
+    navigate("/admin/login"); // ← updated path
   };
 
   const displayName =
-    auth?.user?.username ??
-    auth?.user?.email?.split("@")[0] ??
-    "Admin";
+    auth?.user?.firstName || auth?.user?.email?.split("@")[0] || "Admin";
 
-  const isSuperAdmin = auth?.role === "SUPER_ADMIN";
+  const isSuperAdmin = false;
 
   return (
     <AppBar
@@ -65,7 +63,7 @@ export default function Topbar() {
             startIcon={<LogoutIcon fontSize="small" />}
             className="normal-case text-stone-500 hover:text-stone-800 hover:bg-stone-100 text-sm"
           >
-            <Box component={"span"} className="hidden sm:inline">
+            <Box component="span" className="hidden sm:inline">
               Logout
             </Box>
           </Button>

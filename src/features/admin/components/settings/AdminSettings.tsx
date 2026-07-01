@@ -20,7 +20,7 @@ import {
   deleteAdmin,
   type AdminAccount,
 } from "../../utils/adminUser";
-import type { AdminRole } from "../../../auth/context/context";
+import type { AdminRole } from "../../utils/adminUser";
 
 import ToastProvider from "../ToastProvider";
 import { useToast } from "../useToast";
@@ -31,11 +31,13 @@ type Message = { type: "success" | "error"; text: string };
 
 function AdminSettingsInner() {
   const auth = useContext(AuthContext);
-  const isSuperAdmin = auth?.role === "SUPER_ADMIN";
+  const isSuperAdmin =
+    (auth?.role as string | null | undefined) === "SUPER_ADMIN";
+
   const { showToast } = useToast();
 
   // ── Display name ─────────────────────────────────────────────────────────
-  const [displayName, setDisplayName] = useState(auth?.user?.username ?? "");
+  const [displayName, setDisplayName] = useState(auth?.user?.email ?? "");
   const [nameMsg, setNameMsg] = useState<Message | null>(null);
 
   // ── Password ─────────────────────────────────────────────────────────────
@@ -128,7 +130,7 @@ function AdminSettingsInner() {
 
   const handlePromote = async (admin: AdminAccount, newRole: AdminRole) => {
     const { updateAdminRole } = await import("../../utils/adminUser");
-    const { error } = await updateAdminRole(admin.id, newRole);
+    const { error } = await updateAdminRole(admin.id, newRole as never);
     if (error) {
       showToast(error, "error");
       throw new Error(error);
