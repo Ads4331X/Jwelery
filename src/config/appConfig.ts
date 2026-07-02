@@ -36,7 +36,7 @@ const normalizeBaseUrl = (value: string | undefined, fallback: string) => {
 
 /**
  * Base URL of your backend API.
- * - Dev: defaults to http://localhost:5000
+ * - Dev: defaults to same-origin so Vite can proxy /api requests to the backend.
  * - Prod: defaults to same-origin (works out of the box if your API is
  *   proxied behind the same domain, e.g. via vercel.json rewrites or an
  *   .htaccess proxy on cPanel). Override with VITE_API_URL if your API
@@ -44,7 +44,7 @@ const normalizeBaseUrl = (value: string | undefined, fallback: string) => {
  */
 export const API_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_API_URL,
-  import.meta.env.DEV ? DEFAULT_LOCAL_BACKEND_URL : getCurrentOrigin(),
+  getCurrentOrigin(),
 );
 
 export const getCookieDomain = () => {
