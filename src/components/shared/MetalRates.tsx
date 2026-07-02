@@ -2,64 +2,82 @@ import { useEffect, useState } from "react";
 import { Box, Skeleton, Typography } from "@mui/material";
 import { getMetalRates } from "../../features/admin/utils/metalRates";
 import MetalCard from "./metal-rates/MetalCard";
-import type { RateData } from "./metal-rates/types";
+import type { RateData, MetalKey } from "./metal-rates/types";
+import { THEME } from "./metal-rates/theme";
 
-function GoldRatesSkeleton() {
+// ── Generic skeleton, reused for both gold and silver cards ──────────────────
+function MetalCardSkeleton({ metalKey }: { metalKey: MetalKey }) {
+  const t = THEME[metalKey];
   return (
-    <Box className="relative mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
-      <Box className="relative overflow-hidden rounded-3xl border border-amber-100 bg-white p-7 shadow-[0_4px_24px_rgba(0,0,0,0.05)] sm:p-8">
-        <Skeleton
-          variant="text"
-          width="45%"
-          height={36}
-          sx={{ mb: 3, bgcolor: "#f3f4f6" }}
-        />
-        <Skeleton
-          variant="text"
-          width="35%"
-          height={18}
-          sx={{ mb: 1.5, bgcolor: "#f3f4f6" }}
-        />
-        <Skeleton
-          variant="text"
-          width="72%"
-          height={72}
-          sx={{ mb: 4, bgcolor: "#f3f4f6" }}
-        />
-        <Skeleton
-          variant="rectangular"
-          height={1}
-          sx={{ mb: 3, bgcolor: "rgba(180,83,9,0.12)" }}
-        />
-        <Skeleton
-          variant="text"
-          width="42%"
-          height={18}
-          sx={{ mb: 2.5, bgcolor: "#f3f4f6" }}
-        />
-        <Box className="grid grid-cols-2 gap-2.5">
-          {[0, 1].map((tile) => (
-            <Box
-              key={tile}
-              className="rounded-2xl border border-gray-100 bg-[#fffdf5] p-4"
-            >
-              <Skeleton
-                variant="text"
-                width="78%"
-                height={16}
-                sx={{ mb: 1.5, bgcolor: "#f3f4f6" }}
-              />
-              <Skeleton
-                variant="text"
-                width="64%"
-                height={24}
-                sx={{ bgcolor: "#f3f4f6" }}
-              />
-            </Box>
-          ))}
-        </Box>
+    <Box
+      className="relative overflow-hidden rounded-3xl border bg-white p-7 shadow-[0_4px_24px_rgba(0,0,0,0.05)] sm:p-8"
+      style={{ borderColor: t.borderColor }}
+    >
+      <Skeleton
+        variant="text"
+        width="45%"
+        height={36}
+        sx={{ mb: 3, bgcolor: "#f3f4f6" }}
+      />
+      <Skeleton
+        variant="text"
+        width="35%"
+        height={18}
+        sx={{ mb: 1.5, bgcolor: "#f3f4f6" }}
+      />
+      <Skeleton
+        variant="text"
+        width="72%"
+        height={72}
+        sx={{ mb: 4, bgcolor: "#f3f4f6" }}
+      />
+      <Skeleton
+        variant="rectangular"
+        height={1}
+        sx={{ mb: 3, bgcolor: `${t.accent}1f` }}
+      />
+      <Skeleton
+        variant="text"
+        width="42%"
+        height={18}
+        sx={{ mb: 2.5, bgcolor: "#f3f4f6" }}
+      />
+      <Box className="grid grid-cols-2 gap-2.5">
+        {[0, 1].map((tile) => (
+          <Box
+            key={tile}
+            className="rounded-2xl border border-gray-100 p-4"
+            style={{ backgroundColor: t.tileBg }}
+          >
+            <Skeleton
+              variant="text"
+              width="78%"
+              height={16}
+              sx={{ mb: 1.5, bgcolor: "#f3f4f6" }}
+            />
+            <Skeleton
+              variant="text"
+              width="64%"
+              height={24}
+              sx={{ bgcolor: "#f3f4f6" }}
+            />
+          </Box>
+        ))}
       </Box>
     </Box>
+  );
+}
+
+// ── Validity check, shared between gold and silver ───────────────────────────
+function isValidEntry(entry?: { tola: number; ten_gram: number } | null) {
+  return (
+    !!entry &&
+    typeof entry.tola === "number" &&
+    Number.isFinite(entry.tola) &&
+    entry.tola > 0 &&
+    typeof entry.ten_gram === "number" &&
+    Number.isFinite(entry.ten_gram) &&
+    entry.ten_gram > 0
   );
 }
 
@@ -82,18 +100,6 @@ export default function MetalRates() {
           return;
         }
 
-        const hasValidGoldData =
-          typeof row.gold_tola === "number" &&
-          Number.isFinite(row.gold_tola) &&
-          typeof row.gold_ten_gram === "number" &&
-          Number.isFinite(row.gold_ten_gram);
-
-        if (!hasValidGoldData) {
-          setVisible(false);
-          setData(null);
-          return;
-        }
-
         setVisible(true);
         setData({
           gold: { tola: row.gold_tola, ten_gram: row.gold_ten_gram },
@@ -101,7 +107,10 @@ export default function MetalRates() {
         });
       } catch {
         if (isActive) {
-          setVisible(false);
+          // Fetch failed (e.g. backend/DB issue) — keep section visible but
+          // let each card fall back to its own skeleton below, rather than
+          // hiding the whole section or showing "N/A".
+          setVisible(true);
           setData(null);
         }
       } finally {
@@ -117,6 +126,9 @@ export default function MetalRates() {
   }, []);
 
   if (!visible) return null;
+
+  const goldValid = isValidEntry(data?.gold);
+  const silverValid = isValidEntry(data?.silver);
 
   return (
     <Box
@@ -168,13 +180,19 @@ export default function MetalRates() {
         </Typography>
       </Box>
 
-      {isLoading ? (
-        <GoldRatesSkeleton />
-      ) : data?.gold ? (
-        <Box className="relative mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
-          <MetalCard metalKey="gold" entry={data.gold} />
-        </Box>
-      ) : null}
+      <Box className="relative mx-auto grid max-w-5xl grid-cols-1 gap-6 md:grid-cols-2 lg:gap-8">
+        {isLoading || !goldValid ? (
+          <MetalCardSkeleton metalKey="gold" />
+        ) : (
+          <MetalCard metalKey="gold" entry={data!.gold} />
+        )}
+
+        {isLoading || !silverValid ? (
+          <MetalCardSkeleton metalKey="silver" />
+        ) : (
+          <MetalCard metalKey="silver" entry={data!.silver} />
+        )}
+      </Box>
     </Box>
   );
 }
