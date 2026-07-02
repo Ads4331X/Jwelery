@@ -17,7 +17,9 @@ export type AdminResult = {
   error: string | null;
 };
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+import { API_BASE_URL } from "../../../config/appConfig";
+
+const API_BASE = API_BASE_URL;
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem("admin_token");
@@ -53,7 +55,8 @@ export const createAdmin = async (
       body: JSON.stringify({ email, password, username: displayName, role }),
     });
     const json = await res.json();
-    if (!json.success) return { user: null, error: json.message || "Signup failed" };
+    if (!json.success)
+      return { user: null, error: json.message || "Signup failed" };
     return { user: json.data, error: null };
   } catch (err) {
     return { user: null, error: "Network error" };

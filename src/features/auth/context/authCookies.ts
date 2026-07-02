@@ -1,3 +1,5 @@
+import { getCookieDomain as getConfiguredCookieDomain } from "../../../config/appConfig";
+
 export type CookieDomainConfig = {
   /** Cookie domain value to share across apps.
    *  - dev: "localhost"
@@ -10,9 +12,7 @@ const TOKEN_COOKIE_KEY = "aj_cust_token";
 const USER_COOKIE_KEY = "aj_cust_user";
 
 function getCookieDomain(): string {
-  // Vite will replace import.meta.env values at build time.
-  // We default to localhost to keep dev working out of the box.
-  return import.meta.env.VITE_COOKIE_DOMAIN || "localhost";
+  return getConfiguredCookieDomain();
 }
 
 function getSecureFlag(): boolean {

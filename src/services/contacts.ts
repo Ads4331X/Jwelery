@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
+import { API_BASE_URL } from "../config/appConfig";
+
+const API_URL = API_BASE_URL;
 const TOKEN_KEY = "admin_token";
 
 //TYPES

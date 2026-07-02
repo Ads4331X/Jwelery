@@ -1,9 +1,10 @@
 // src/services/productsApi.ts
 import type { Product } from "../features/products/types";
 import type { AdminProduct } from "../features/admin/components/products/types";
+import { API_BASE_URL } from "../config/appConfig";
 import { authHeaders } from "./authApi";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const API_BASE = API_BASE_URL;
 
 interface ApiResponse<T> {
   success: boolean;

@@ -1,7 +1,8 @@
 // src/services/authApi.ts
 import type { CustomerUser } from "../features/auth/context/context";
+import { API_BASE_URL } from "../config/appConfig";
 
-const API_BASE = import.meta.env.VITE_API_URL ?? "http://localhost:5000";
+const API_BASE = API_BASE_URL;
 
 import { getAuthTokenCookie } from "../features/auth/context/authCookies";
 

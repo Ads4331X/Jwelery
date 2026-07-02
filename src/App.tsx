@@ -8,12 +8,7 @@ import ProductDetail from "./features/products/components/ProductDetails.tsx";
 import { AdminAuthProvider } from "./features/auth/context/AdminAuthProvider.tsx";
 
 import Checkout from "./features/customer/Checkout";
-
-const STATIC_URL = import.meta.env.VITE_STATIC_URL || "http://localhost:5173";
-const CUSTOMER_URL =
-  import.meta.env.VITE_CUSTOMER_URL || "http://localhost:5174";
-const isCustomerApp =
-  typeof window !== "undefined" && window.location.port === "5174";
+import { CUSTOMER_URL, STATIC_URL, isCustomerApp } from "./config/appConfig";
 
 function ExternalRedirect({ url }: { url: string }) {
   useEffect(() => {

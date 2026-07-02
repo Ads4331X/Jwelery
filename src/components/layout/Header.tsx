@@ -1,12 +1,6 @@
 import { useState, useContext } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import {
-  Badge,
-  Avatar,
-  Box,
-  Drawer,
-  IconButton,
-} from "@mui/material";
+import { Badge, Avatar, Box, Drawer, IconButton } from "@mui/material";
 import ShoppingBagOutlinedIcon from "@mui/icons-material/ShoppingBagOutlined";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
@@ -15,10 +9,7 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { AuthContext } from "../../features/auth/context/context";
 import { useCart } from "../../hooks/useCart";
 import logo from "../../assets/images/branding/logo.png";
-
-const STATIC_URL = import.meta.env.VITE_STATIC_URL || "http://localhost:5173";
-const isCustomerApp =
-  typeof window !== "undefined" && window.location.port === "5174";
+import { STATIC_URL, isCustomerApp } from "../../config/appConfig";
 
 const NAV = [
   { label: "Shop", path: "/" },
@@ -117,7 +108,9 @@ export default function Header() {
                   },
                 }}
               >
-                <ShoppingBagOutlinedIcon sx={{ fontSize: { xs: 20, sm: 22 } }} />
+                <ShoppingBagOutlinedIcon
+                  sx={{ fontSize: { xs: 20, sm: 22 } }}
+                />
               </Badge>
             </IconButton>
 
