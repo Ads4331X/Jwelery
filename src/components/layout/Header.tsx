@@ -9,12 +9,11 @@ import LogoutIcon from "@mui/icons-material/Logout";
 import { AuthContext } from "../../features/auth/context/context";
 import { useCart } from "../../hooks/useCart";
 import logo from "../../assets/images/branding/logo.png";
-import { STATIC_URL, isCustomerApp } from "../../config/appConfig";
 
 const NAV = [
   { label: "Shop", path: "/" },
-  { label: "About Us", path: "/about_us", external: !isCustomerApp },
-  { label: "Contact", path: "/contact", external: !isCustomerApp },
+  { label: "About Us", path: "/about_us" },
+  { label: "Contact", path: "/contact" },
 ];
 
 export default function Header() {
@@ -29,12 +28,6 @@ export default function Header() {
     : "";
 
   const close = () => setOpen(false);
-
-  const externalHref = (path: string) => {
-    if (path === "/about_us") return `${STATIC_URL}/about_us`;
-    if (path === "/contact") return `${STATIC_URL}/contact`;
-    return path;
-  };
 
   return (
     <>
@@ -163,30 +156,18 @@ export default function Header() {
         </Box>
 
         <Box className="flex flex-col px-3 pt-3 gap-0.5">
-          {NAV.map(({ label, path, external }) =>
-            external ? (
-              <Box
-                key={path}
-                component="a"
-                href={externalHref(path)}
-                onClick={close}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium text-stone-600 hover:bg-stone-100 no-underline block"
-              >
-                {label}
-              </Box>
-            ) : (
-              <NavLink
-                key={path}
-                to={path}
-                onClick={close}
-                className={({ isActive }) =>
-                  `px-4 py-2.5 rounded-xl text-sm font-medium no-underline transition-colors ${isActive ? "bg-amber-50 text-amber-800" : "text-stone-600 hover:bg-stone-100"}`
-                }
-              >
-                {label}
-              </NavLink>
-            ),
-          )}
+          {NAV.map(({ label, path }) => (
+            <NavLink
+              key={path}
+              to={path}
+              onClick={close}
+              className={({ isActive }) =>
+                `px-4 py-2.5 rounded-xl text-sm font-medium no-underline transition-colors ${isActive ? "bg-amber-50 text-amber-800" : "text-stone-600 hover:bg-stone-100"}`
+              }
+            >
+              {label}
+            </NavLink>
+          ))}
         </Box>
 
         <Box className="mx-3 my-4" sx={{ height: 1, bgcolor: "#f0ede8" }} />

@@ -1,11 +1,11 @@
-const DEFAULT_LOCAL_FRONTEND_URL = "http://localhost:5173";
+// src/config/appConfig.ts
 const DEFAULT_LOCAL_BACKEND_URL = "http://localhost:5000";
 
 const getCurrentOrigin = () => {
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
-  return DEFAULT_LOCAL_FRONTEND_URL;
+  return DEFAULT_LOCAL_BACKEND_URL;
 };
 
 const isLocalhostUrl = (value: string | undefined) => {
@@ -25,6 +25,8 @@ const normalizeBaseUrl = (value: string | undefined, fallback: string) => {
   const trimmedValue = value.trim().replace(/\/+$/, "");
 
   if (!trimmedValue) return fallback;
+  // Safety net: if a localhost URL ever leaks into a production build,
+  // fall back instead of sending real users to someone's laptop.
   if (import.meta.env.PROD && isLocalhostUrl(trimmedValue)) {
     return fallback;
   }
@@ -32,33 +34,18 @@ const normalizeBaseUrl = (value: string | undefined, fallback: string) => {
   return trimmedValue;
 };
 
-export const APP_BASE_URL = normalizeBaseUrl(
-  import.meta.env.VITE_APP_URL || import.meta.env.VITE_PUBLIC_URL,
-  getCurrentOrigin(),
-);
-
-export const STATIC_URL = normalizeBaseUrl(
-  import.meta.env.VITE_STATIC_URL,
-  APP_BASE_URL,
-);
-
-export const CUSTOMER_URL = normalizeBaseUrl(
-  import.meta.env.VITE_CUSTOMER_URL,
-  APP_BASE_URL,
-);
-
+/**
+ * Base URL of your backend API.
+ * - Dev: defaults to http://localhost:5000
+ * - Prod: defaults to same-origin (works out of the box if your API is
+ *   proxied behind the same domain, e.g. via vercel.json rewrites or an
+ *   .htaccess proxy on cPanel). Override with VITE_API_URL if your API
+ *   lives on a different domain.
+ */
 export const API_BASE_URL = normalizeBaseUrl(
   import.meta.env.VITE_API_URL,
   import.meta.env.DEV ? DEFAULT_LOCAL_BACKEND_URL : getCurrentOrigin(),
 );
-
-export const APP_MODE = import.meta.env.VITE_APP_MODE || "static";
-
-export const isCustomerApp =
-  APP_MODE === "customer" ||
-  (import.meta.env.DEV &&
-    typeof window !== "undefined" &&
-    window.location.port === "5174");
 
 export const getCookieDomain = () => {
   if (import.meta.env.VITE_COOKIE_DOMAIN) {

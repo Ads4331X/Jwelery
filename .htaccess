@@ -1,0 +1,18 @@
+# Place this in the SAME folder as your built index.html
+# (the folder you upload from `dist/` on cPanel).
+#
+# Without this, refreshing or directly visiting a route like
+# /products/gold-ring will 404, because Apache looks for a real
+# file/folder at that path instead of letting React Router handle it.
+
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # If the request is NOT for a real file or directory...
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+
+  # ...serve index.html and let the React app's router take over.
+  RewriteRule ^ index.html [L]
+</IfModule>
