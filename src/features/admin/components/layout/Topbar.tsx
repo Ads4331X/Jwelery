@@ -9,22 +9,22 @@ import {
 } from "@mui/material";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useContext } from "react";
-import { AuthContext } from "../../../../features/auth/context/context";
+import { AdminAuthContext } from "../../../../features/auth/context/adminAuthContext";
 import { useNavigate } from "react-router-dom";
 
 export default function Topbar() {
-  const auth = useContext(AuthContext);
+  const auth = useContext(AdminAuthContext);
   const navigate = useNavigate();
 
-  const handleLogout = async () => {
-    await auth?.logout();
+  const handleLogout = () => {
+    auth?.logout();
     navigate("/admin/login"); // ← updated path
   };
 
   const displayName =
-    auth?.user?.firstName || auth?.user?.email?.split("@")[0] || "Admin";
+    auth?.admin?.username || auth?.admin?.email?.split("@")[0] || "Admin";
 
-  const isSuperAdmin = false;
+  const isSuperAdmin = auth?.role === "SUPER_ADMIN";
 
   return (
     <AppBar

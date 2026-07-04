@@ -3,6 +3,7 @@ import type { Product } from "../features/products/types";
 import type { AdminProduct } from "../features/admin/components/products/types";
 import { API_BASE_URL } from "../config/appConfig";
 import { authHeaders } from "./authApi";
+import { adminAuthHeaders } from "./adminApi";
 
 const API_BASE = API_BASE_URL;
 
@@ -66,7 +67,7 @@ export async function fetchCategories(): Promise<
 export async function createProduct(data: unknown): Promise<Product> {
   const res = await fetch(`${API_BASE}/api/products`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...adminAuthHeaders() },
     body: JSON.stringify(data),
   });
   const json = (await res.json()) as ApiResponse<Product>;
@@ -81,7 +82,7 @@ export async function updateProduct(
 ): Promise<Product> {
   const res = await fetch(`${API_BASE}/api/products/${id}`, {
     method: "PUT",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json", ...adminAuthHeaders() },
     body: JSON.stringify(data),
   });
   const json = (await res.json()) as ApiResponse<Product>;
@@ -100,10 +101,31 @@ export async function fetchAdminProducts(): Promise<AdminProduct[]> {
 export async function uploadProductImage(
   file: File,
 ): Promise<{ url: string; error?: string | null }> {
-  // Placeholder until wired to backend.
+  try {
+    const formData = new FormData();
+    formData.append("image", file);
 
-  void file;
-  return { url: "" };
+    const res = await fetch(`${API_BASE}/api/uploads/product-image`, {
+      method: "POST",
+      headers: { ...adminAuthHeaders() },
+      body: formData,
+    });
+
+    const json = (await res.json()) as {
+      success: boolean;
+      message?: string;
+      data?: { url: string };
+    };
+
+    if (!json.success) {
+      return { url: "", error: json.message ?? "Upload failed." };
+    }
+
+    return { url: json.data?.url ?? "", error: null };
+  } catch (err) {
+    const errorMsg = err instanceof Error ? err.message : "Upload failed.";
+    return { url: "", error: errorMsg };
+  }
 }
 
 // Matches ProductForm expectations: { id, name, slug }
@@ -120,7 +142,7 @@ export async function deleteProduct(id: string): Promise<{
 }> {
   const res = await fetch(`${API_BASE}/api/products/${id}`, {
     method: "DELETE",
-    headers: authHeaders(),
+    headers: adminAuthHeaders(),
   });
   const json = (await res.json()) as {
     success: boolean;

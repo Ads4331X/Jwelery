@@ -17,6 +17,9 @@ import LocalShippingOutlinedIcon from "@mui/icons-material/LocalShippingOutlined
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import LocalAtmOutlinedIcon from "@mui/icons-material/LocalAtmOutlined";
 import Footer from "../../../components/layout/Footer";
 import Header from "../../../components/layout/Header";
 import { fetchProducts } from "../../../services/productsApi";
@@ -27,7 +30,7 @@ import { useCart } from "../../../hooks/useCart";
 
 /* ─── payment button helper ─────────────────────────── */
 interface PayBtnProps {
-  logo: string;
+  icon: React.ReactNode;
   label: string;
   color: string;
   hoverColor: string;
@@ -37,7 +40,7 @@ interface PayBtnProps {
 }
 
 function PayButton({
-  logo,
+  icon,
   label,
   color,
   hoverColor,
@@ -50,7 +53,7 @@ function PayButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="flex-1 flex items-center justify-center gap-2.5 py-3.5 rounded-2xl font-semibold text-sm tracking-wide transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+      className="flex-1 flex flex-col items-center justify-center gap-1 py-3 px-1.5 rounded-2xl font-semibold transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
       style={{ background: color, color: textColor }}
       onMouseEnter={(e) =>
         !disabled && (e.currentTarget.style.background = hoverColor)
@@ -59,10 +62,10 @@ function PayButton({
         !disabled && (e.currentTarget.style.background = color)
       }
     >
-      <span className="text-[0.7rem] font-bold tracking-widest uppercase">
-        {logo}
+      {icon}
+      <span className="text-[0.68rem] text-center leading-tight tracking-wide">
+        {label}
       </span>
-      <span>{label}</span>
     </button>
   );
 }
@@ -415,24 +418,26 @@ export default function ProductDetail() {
             {/* Payment buttons */}
             <Box className="flex gap-2">
               <PayButton
-                logo="eSewa"
-                label="Pay"
+                icon={
+                  <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 20 }} />
+                }
+                label="eSewa"
                 color="#4CAF50"
                 hoverColor="#43A047"
                 onClick={() => handleBuyNow("esewa")}
                 disabled={!inStock}
               />
               <PayButton
-                logo="Khalti"
-                label="Pay"
+                icon={<PaymentsOutlinedIcon sx={{ fontSize: 20 }} />}
+                label="Khalti"
                 color="#5C2D91"
                 hoverColor="#4a2275"
                 onClick={() => handleBuyNow("khalti")}
                 disabled={!inStock}
               />
               <PayButton
-                logo="COD"
-                label="Cash"
+                icon={<LocalAtmOutlinedIcon sx={{ fontSize: 20 }} />}
+                label="Cash on Delivery"
                 color="#1c1917"
                 hoverColor="#292524"
                 onClick={() => handleBuyNow("cod")}

@@ -13,7 +13,7 @@ import {
 import SecurityIcon from "@mui/icons-material/Security";
 import PersonIcon from "@mui/icons-material/Person";
 
-import { AuthContext } from "../../../auth/context/context";
+import { AdminAuthContext } from "../../../auth/context/adminAuthContext";
 import {
   listAdmins,
   createAdmin,
@@ -30,14 +30,15 @@ import AdminManagement from "./AdminManagement";
 type Message = { type: "success" | "error"; text: string };
 
 function AdminSettingsInner() {
-  const auth = useContext(AuthContext);
-  const isSuperAdmin =
-    (auth?.role as string | null | undefined) === "SUPER_ADMIN";
+  const auth = useContext(AdminAuthContext);
+  const isSuperAdmin = auth?.role === "SUPER_ADMIN";
 
   const { showToast } = useToast();
 
   // ── Display name ─────────────────────────────────────────────────────────
-  const [displayName, setDisplayName] = useState(auth?.user?.email ?? "");
+  const [displayName, setDisplayName] = useState(
+    auth?.admin?.username ?? auth?.admin?.email ?? "",
+  );
   const [nameMsg, setNameMsg] = useState<Message | null>(null);
 
   // ── Password ─────────────────────────────────────────────────────────────

@@ -9,8 +9,12 @@ import {
 } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
+import LocalAtmOutlinedIcon from "@mui/icons-material/LocalAtmOutlined";
 
 import { useMemo, useState } from "react";
+import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
@@ -44,24 +48,28 @@ const PAYMENT_OPTIONS: {
   label: string;
   desc: string;
   color: string;
+  icon: ReactNode;
 }[] = [
   {
     value: "esewa",
     label: "eSewa",
     desc: "Pay via eSewa digital wallet",
     color: "#4CAF50",
+    icon: <AccountBalanceWalletOutlinedIcon sx={{ fontSize: 18 }} />,
   },
   {
     value: "khalti",
     label: "Khalti",
     desc: "Pay via Khalti digital wallet",
     color: "#5C2D91",
+    icon: <PaymentsOutlinedIcon sx={{ fontSize: 18 }} />,
   },
   {
     value: "cod",
     label: "Cash on Delivery",
     desc: "Pay when your order arrives",
     color: "#78350f",
+    icon: <LocalAtmOutlinedIcon sx={{ fontSize: 18 }} />,
   },
 ];
 
@@ -328,9 +336,11 @@ export default function Checkout() {
                         sx={{ m: 0 }}
                       />
                       <Box
-                        className="w-2 h-2 rounded-full shrink-0"
-                        sx={{ bgcolor: opt.color }}
-                      />
+                        className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center"
+                        sx={{ bgcolor: `${opt.color}1a`, color: opt.color }}
+                      >
+                        {opt.icon}
+                      </Box>
                       <Box>
                         <Typography
                           sx={{
