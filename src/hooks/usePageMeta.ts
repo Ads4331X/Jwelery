@@ -4,10 +4,15 @@ interface PageMetaOptions {
   title: string;
   description?: string;
   ogImage?: string;
-  jsonLd?: Record<string, any>;
+  jsonLd?: Record<string, unknown>;
 }
 
-export function usePageMeta({ title, description, ogImage, jsonLd }: PageMetaOptions) {
+export function usePageMeta({
+  title,
+  description,
+  ogImage,
+  jsonLd,
+}: PageMetaOptions) {
   useEffect(() => {
     document.title = title;
 
@@ -20,7 +25,7 @@ export function usePageMeta({ title, description, ogImage, jsonLd }: PageMetaOpt
         document.head.appendChild(meta);
       }
       meta.setAttribute("content", description);
-      
+
       let ogDesc = document.querySelector('meta[property="og:description"]');
       if (!ogDesc) {
         ogDesc = document.createElement("meta");

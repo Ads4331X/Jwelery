@@ -28,10 +28,10 @@ export default function CustomerSignup() {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("Must be inside AuthProvider");
 
-  // Redirect if already logged in
-  if (!auth.isLoading && auth.user) {
+  const shouldRedirect = !auth.isLoading && !!auth.user;
+
+  if (shouldRedirect) {
     navigate("/", { replace: true });
-    return null;
   }
 
   const [form, setForm] = useState<FormState>({

@@ -1,6 +1,6 @@
 import { useContext, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Box } from "@mui/material";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
 import { AdminAuthContext } from "./context/adminAuthContext";
 import LoginForm from "./components/LoginForm";
 
@@ -42,16 +42,38 @@ export default function Login() {
 
   return (
     <Box className="min-h-screen flex items-center justify-center bg-stone-100 px-4">
-      <LoginForm
-        email={email}
-        password={password}
-        errors={errors}
-        loading={loading}
-        loginError={loginError}
-        onSubmit={handleSubmit}
-        onEmailChange={setEmail}
-        onPasswordChange={setPassword}
-      />
+      <Box className="w-full max-w-sm">
+        <LoginForm
+          email={email}
+          password={password}
+          errors={errors}
+          loading={loading}
+          loginError={loginError}
+          onSubmit={handleSubmit}
+          onEmailChange={setEmail}
+          onPasswordChange={setPassword}
+        />
+        <Typography
+          sx={{
+            textAlign: "center",
+            mt: 2,
+            fontSize: "0.83rem",
+            color: "#78716c",
+          }}
+        >
+          Forgot your password?{" "}
+          <NavLink
+            to="/admin/forgot-password"
+            style={{
+              color: "#111827",
+              fontWeight: 700,
+              textDecoration: "none",
+            }}
+          >
+            Reset it
+          </NavLink>
+        </Typography>
+      </Box>
     </Box>
   );
 }

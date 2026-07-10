@@ -27,7 +27,9 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         ) : (
           <Box className="h-full flex items-center justify-center">
-            <Typography className="!text-stone-300 !text-xs">No image</Typography>
+            <Typography className="!text-stone-300 !text-xs">
+              No image
+            </Typography>
           </Box>
         )}
 
@@ -81,9 +83,13 @@ export default function ProductCard({ product }: ProductCardProps) {
           </Typography>
         </Box>
 
-        {product.computedPrice != null && (
+        {product.computedPrice != null && product.computedPrice > 0 ? (
           <Typography className="!text-lg !font-bold !text-stone-900">
             Rs {Number(product.computedPrice).toLocaleString("en-NP")}
+          </Typography>
+        ) : (
+          <Typography className="!text-[0.75rem] !text-stone-500 italic">
+            Price on request
           </Typography>
         )}
 

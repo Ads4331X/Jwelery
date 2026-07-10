@@ -171,9 +171,9 @@ export default function ProductTable({ products, onEdit, onDelete }: Props) {
                 {/* Est. price */}
                 <TableCell>
                   <Typography className="text-stone-800 text-sm font-medium whitespace-nowrap">
-                    {p.computedPrice != null
+                    {p.computedPrice != null && p.computedPrice > 0
                       ? `Rs ${Number(p.computedPrice).toLocaleString("en-NP")}`
-                      : "—"}
+                      : "Price on request"}
                   </Typography>
                   <Typography className="text-stone-400 text-[0.6rem]">
                     at today's rate

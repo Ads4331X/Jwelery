@@ -22,14 +22,20 @@ const CustomerLogin = lazy(
 const CustomerSignup = lazy(
   () => import("./features/customer/Customersignup.tsx"),
 );
+const CustomerForgotPassword = lazy(
+  () => import("./features/customer/ForgotPassword"),
+);
 
 // ── Customer protected pages ──────────────────────────────────
 const Profile = lazy(() => import("./features/customer/Profile.tsx"));
 const Orders = lazy(() => import("./features/customer/Orders.tsx"));
 const Cart = lazy(() => import("./features/customer/Cart.tsx"));
 
-// ── Admin ─────────────────────────────────────────────────────
+/* ── Admin ───────────────────────────────────────────────────── */
 const AdminLogin = lazy(() => import("./features/auth/Login")); // keep existing file
+const AdminForgotPassword = lazy(
+  () => import("./features/auth/AdminForgotPassword"),
+);
 const Dashboard = lazy(() => import("./features/admin/Dashboard"));
 
 function App() {
@@ -52,6 +58,10 @@ function App() {
               {/* ── Customer auth ──────────────────────────── */}
               <Route path="/login" element={<CustomerLogin />} />
               <Route path="/signup" element={<CustomerSignup />} />
+              <Route
+                path="/forgot-password"
+                element={<CustomerForgotPassword />}
+              />
               <Route path="/cart" element={<Cart />} />
 
               {/* ── Customer protected ─────────────────────── */}
@@ -82,6 +92,10 @@ function App() {
 
               {/* ── Admin auth ──────────────────────────────── */}
               <Route path="/admin/login" element={<AdminLogin />} />
+              <Route
+                path="/admin/forgot-password"
+                element={<AdminForgotPassword />}
+              />
               {/* ── Admin protected ─────────────────────────── */}
               <Route
                 path="/admin/*"

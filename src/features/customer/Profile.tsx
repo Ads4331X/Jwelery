@@ -325,6 +325,32 @@ export default function Profile() {
               </Alert>
             )}
 
+            <Typography
+              sx={{
+                textAlign: "center",
+                mt: 2,
+                fontSize: "0.82rem",
+                color: "#78716c",
+              }}
+            >
+              Forgot password instead?{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/forgot-password")}
+                className="font-bold"
+                style={{
+                  color: "#b45309",
+                  textDecoration: "none",
+                  cursor: "pointer",
+                  background: "transparent",
+                  border: "none",
+                  padding: 0,
+                }}
+              >
+                Reset it
+              </button>
+            </Typography>
+
             <Divider sx={{ my: 3, borderColor: "rgba(180,83,9,0.08)" }} />
 
             <button

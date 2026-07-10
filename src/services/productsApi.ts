@@ -2,7 +2,6 @@
 import type { Product } from "../features/products/types";
 import type { AdminProduct } from "../features/admin/components/products/types";
 import { API_BASE_URL } from "../config/appConfig";
-import { authHeaders } from "./authApi";
 import { adminAuthHeaders } from "./adminApi";
 
 const API_BASE = API_BASE_URL;
@@ -27,11 +26,17 @@ export async function fetchProducts(): Promise<Product[]> {
     throw new Error(json.message ?? "Failed to fetch products");
   }
 
-  // The backend does not yet compute price from metal rates.
-  // computedPrice stays null until you add that logic server-side.
+  // Ensure computedPrice is always numeric (or null) so UI can show price
+  // after backend starts returning it. If backend sends 0, treat as 0.
+  const normalizeComputedPrice = (value: unknown): number | null => {
+    if (value === undefined || value === null) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+
   return json.data.map((p) => ({
     ...p,
-    computedPrice: p.computedPrice ?? null,
+    computedPrice: normalizeComputedPrice(p.computedPrice),
   }));
 }
 
@@ -49,7 +54,16 @@ export async function fetchProductById(id: string): Promise<Product> {
     throw new Error(json.message ?? "Product not found");
   }
 
-  return { ...json.data, computedPrice: json.data.computedPrice ?? null };
+  const normalizeComputedPrice = (value: unknown): number | null => {
+    if (value === undefined || value === null) return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  };
+
+  return {
+    ...json.data,
+    computedPrice: normalizeComputedPrice(json.data.computedPrice),
+  };
 }
 
 /* ─── GET /api/categories  (public) ──────────────────────────────────────── */

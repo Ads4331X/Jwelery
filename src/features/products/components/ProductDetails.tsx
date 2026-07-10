@@ -313,7 +313,7 @@ export default function ProductDetail() {
             />
 
             {/* Price */}
-            {product.computedPrice != null ? (
+            {product.computedPrice != null && product.computedPrice > 0 ? (
               <Box className="mb-5">
                 <Typography className="!text-3xl !font-bold !text-amber-700">
                   Rs {Number(product.computedPrice).toLocaleString("en-NP")}

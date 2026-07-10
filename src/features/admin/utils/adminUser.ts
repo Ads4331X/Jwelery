@@ -13,7 +13,7 @@ export type AdminAccount = {
 };
 
 export type AdminResult = {
-  user: any | null;
+  user: AdminAccount | null;
   error: string | null;
 };
 
@@ -58,7 +58,7 @@ export const createAdmin = async (
     if (!json.success)
       return { user: null, error: json.message || "Signup failed" };
     return { user: json.data, error: null };
-  } catch (err) {
+  } catch {
     return { user: null, error: "Network error" };
   }
 };

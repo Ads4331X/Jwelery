@@ -219,6 +219,21 @@ function AdminSettingsInner() {
                 </Typography>
               </Box>
               <Divider className="mb-4" />
+              <Typography
+                variant="body2"
+                className="text-stone-400 text-sm mb-3"
+              >
+                Forgot password instead?{" "}
+                <button
+                  type="button"
+                  className="font-semibold text-stone-800 hover:text-stone-600 transition-colors cursor-pointer bg-transparent border-none p-0"
+                  onClick={() =>
+                    (window.location.href = "/admin/forgot-password")
+                  }
+                >
+                  Reset it
+                </button>
+              </Typography>
               {pwdMsg && (
                 <Alert severity={pwdMsg.type} className="mb-4 text-sm">
                   {pwdMsg.text}

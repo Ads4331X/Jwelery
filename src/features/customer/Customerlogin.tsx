@@ -1,5 +1,5 @@
 // src/features/customer/Customerlogin.tsx
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useLocation, NavLink } from "react-router-dom";
 import {
   Alert,
@@ -19,15 +19,18 @@ export default function CustomerLogin() {
   const auth = useContext(AuthContext);
   if (!auth) throw new Error("Must be inside AuthProvider");
 
-  const fromPath = (location.state as { from?: { pathname: string } } | null)?.from?.pathname;
+  const fromPath = (location.state as { from?: { pathname: string } } | null)
+    ?.from?.pathname;
   // Prevent redirect loops by sanitizing `from`
-  const from = fromPath === "/login" || fromPath === "/signup" ? "/" : (fromPath || "/");
+  const from =
+    fromPath === "/login" || fromPath === "/signup" ? "/" : fromPath || "/";
 
-  // Redirect if already logged in
-  if (!auth.isLoading && auth.user) {
-    navigate(from, { replace: true });
-    return null;
-  }
+  // Redirect if already logged in (in effect to keep hooks order stable)
+  useEffect(() => {
+    if (!auth.isLoading && auth.user) {
+      navigate(from, { replace: true });
+    }
+  }, [auth.isLoading, auth.user, navigate, from]);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -186,6 +189,26 @@ export default function CustomerLogin() {
             sx={{
               textAlign: "center",
               mt: 3,
+              fontSize: "0.83rem",
+              color: "#78716c",
+            }}
+          >
+            <NavLink
+              to="/forgot-password"
+              style={{
+                color: "#b45309",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Forgot password?
+            </NavLink>
+          </Typography>
+
+          <Typography
+            sx={{
+              textAlign: "center",
+              mt: 1.2,
               fontSize: "0.83rem",
               color: "#78716c",
             }}
