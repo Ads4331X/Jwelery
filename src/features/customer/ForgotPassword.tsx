@@ -17,7 +17,6 @@ export default function ForgotPassword() {
 
   const [resetToken, setResetToken] = useState<string | null>(null);
 
-  const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -25,7 +24,7 @@ export default function ForgotPassword() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
-  const RESEND_COOLDOWN_SECONDS = 600; // 10 minutes
+  const RESEND_COOLDOWN_SECONDS = 180; // 3 minutes between resends (code itself is valid 10 minutes)
   const [resendSecondsLeft, setResendSecondsLeft] = useState(0);
   const resendDisabled = resendSecondsLeft > 0;
 
@@ -93,6 +92,7 @@ export default function ForgotPassword() {
 
       setSuccess(true);
       setStep("verify");
+      setResendSecondsLeft(RESEND_COOLDOWN_SECONDS);
       return;
     }
 
@@ -118,14 +118,11 @@ export default function ForgotPassword() {
 
     // reset
     if (!resetToken) return setError("Missing reset token. Please try again.");
-    if (!oldPassword) return setError("Old password is required.");
     if (!newPassword) return setError("New password is required.");
     if (!confirmPassword) return setError("Confirm new password is required.");
 
     if (newPassword !== confirmPassword)
       return setError("Passwords do not match.");
-    if (newPassword === oldPassword)
-      return setError("New password must be different from old password.");
 
     setLoading(true);
     const res = await customerForgotPasswordReset(resetToken, newPassword);
@@ -152,8 +149,6 @@ export default function ForgotPassword() {
       setNewPassword={setNewPassword}
       confirmPassword={confirmPassword}
       setConfirmPassword={setConfirmPassword}
-      oldPassword={oldPassword}
-      setOldPassword={setOldPassword}
       loading={loading}
       error={error}
       success={success}

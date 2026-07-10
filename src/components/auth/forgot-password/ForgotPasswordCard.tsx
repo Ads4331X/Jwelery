@@ -31,9 +31,6 @@ type Props = {
   confirmPassword: string;
   setConfirmPassword: (v: string) => void;
 
-  oldPassword: string;
-  setOldPassword: (v: string) => void;
-
   resendDisabled: boolean;
   resendSecondsLeft: number;
   onResend: () => void;
@@ -56,8 +53,6 @@ export default function ForgotPasswordCard({
   setNewPassword,
   confirmPassword,
   setConfirmPassword,
-  oldPassword,
-  setOldPassword,
   loading,
   error,
   success,
@@ -311,17 +306,6 @@ export default function ForgotPasswordCard({
 
             {step === "reset" && (
               <>
-                <TextField
-                  fullWidth
-                  label="Old password"
-                  type="password"
-                  size="small"
-                  value={oldPassword}
-                  onChange={(e) => setOldPassword(e.target.value)}
-                  disabled={loading}
-                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: "12px" } }}
-                />
-
                 <TextField
                   fullWidth
                   label="New password"
