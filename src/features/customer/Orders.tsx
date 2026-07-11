@@ -40,22 +40,45 @@ const STATUS_CONFIG: Record<
   string,
   { label: string; bg: string; color: string }
 > = {
-  Pending: { label: "Pending", bg: "rgba(245,158,11,0.12)", color: "#b45309" },
-  Confirmed: {
+  PENDING: {
+    label: "Pending",
+    bg: "rgba(245,158,11,0.12)",
+    color: "#b45309",
+  },
+  CONFIRMED: {
     label: "Confirmed",
     bg: "rgba(59,130,246,0.12)",
     color: "#2563eb",
   },
-  Shipped: { label: "Shipped", bg: "rgba(168,85,247,0.12)", color: "#7c3aed" },
-  Delivered: {
+  PROCESSING: {
+    label: "Processing",
+    bg: "rgba(59,130,246,0.12)",
+    color: "#2563eb",
+  },
+  READY_FOR_DELIVERY: {
+    label: "Ready for delivery",
+    bg: "rgba(124,58,237,0.12)",
+    color: "#7c3aed",
+  },
+  OUT_FOR_DELIVERY: {
+    label: "Out for delivery",
+    bg: "rgba(124,58,237,0.12)",
+    color: "#7c3aed",
+  },
+  DELIVERED: {
     label: "Delivered",
     bg: "rgba(34,197,94,0.12)",
     color: "#16a34a",
   },
-  Cancelled: {
+  CANCELLED: {
     label: "Cancelled",
     bg: "rgba(239,68,68,0.12)",
     color: "#dc2626",
+  },
+  REFUNDED: {
+    label: "Refunded",
+    bg: "rgba(239,68,68,0.07)",
+    color: "rgba(220,38,38,0.8)",
   },
 };
 
@@ -217,7 +240,7 @@ export default function Orders() {
             {[...orders]
               .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
               .map((o) => {
-                const cfg = STATUS_CONFIG[o.status] ?? STATUS_CONFIG.Pending;
+                const cfg = STATUS_CONFIG[o.status] ?? STATUS_CONFIG.PENDING;
 
                 return (
                   <Box

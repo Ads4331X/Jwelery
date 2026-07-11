@@ -40,7 +40,11 @@ const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
     to: "/admin/site-settings",
     icon: <LanguageIcon fontSize="small" />,
   },
-
+  {
+    name: "Orders",
+    to: "/admin/orders",
+    icon: <span className="text-[12px] font-bold">#</span>,
+  },
   {
     name: "Settings",
     to: "/admin/settings",
