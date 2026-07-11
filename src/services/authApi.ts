@@ -237,3 +237,72 @@ export async function customerForgotPasswordReset(
     return { error: "Cannot reach server. Check your connection." };
   }
 }
+
+/* ─── Profile + password (authenticated) ─────────────────────────────── */
+
+interface UpdateProfileResponse extends ApiEnvelope {
+  data?: CustomerUser;
+}
+
+/** PATCH /api/customer/profile */
+export async function customerUpdateProfile(
+  firstName: string,
+  lastName?: string,
+): Promise<{ user: CustomerUser | null; error: string | null }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/customer/profile`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+      body: JSON.stringify({ firstName, lastName: lastName ?? "" }),
+    });
+
+    const json = await safeJson<UpdateProfileResponse>(res);
+
+    if (!res.ok || json?.success === false) {
+      return {
+        user: null,
+        error: json?.message ?? `Update failed (${res.status}).`,
+      };
+    }
+
+    return { user: json?.data ?? null, error: null };
+  } catch (err) {
+    console.error("Customer update profile error:", err);
+    return { user: null, error: "Cannot reach server. Check your connection." };
+  }
+}
+
+type ChangePasswordResponse = ApiEnvelope;
+
+/** POST /api/customer/change-password */
+export async function customerChangePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ error: string | null }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/customer/change-password`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...authHeaders(),
+      },
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+
+    const json = await safeJson<ChangePasswordResponse>(res);
+
+    if (!res.ok || json?.success === false) {
+      return {
+        error: json?.message ?? `Change password failed (${res.status}).`,
+      };
+    }
+
+    return { error: null };
+  } catch (err) {
+    console.error("Customer change password error:", err);
+    return { error: "Cannot reach server. Check your connection." };
+  }
+}
