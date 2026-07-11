@@ -314,6 +314,17 @@ export default function Orders() {
                                 alt={it.name}
                                 className="w-full h-full object-cover"
                               />
+                            ) : it.productId ? (
+                              <img
+                                src={`https://anandjewellers.s3.amazonaws.com/products/${it.productId}.jpg`}
+                                alt={it.name}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  (
+                                    e.currentTarget as HTMLImageElement
+                                  ).style.display = "none";
+                                }}
+                              />
                             ) : (
                               <Box className="w-full h-full flex items-center justify-center">
                                 <Typography className="!text-stone-300 !text-[0.45rem] !uppercase !tracking-widest">
@@ -347,7 +358,7 @@ export default function Orders() {
                                 shrink: 0,
                               }}
                             >
-                              {formatMoney(it.price * it.qty)}
+                              {formatMoney(it.price)}
                             </Typography>
                           )}
                         </Box>
