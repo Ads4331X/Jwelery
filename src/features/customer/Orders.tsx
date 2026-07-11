@@ -1,30 +1,16 @@
-import { Box, Chip, Divider, Typography } from "@mui/material";
+import {
+  Box,
+  Chip,
+  CircularProgress,
+  Divider,
+  Typography,
+} from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-type OrderStatus =
-  | "Pending"
-  | "Confirmed"
-  | "Shipped"
-  | "Delivered"
-  | "Cancelled";
-
-type OrderItem = {
-  id: string;
-  name: string;
-  qty: number;
-  price?: number | null;
-  imageUrl?: string | null;
-};
-
-type Order = {
-  id: string;
-  placedAt: string;
-  items: OrderItem[];
-  total: number;
-  status: OrderStatus;
-};
+import { getOrders, type OrderListItem } from "../../services/ordersApi";
 
 function formatDate(iso: string) {
   try {
@@ -51,7 +37,7 @@ function formatMoney(n: number) {
 }
 
 const STATUS_CONFIG: Record<
-  OrderStatus,
+  string,
   { label: string; bg: string; color: string }
 > = {
   Pending: { label: "Pending", bg: "rgba(245,158,11,0.12)", color: "#b45309" },
@@ -76,9 +62,32 @@ const STATUS_CONFIG: Record<
 export default function Orders() {
   const navigate = useNavigate();
 
-  // Replace with real API fetch later
-  const orders: Order[] = [];
-  const hasOrders = orders.length > 0;
+  const [orders, setOrders] = useState<OrderListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [err, setErr] = useState<string | null>(null);
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      setLoading(true);
+      setErr(null);
+      const res = await getOrders();
+      if (!alive) return;
+      if (res.error) {
+        setErr(res.error);
+        setOrders([]);
+        setLoading(false);
+        return;
+      }
+      setOrders(res.data ?? []);
+      setLoading(false);
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  const hasOrders = !loading && orders.length > 0;
 
   return (
     <Box className="min-h-screen bg-[#fafaf7]">
@@ -123,8 +132,39 @@ export default function Orders() {
           />
         </Box>
 
-        {/* Empty state */}
-        {!hasOrders ? (
+        {/* Loading / Error / Empty state */}
+        {loading ? (
+          <Box className="flex justify-center items-center py-24">
+            <CircularProgress size={28} sx={{ color: "#b45309" }} />
+          </Box>
+        ) : err ? (
+          <Box className="text-center py-16 px-6 rounded-[24px] border border-amber-900/[0.08] bg-white">
+            <Typography
+              sx={{
+                fontFamily: "'Playfair Display', serif",
+                fontSize: "1.2rem",
+                fontWeight: 600,
+                color: "#1c1917",
+                mb: 1,
+              }}
+            >
+              Could not load orders
+            </Typography>
+            <Typography sx={{ color: "#78716c", fontSize: "0.9rem", mb: 4 }}>
+              {err}
+            </Typography>
+            <button
+              type="button"
+              onClick={() => navigate("/products")}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-full text-sm font-semibold text-white tracking-wide transition-all duration-200 cursor-pointer"
+              style={{
+                background: "linear-gradient(135deg, #92400e, #b45309)",
+              }}
+            >
+              Browse Collection
+            </button>
+          </Box>
+        ) : !hasOrders ? (
           <Box className="text-center py-24 px-6 rounded-[24px] border border-amber-900/[0.08] bg-white">
             <Box className="flex justify-center items-center gap-2 mb-5">
               <Box
@@ -175,12 +215,13 @@ export default function Orders() {
         ) : (
           <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             {[...orders]
-              .sort((a, b) => b.placedAt.localeCompare(a.placedAt))
+              .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
               .map((o) => {
-                const cfg = STATUS_CONFIG[o.status];
+                const cfg = STATUS_CONFIG[o.status] ?? STATUS_CONFIG.Pending;
+
                 return (
                   <Box
-                    key={o.id}
+                    key={o.id ?? o.orderNumber}
                     className="bg-white rounded-[20px] border border-amber-900/[0.08] p-5 transition-shadow duration-200 hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)]"
                   >
                     {/* Order header */}
@@ -194,7 +235,7 @@ export default function Orders() {
                             color: "#1c1917",
                           }}
                         >
-                          Order #{o.id.slice(0, 8).toUpperCase()}
+                          Order #{o.orderNumber}
                         </Typography>
                         <Typography
                           sx={{
@@ -203,7 +244,7 @@ export default function Orders() {
                             mt: 0.3,
                           }}
                         >
-                          {formatDate(o.placedAt)}
+                          {formatDate(o.createdAt)}
                         </Typography>
                       </Box>
                       <Chip
@@ -236,7 +277,13 @@ export default function Orders() {
                       }}
                     >
                       {o.items.map((it) => (
-                        <Box key={it.id} className="flex items-center gap-3">
+                        <Box
+                          key={
+                            it.id ??
+                            `${o.orderNumber}-${it.productId ?? it.name}-${it.qty}`
+                          }
+                          className="flex items-center gap-3"
+                        >
                           <Box className="w-12 h-12 rounded-[10px] overflow-hidden bg-stone-100 shrink-0">
                             {it.imageUrl ? (
                               <img
@@ -302,7 +349,7 @@ export default function Orders() {
                           color: "#b45309",
                         }}
                       >
-                        {formatMoney(o.total)}
+                        {formatMoney(o.totalAmount)}
                       </Typography>
                     </Box>
                   </Box>

@@ -18,6 +18,7 @@ import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
+import { createOrder, type OrderItemCreate } from "../../services/ordersApi";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -95,7 +96,9 @@ export default function Checkout() {
     deliveryNote: "",
   });
 
-  const [payment, setPayment] = useState<PaymentMethod>("esewa");
+  // Only COD is supported in this pass.
+  const [payment, setPayment] = useState<PaymentMethod>("cod");
+
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [placing, setPlacing] = useState(false);
   const [placeErr, setPlaceErr] = useState<string | null>(null);
@@ -145,7 +148,24 @@ export default function Checkout() {
     setPlacing(true);
     setPlaceErr(null);
     try {
-      await new Promise((r) => setTimeout(r, 500));
+      const payloadItems: OrderItemCreate[] = items.map((it) => ({
+        productId: it.product.id,
+        qty: it.qty,
+      }));
+
+      const res = await createOrder(payloadItems, {
+        fullName: address.fullName,
+        phone: address.phone,
+        streetAddress: address.streetAddress,
+        city: address.city,
+        deliveryNote: address.deliveryNote,
+      });
+
+      if (res.error) {
+        setPlaceErr(res.error);
+        return;
+      }
+
       clearCart();
       navigate("/orders");
     } catch {
@@ -309,56 +329,95 @@ export default function Checkout() {
                 <Box
                   sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                 >
-                  {PAYMENT_OPTIONS.map((opt) => (
-                    <Box
-                      key={opt.value}
-                      onClick={() => setPayment(opt.value)}
-                      className={[
-                        "flex items-center gap-3 px-4 py-3.5 rounded-[14px] border cursor-pointer transition-all duration-200",
-                        payment === opt.value
-                          ? "border-amber-600 bg-amber-50/60"
-                          : "border-amber-900/10 hover:border-amber-900/25",
-                      ].join(" ")}
-                    >
-                      <FormControlLabel
-                        value={opt.value}
-                        control={
-                          <Radio
-                            size="small"
-                            sx={{
-                              color: "#b45309",
-                              "&.Mui-checked": { color: "#b45309" },
-                              p: 0,
-                            }}
-                          />
-                        }
-                        label=""
-                        sx={{ m: 0 }}
-                      />
+                  {PAYMENT_OPTIONS.map((opt) => {
+                    const isCod = opt.value === "cod";
+                    const disabled = !isCod;
+
+                    return (
                       <Box
-                        className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center"
-                        sx={{ bgcolor: `${opt.color}1a`, color: opt.color }}
+                        key={opt.value}
+                        onClick={() => {
+                          if (!disabled) setPayment(opt.value);
+                        }}
+                        className={[
+                          "flex items-center gap-3 px-4 py-3.5 rounded-[14px] border transition-all duration-200",
+                          disabled
+                            ? "cursor-not-allowed opacity-60 border-amber-900/10 bg-white"
+                            : "cursor-pointer",
+                          payment === opt.value
+                            ? "border-amber-600 bg-amber-50/60"
+                            : disabled
+                              ? ""
+                              : "border-amber-900/10 hover:border-amber-900/25",
+                        ].join(" ")}
                       >
-                        {opt.icon}
-                      </Box>
-                      <Box>
-                        <Typography
+                        <FormControlLabel
+                          value={opt.value}
+                          disabled={disabled}
+                          control={
+                            <Radio
+                              size="small"
+                              disabled={disabled}
+                              sx={{
+                                color: "#b45309",
+                                "&.Mui-checked": { color: "#b45309" },
+                                p: 0,
+                              }}
+                            />
+                          }
+                          label=""
+                          sx={{ m: 0 }}
+                        />
+
+                        <Box
+                          className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center"
                           sx={{
-                            fontWeight: 600,
-                            fontSize: "0.85rem",
-                            color: "#1c1917",
+                            bgcolor: `${opt.color}1a`,
+                            color: opt.color,
                           }}
                         >
-                          {opt.label}
-                        </Typography>
-                        <Typography
-                          sx={{ fontSize: "0.72rem", color: "#78716c" }}
-                        >
-                          {opt.desc}
-                        </Typography>
+                          {opt.icon}
+                        </Box>
+
+                        <Box className="flex flex-col">
+                          <Box className="flex items-center gap-2">
+                            <Typography
+                              sx={{
+                                fontWeight: 600,
+                                fontSize: "0.85rem",
+                                color: "#1c1917",
+                              }}
+                            >
+                              {opt.label}
+                            </Typography>
+                            {disabled && (
+                              <Box
+                                sx={{
+                                  fontSize: "0.62rem",
+                                  fontWeight: 800,
+                                  letterSpacing: "0.06em",
+                                  color: "#b45309",
+                                  border: "1px solid rgba(180,83,9,0.18)",
+                                  borderRadius: "999px",
+                                  px: 1,
+                                  py: "2px",
+                                  background: "rgba(180,83,9,0.06)",
+                                }}
+                              >
+                                Coming soon
+                              </Box>
+                            )}
+                          </Box>
+
+                          <Typography
+                            sx={{ fontSize: "0.72rem", color: "#78716c" }}
+                          >
+                            {opt.desc}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
-                  ))}
+                    );
+                  })}
                 </Box>
               </RadioGroup>
             </Box>
