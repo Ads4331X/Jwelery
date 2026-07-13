@@ -99,7 +99,7 @@ export default function Checkout() {
   const [useNewAddress, setUseNewAddress] = useState(true);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
 
-  const [address, setAddress] = useState<ShippingAddress>({
+  const [manualAddress, setManualAddress] = useState<ShippingAddress>({
     fullName: "",
     phone: "",
     streetAddress: "",
@@ -118,12 +118,28 @@ export default function Checkout() {
   const shipping = SHIPPING_FLAT;
   const total = subtotal + shipping;
 
+  const selectedShippingAddress: ShippingAddress = useNewAddress
+    ? manualAddress
+    : (() => {
+        const addr = savedAddresses.find((a) => a.id === selectedSavedId);
+        if (!addr) {
+          return manualAddress;
+        }
+        return {
+          fullName: addr.fullName,
+          phone: addr.phone,
+          streetAddress: addr.street,
+          city: addr.city,
+          deliveryNote: manualAddress.deliveryNote,
+        };
+      })();
+
   const canPlace =
     items.length > 0 &&
-    address.fullName.trim().length > 0 &&
-    address.phone.trim().length > 0 &&
-    address.streetAddress.trim().length > 0 &&
-    address.city.trim().length > 0;
+    selectedShippingAddress.fullName.trim().length > 0 &&
+    selectedShippingAddress.phone.trim().length > 0 &&
+    selectedShippingAddress.streetAddress.trim().length > 0 &&
+    selectedShippingAddress.city.trim().length > 0;
 
   const orderItemsSummary = useMemo(
     () =>
@@ -138,10 +154,13 @@ export default function Checkout() {
 
   const validate = (): string | null => {
     if (items.length === 0) return "Your cart is empty.";
-    if (!address.fullName.trim()) return "Full name is required.";
-    if (!address.phone.trim()) return "Phone number is required.";
-    if (!address.streetAddress.trim()) return "Street address is required.";
-    if (!address.city.trim()) return "City is required.";
+    if (!selectedShippingAddress.fullName.trim())
+      return "Full name is required.";
+    if (!selectedShippingAddress.phone.trim())
+      return "Phone number is required.";
+    if (!selectedShippingAddress.streetAddress.trim())
+      return "Street address is required.";
+    if (!selectedShippingAddress.city.trim()) return "City is required.";
     return null;
   };
 
@@ -161,13 +180,8 @@ export default function Checkout() {
         if (defaultAddr) {
           setSelectedSavedId(defaultAddr.id);
           setUseNewAddress(false);
-          setAddress({
-            fullName: defaultAddr.fullName,
-            phone: defaultAddr.phone,
-            streetAddress: defaultAddr.street,
-            city: defaultAddr.city,
-            deliveryNote: address.deliveryNote,
-          });
+          // Keep manualAddress untouched; just switch to saved address mode.
+          // (Address fields will be derived from saved address while useNewAddress=false)
         } else {
           setUseNewAddress(true);
           setSelectedSavedId(null);
@@ -181,7 +195,6 @@ export default function Checkout() {
     return () => {
       mounted = false;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePlaceClick = () => {
@@ -204,11 +217,11 @@ export default function Checkout() {
       }));
 
       const res = await createOrder(payloadItems, {
-        fullName: address.fullName,
-        phone: address.phone,
-        streetAddress: address.streetAddress,
-        city: address.city,
-        deliveryNote: address.deliveryNote,
+        fullName: selectedShippingAddress.fullName,
+        phone: selectedShippingAddress.phone,
+        streetAddress: selectedShippingAddress.streetAddress,
+        city: selectedShippingAddress.city,
+        deliveryNote: selectedShippingAddress.deliveryNote,
       });
 
       if (res.error) {
@@ -226,9 +239,9 @@ export default function Checkout() {
     }
   };
 
-  const set =
+  const setManual =
     (k: keyof ShippingAddress) => (e: React.ChangeEvent<HTMLInputElement>) =>
-      setAddress((p) => ({ ...p, [k]: e.target.value }));
+      setManualAddress((p) => ({ ...p, [k]: e.target.value }));
 
   return (
     <Box className="min-h-screen bg-[#fafaf7]">
@@ -312,16 +325,8 @@ export default function Checkout() {
                       setUseNewAddress(false);
                       setSelectedSavedId(v);
 
-                      const addr = savedAddresses.find((a) => a.id === v);
-                      if (addr) {
-                        setAddress({
-                          fullName: addr.fullName,
-                          phone: addr.phone,
-                          streetAddress: addr.street,
-                          city: addr.city,
-                          deliveryNote: address.deliveryNote,
-                        });
-                      }
+                      // Do not mutate manualAddress. We only switch the mode.
+                      // Address fields are derived from selected saved address when useNewAddress=false.
                     }}
                   >
                     <Box
@@ -457,16 +462,16 @@ export default function Checkout() {
                 >
                   <TextField
                     label="Full name"
-                    value={address.fullName}
-                    onChange={set("fullName")}
+                    value={manualAddress.fullName}
+                    onChange={setManual("fullName")}
                     required
                     size="small"
                     sx={fieldSx()}
                   />
                   <TextField
                     label="Phone number"
-                    value={address.phone}
-                    onChange={set("phone")}
+                    value={manualAddress.phone}
+                    onChange={setManual("phone")}
                     required
                     size="small"
                     sx={fieldSx()}
@@ -476,8 +481,8 @@ export default function Checkout() {
                 <TextField
                   fullWidth
                   label="Street address"
-                  value={address.streetAddress}
-                  onChange={set("streetAddress")}
+                  value={manualAddress.streetAddress}
+                  onChange={setManual("streetAddress")}
                   required
                   size="small"
                   sx={{ ...fieldSx(), mt: 2 }}
@@ -493,16 +498,16 @@ export default function Checkout() {
                 >
                   <TextField
                     label="City"
-                    value={address.city}
-                    onChange={set("city")}
+                    value={manualAddress.city}
+                    onChange={setManual("city")}
                     required
                     size="small"
                     sx={fieldSx()}
                   />
                   <TextField
                     label="Delivery note (optional)"
-                    value={address.deliveryNote}
-                    onChange={set("deliveryNote")}
+                    value={manualAddress.deliveryNote}
+                    onChange={setManual("deliveryNote")}
                     size="small"
                     sx={fieldSx()}
                   />
