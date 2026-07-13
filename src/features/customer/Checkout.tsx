@@ -15,13 +15,14 @@ import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalance
 import PaymentsOutlinedIcon from "@mui/icons-material/PaymentsOutlined";
 import LocalAtmOutlinedIcon from "@mui/icons-material/LocalAtmOutlined";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import type { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import { createOrder, type OrderItemCreate } from "../../services/ordersApi";
+import { getAddresses, type SavedAddress } from "../../services/addressesApi";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -91,6 +92,13 @@ export default function Checkout() {
   const navigate = useNavigate();
   const { items, totalPrice, clearCart, totalItems } = useCart();
 
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [savedLoading, setSavedLoading] = useState(false);
+  void savedLoading;
+
+  const [useNewAddress, setUseNewAddress] = useState(true);
+  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
+
   const [address, setAddress] = useState<ShippingAddress>({
     fullName: "",
     phone: "",
@@ -136,6 +144,45 @@ export default function Checkout() {
     if (!address.city.trim()) return "City is required.";
     return null;
   };
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function load() {
+      setSavedLoading(true);
+      try {
+        const res = await getAddresses();
+        if (!mounted) return;
+
+        const list = res.data ?? [];
+        setSavedAddresses(list);
+
+        const defaultAddr = list.find((a) => a.isDefault) ?? list[0];
+        if (defaultAddr) {
+          setSelectedSavedId(defaultAddr.id);
+          setUseNewAddress(false);
+          setAddress({
+            fullName: defaultAddr.fullName,
+            phone: defaultAddr.phone,
+            streetAddress: defaultAddr.street,
+            city: defaultAddr.city,
+            deliveryNote: address.deliveryNote,
+          });
+        } else {
+          setUseNewAddress(true);
+          setSelectedSavedId(null);
+        }
+      } finally {
+        if (mounted) setSavedLoading(false);
+      }
+    }
+
+    load();
+    return () => {
+      mounted = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handlePlaceClick = () => {
     setPlaceErr(null);
@@ -250,64 +297,216 @@ export default function Checkout() {
                 Delivery Address
               </Typography>
 
+              {/* Saved addresses selector */}
+              {savedAddresses.length > 0 ? (
+                <Box sx={{ mb: 3 }}>
+                  <RadioGroup
+                    value={useNewAddress ? "new" : (selectedSavedId ?? "")}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "new") {
+                        setUseNewAddress(true);
+                        return;
+                      }
+
+                      setUseNewAddress(false);
+                      setSelectedSavedId(v);
+
+                      const addr = savedAddresses.find((a) => a.id === v);
+                      if (addr) {
+                        setAddress({
+                          fullName: addr.fullName,
+                          phone: addr.phone,
+                          streetAddress: addr.street,
+                          city: addr.city,
+                          deliveryNote: address.deliveryNote,
+                        });
+                      }
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 1.5,
+                      }}
+                    >
+                      {savedAddresses.map((a) => (
+                        <Box
+                          key={a.id}
+                          className={[
+                            "flex items-start gap-3 px-3 py-2.5 rounded-[14px] border transition-all duration-200",
+                            !useNewAddress && selectedSavedId === a.id
+                              ? "border-amber-600 bg-amber-50/60"
+                              : "border-amber-900/10 hover:border-amber-900/25",
+                          ].join(" ")}
+                        >
+                          <FormControlLabel
+                            value={a.id}
+                            control={
+                              <Radio
+                                size="small"
+                                sx={{ color: "#b45309", p: 0 }}
+                              />
+                            }
+                            label=""
+                            sx={{ m: 0, alignItems: "flex-start" }}
+                          />
+
+                          <Box className="flex-1">
+                            <Typography
+                              sx={{
+                                fontWeight: 700,
+                                fontSize: "0.85rem",
+                                color: "#1c1917",
+                              }}
+                            >
+                              {a.fullName}
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: "0.72rem",
+                                color: "#78716c",
+                                mt: 0.2,
+                              }}
+                            >
+                              {a.phone}
+                            </Typography>
+                            <Typography
+                              sx={{ fontSize: "0.72rem", color: "#78716c" }}
+                            >
+                              {a.street}, {a.city}
+                            </Typography>
+                            {a.isDefault ? (
+                              <Box
+                                sx={{
+                                  mt: 0.6,
+                                  display: "inline-flex",
+                                  fontSize: "0.62rem",
+                                  fontWeight: 800,
+                                  letterSpacing: "0.06em",
+                                  color: "#b45309",
+                                  border: "1px solid rgba(180,83,9,0.18)",
+                                  borderRadius: "999px",
+                                  px: 1,
+                                  py: "2px",
+                                  background: "rgba(180,83,9,0.06)",
+                                }}
+                              >
+                                DEFAULT
+                              </Box>
+                            ) : null}
+                          </Box>
+                        </Box>
+                      ))}
+
+                      <Box
+                        className={[
+                          "flex items-start gap-3 px-3 py-2.5 rounded-[14px] border transition-all duration-200",
+                          useNewAddress
+                            ? "border-amber-600 bg-amber-50/60"
+                            : "border-amber-900/10 hover:border-amber-900/25",
+                        ].join(" ")}
+                      >
+                        <FormControlLabel
+                          value="new"
+                          control={
+                            <Radio
+                              size="small"
+                              sx={{ color: "#b45309", p: 0 }}
+                            />
+                          }
+                          label=""
+                          sx={{ m: 0, alignItems: "flex-start" }}
+                        />
+                        <Box className="flex-1">
+                          <button
+                            type="button"
+                            onClick={() => setUseNewAddress(true)}
+                            className="font-bold"
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              padding: 0,
+                              cursor: "pointer",
+                              color: "#b45309",
+                            }}
+                          >
+                            + Use a new address
+                          </button>
+                        </Box>
+                      </Box>
+                    </Box>
+                  </RadioGroup>
+                </Box>
+              ) : null}
+
+              {/* Manual form */}
               <Box
                 sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                  gap: 2,
+                  opacity: !useNewAddress ? 0.65 : 1,
+                  pointerEvents: !useNewAddress ? "none" : "auto",
                 }}
               >
-                <TextField
-                  label="Full name"
-                  value={address.fullName}
-                  onChange={set("fullName")}
-                  required
-                  size="small"
-                  sx={fieldSx()}
-                />
-                <TextField
-                  label="Phone number"
-                  value={address.phone}
-                  onChange={set("phone")}
-                  required
-                  size="small"
-                  sx={fieldSx()}
-                />
-              </Box>
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 2,
+                  }}
+                >
+                  <TextField
+                    label="Full name"
+                    value={address.fullName}
+                    onChange={set("fullName")}
+                    required
+                    size="small"
+                    sx={fieldSx()}
+                  />
+                  <TextField
+                    label="Phone number"
+                    value={address.phone}
+                    onChange={set("phone")}
+                    required
+                    size="small"
+                    sx={fieldSx()}
+                  />
+                </Box>
 
-              <TextField
-                fullWidth
-                label="Street address"
-                value={address.streetAddress}
-                onChange={set("streetAddress")}
-                required
-                size="small"
-                sx={{ ...fieldSx(), mt: 2 }}
-              />
-
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
-                  gap: 2,
-                  mt: 2,
-                }}
-              >
                 <TextField
-                  label="City"
-                  value={address.city}
-                  onChange={set("city")}
+                  fullWidth
+                  label="Street address"
+                  value={address.streetAddress}
+                  onChange={set("streetAddress")}
                   required
                   size="small"
-                  sx={fieldSx()}
+                  sx={{ ...fieldSx(), mt: 2 }}
                 />
-                <TextField
-                  label="Delivery note (optional)"
-                  value={address.deliveryNote}
-                  onChange={set("deliveryNote")}
-                  size="small"
-                  sx={fieldSx()}
-                />
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: { xs: "1fr", sm: "1fr 1fr" },
+                    gap: 2,
+                    mt: 2,
+                  }}
+                >
+                  <TextField
+                    label="City"
+                    value={address.city}
+                    onChange={set("city")}
+                    required
+                    size="small"
+                    sx={fieldSx()}
+                  />
+                  <TextField
+                    label="Delivery note (optional)"
+                    value={address.deliveryNote}
+                    onChange={set("deliveryNote")}
+                    size="small"
+                    sx={fieldSx()}
+                  />
+                </Box>
               </Box>
             </Box>
 
@@ -333,8 +532,7 @@ export default function Checkout() {
                   sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                 >
                   {PAYMENT_OPTIONS.map((opt) => {
-                    const isCod = opt.value === "cod";
-                    const disabled = !isCod;
+                    const disabled = opt.value !== "cod";
 
                     return (
                       <Box
@@ -374,10 +572,7 @@ export default function Checkout() {
 
                         <Box
                           className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center"
-                          sx={{
-                            bgcolor: `${opt.color}1a`,
-                            color: opt.color,
-                          }}
+                          sx={{ bgcolor: `${opt.color}1a`, color: opt.color }}
                         >
                           {opt.icon}
                         </Box>
@@ -393,7 +588,7 @@ export default function Checkout() {
                             >
                               {opt.label}
                             </Typography>
-                            {disabled && (
+                            {disabled ? (
                               <Box
                                 sx={{
                                   fontSize: "0.62rem",
@@ -409,7 +604,7 @@ export default function Checkout() {
                               >
                                 Coming soon
                               </Box>
-                            )}
+                            ) : null}
                           </Box>
 
                           <Typography
@@ -425,13 +620,13 @@ export default function Checkout() {
               </RadioGroup>
             </Box>
 
-            {placeErr && (
+            {placeErr ? (
               <Typography
                 sx={{ color: "error.main", fontSize: "0.82rem", px: 1 }}
               >
                 {placeErr}
               </Typography>
-            )}
+            ) : null}
 
             {/* Place order — shown below on mobile */}
             <Box sx={{ display: { xs: "block", lg: "none" } }}>
@@ -448,6 +643,7 @@ export default function Checkout() {
               </button>
             </Box>
           </Box>
+
           {/* Right — order summary */}
           <Box className="bg-white rounded-[20px] border border-amber-900/[0.08] p-6 sticky top-24 mt-6 lg:mt-0">
             <Typography
@@ -483,7 +679,7 @@ export default function Checkout() {
                       Qty: {it.qty}
                     </Typography>
                   </Box>
-                  {it.price != null && (
+                  {it.price != null ? (
                     <Typography
                       sx={{
                         fontSize: "0.82rem",
@@ -493,7 +689,7 @@ export default function Checkout() {
                     >
                       {formatMoney(it.price * it.qty)}
                     </Typography>
-                  )}
+                  ) : null}
                 </Box>
               ))}
             </Box>
