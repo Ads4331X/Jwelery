@@ -6,10 +6,13 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useContext, useMemo, useState } from "react";
+
+import MyAddresses from "./MyAddresses";
 
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../../features/auth/context/context";
@@ -406,6 +409,12 @@ export default function Profile() {
                 Name updated successfully.
               </Alert>
             )}
+
+            <Divider sx={{ my: 3, borderColor: "rgba(180,83,9,0.08)" }} />
+
+            <Box sx={{ mt: 2 }}>
+              <MyAddresses />
+            </Box>
 
             <Divider sx={{ my: 3, borderColor: "rgba(180,83,9,0.08)" }} />
 
