@@ -65,6 +65,31 @@ export type AdminOrderDetailResponse = {
   };
 };
 
+export type AdminOrderRecentItem = {
+  orderNumber: string;
+  customerName: string;
+  totalAmount: number;
+  status: AdminOrderStatus;
+  createdAt: string;
+};
+
+export type AdminOrdersStatsSummary = {
+  totalOrders: number;
+  ordersToday: number;
+  ordersThisMonth: number;
+  totalRevenue: number;
+  revenueThisMonth: number;
+  pendingOrders: number;
+  processingOrders: number;
+  recentOrders: AdminOrderRecentItem[];
+};
+
+export type AdminOrdersStatsSummaryResponse = {
+  success?: boolean;
+  message?: string;
+  data?: AdminOrdersStatsSummary;
+};
+
 export async function getAdminOrders(): Promise<{
   data: AdminOrderListItem[];
   error: string | null;
@@ -121,5 +146,36 @@ export async function patchAdminOrderStatus(
     return { error: null };
   } catch {
     return { error: "Cannot reach server. Check your connection." };
+  }
+}
+
+export async function fetchAdminOrderStats(): Promise<{
+  data: AdminOrdersStatsSummary | null;
+  error: string | null;
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/api/admin/orders/stats/summary`, {
+      method: "GET",
+      headers: {
+        ...adminAuthHeaders(),
+      },
+    });
+
+    const json = await safeJson<AdminOrdersStatsSummaryResponse>(res);
+
+    if (!res.ok || json?.success === false) {
+      return {
+        data: null,
+        error:
+          json?.message ?? `Fetch admin order stats failed (${res.status}).`,
+      };
+    }
+
+    return { data: json?.data ?? null, error: null };
+  } catch {
+    return {
+      data: null,
+      error: "Cannot reach server. Check your connection.",
+    };
   }
 }
