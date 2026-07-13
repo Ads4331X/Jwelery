@@ -73,7 +73,7 @@ export default function SignupOtpVerification({
         setError(result.message || "Could not resend code.");
         return;
       }
-      // UI cooldown (backend also enforces cooldown)
+      // UI cooldown
       setCooldownSecondsLeft(30);
     } finally {
       setResending(false);

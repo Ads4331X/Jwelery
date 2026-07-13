@@ -98,20 +98,20 @@ export default function CustomerSignup() {
       return;
     }
 
-    if (!result.user) {
-      setSignupErr("Signup succeeded but verification state is missing.");
-      return;
-    }
-
     const signupData = (
       result as unknown as {
         data?: { userId?: string; email?: string };
       }
     ).data;
 
+    if (!signupData?.userId || !signupData?.email) {
+      setSignupErr("Signup succeeded but verification state is missing.");
+      return;
+    }
+
     setPendingVerification({
-      userId: signupData?.userId ?? "",
-      email: signupData?.email ?? "",
+      userId: signupData.userId,
+      email: signupData.email,
     });
   };
 
