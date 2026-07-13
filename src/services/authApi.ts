@@ -1,10 +1,9 @@
 // src/services/authApi.ts
 import type { CustomerUser } from "../features/auth/context/context";
 import { API_BASE_URL } from "../config/appConfig";
+import { getAuthTokenCookie } from "../features/auth/context/authCookies";
 
 const API_BASE = API_BASE_URL;
-
-import { getAuthTokenCookie } from "../features/auth/context/authCookies";
 
 export const TOKEN_KEY = "aj_cust_token";
 
@@ -53,6 +52,18 @@ interface SignupResponse extends ApiEnvelope {
   data?: CustomerUser;
   token?: string;
   errors?: SignupFieldError[];
+}
+
+interface SignupOtpVerifyResponse extends ApiEnvelope {
+  data?: {
+    token?: string;
+    user?: CustomerUser;
+  };
+}
+
+interface ResendOtpResponse extends ApiEnvelope {
+  success?: boolean;
+  message?: string;
 }
 
 interface ForgotPasswordVerifyResponse extends ApiEnvelope {
@@ -126,7 +137,9 @@ export async function customerSignup(
       body: JSON.stringify(payload),
     });
 
-    const json = await safeJson<SignupResponse>(res);
+    const json = await safeJson<
+      SignupResponse & { requiresVerification?: boolean }
+    >(res);
 
     if (!res.ok || !json?.success) {
       // Map express-validator field errors into a flat object
@@ -142,7 +155,18 @@ export async function customerSignup(
       };
     }
 
-    return { user: json.data ?? null, token: json.token ?? null, error: null };
+    // Backend returns requiresVerification and NO token during signup.
+    return {
+      user: null,
+      token: null,
+      error: null,
+      // expose raw signup data for the UI flow
+      data: json.data as unknown as { userId: string; email: string },
+      requiresVerification: true,
+    } as unknown as SignupResult & {
+      data?: { userId: string; email: string };
+      requiresVerification?: boolean;
+    };
   } catch (err) {
     console.error("Customer signup network error:", err);
     return {
@@ -150,6 +174,79 @@ export async function customerSignup(
       token: null,
       error: "Cannot reach server. Check your connection.",
     };
+  }
+}
+
+/** Signup verification: POST /api/customer/signup/verify */
+export async function verifySignupOtp(
+  userId: string,
+  code: string,
+): Promise<{
+  success: boolean;
+  message?: string;
+  data?: { token: string; user: CustomerUser | undefined };
+}> {
+  try {
+    const res = await fetch(`${API_BASE}/api/customer/signup/verify`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, code }),
+    });
+
+    const json = await safeJson<SignupOtpVerifyResponse>(res);
+
+    if (!res.ok || json?.success === false) {
+      return {
+        success: false,
+        message: json?.message ?? `Verification failed (${res.status}).`,
+      };
+    }
+
+    const token = json?.data?.token;
+    if (!token) {
+      return {
+        success: false,
+        message: json?.message ?? "Verification succeeded but token missing.",
+      };
+    }
+
+    return {
+      success: true,
+      data: {
+        token,
+        user: json?.data?.user,
+      },
+    };
+  } catch (err) {
+    console.error("verifySignupOtp network error:", err);
+    return { success: false, message: "Cannot reach server." };
+  }
+}
+
+/** Resend signup OTP: POST /api/customer/signup/resend-otp */
+export async function resendSignupOtp(
+  userId: string,
+): Promise<{ success: boolean; message?: string }> {
+  try {
+    const res = await fetch(`${API_BASE}/api/customer/signup/resend-otp`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId }),
+    });
+
+    const json = await safeJson<ResendOtpResponse>(res);
+
+    if (!res.ok || json?.success === false) {
+      return {
+        success: false,
+        message: json?.message ?? `Resend failed (${res.status}).`,
+      };
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error("resendSignupOtp network error:", err);
+    return { success: false, message: "Cannot reach server." };
   }
 }
 

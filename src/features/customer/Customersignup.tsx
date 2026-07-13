@@ -11,9 +11,12 @@ import {
   TextField,
   Typography,
 } from "@mui/material";
+
 import { customerSignup } from "../../services/authApi";
+
 import { AuthContext } from "../auth/context/context";
 import { setAuthCookies } from "../auth/context/authCookies";
+import SignupOtpVerification from "./SignupOtpVerification";
 
 interface FormState {
   firstName: string;
@@ -29,7 +32,6 @@ export default function CustomerSignup() {
   if (!auth) throw new Error("Must be inside AuthProvider");
 
   const shouldRedirect = !auth.isLoading && !!auth.user;
-
   if (shouldRedirect) {
     navigate("/", { replace: true });
   }
@@ -45,6 +47,11 @@ export default function CustomerSignup() {
   const [errors, setErrors] = useState<Partial<FormState>>({});
   const [loading, setLoading] = useState(false);
   const [signupErr, setSignupErr] = useState<string | null>(null);
+
+  const [pendingVerification, setPendingVerification] = useState<{
+    userId: string;
+    email: string;
+  } | null>(null);
 
   const set =
     (k: keyof FormState) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -79,7 +86,6 @@ export default function CustomerSignup() {
     setLoading(false);
 
     if (result.error) {
-      // Surface any backend field errors into the form
       if (result.fieldErrors) {
         setErrors({
           email: result.fieldErrors.email,
@@ -87,15 +93,26 @@ export default function CustomerSignup() {
           firstName: result.fieldErrors.firstName,
         });
       }
+
       setSignupErr(result.error);
       return;
     }
 
-    // Auto-login: persist auth via shared cookies (not localStorage)
-    auth.setUser(result.user!);
-    setAuthCookies(result.token!, JSON.stringify(result.user!));
+    if (!result.user) {
+      setSignupErr("Signup succeeded but verification state is missing.");
+      return;
+    }
 
-    navigate("/", { replace: true });
+    const signupData = (
+      result as unknown as {
+        data?: { userId?: string; email?: string };
+      }
+    ).data;
+
+    setPendingVerification({
+      userId: signupData?.userId ?? "",
+      email: signupData?.email ?? "",
+    });
   };
 
   return (
@@ -119,7 +136,6 @@ export default function CustomerSignup() {
         }}
       >
         <CardContent sx={{ p: 5 }}>
-          {/* Header */}
           <Box sx={{ textAlign: "center", mb: 4 }}>
             <Typography
               variant="overline"
@@ -140,13 +156,15 @@ export default function CustomerSignup() {
                 mt: 0.5,
               }}
             >
-              Create Account
+              {pendingVerification ? "Verify Email" : "Create Account"}
             </Typography>
             <Typography
               variant="body2"
               sx={{ color: "#78716c", mt: 1, fontSize: "0.85rem" }}
             >
-              Join us and explore our collections
+              {pendingVerification
+                ? "Enter the code we sent to your email"
+                : "Join us and explore our collections"}
             </Typography>
           </Box>
 
@@ -156,100 +174,120 @@ export default function CustomerSignup() {
             </Alert>
           )}
 
-          <Box
-            component="form"
-            onSubmit={handleSubmit}
-            noValidate
-            sx={{ display: "flex", flexDirection: "column", gap: 2 }}
-          >
+          {pendingVerification ? (
+            <SignupOtpVerification
+              userId={pendingVerification.userId}
+              email={pendingVerification.email}
+              onVerifiedNavigate={(token) => {
+                // Persist auth via shared cookies
+                if (auth.user) {
+                  auth.setUser?.(auth.user);
+                }
+                setAuthCookies(token, JSON.stringify(auth.user ?? {}));
+
+                navigate("/", { replace: true });
+              }}
+            />
+          ) : (
             <Box
-              sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1.5 }}
+              component="form"
+              onSubmit={handleSubmit}
+              noValidate
+              sx={{ display: "flex", flexDirection: "column", gap: 2 }}
             >
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: 1.5,
+                }}
+              >
+                <TextField
+                  label="First Name"
+                  size="small"
+                  required
+                  value={form.firstName}
+                  onChange={set("firstName")}
+                  error={!!errors.firstName}
+                  helperText={errors.firstName}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+                />
+                <TextField
+                  label="Last Name"
+                  size="small"
+                  value={form.lastName}
+                  onChange={set("lastName")}
+                  sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+                />
+              </Box>
+
               <TextField
-                label="First Name"
+                fullWidth
+                label="Email"
+                type="email"
                 size="small"
                 required
-                value={form.firstName}
-                onChange={set("firstName")}
-                error={!!errors.firstName}
-                helperText={errors.firstName}
+                value={form.email}
+                onChange={set("email")}
+                error={!!errors.email}
+                helperText={errors.email}
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
               />
               <TextField
-                label="Last Name"
+                fullWidth
+                label="Password"
+                type="password"
                 size="small"
-                value={form.lastName}
-                onChange={set("lastName")}
+                required
+                value={form.password}
+                onChange={set("password")}
+                error={!!errors.password}
+                helperText={errors.password}
                 sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
               />
+              <TextField
+                fullWidth
+                label="Confirm Password"
+                type="password"
+                size="small"
+                required
+                value={form.confirm}
+                onChange={set("confirm")}
+                error={!!errors.confirm}
+                helperText={errors.confirm}
+                sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
+              />
+
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disableElevation
+                disabled={loading}
+                sx={{
+                  bgcolor: "#78350f",
+                  color: "#fef9ee",
+                  borderRadius: "10px",
+                  textTransform: "none",
+                  fontWeight: 600,
+                  py: 1.3,
+                  mt: 0.5,
+                  "&:hover": { bgcolor: "#92400e" },
+                }}
+              >
+                {loading ? (
+                  <CircularProgress size={20} sx={{ color: "white" }} />
+                ) : (
+                  "Create Account"
+                )}
+              </Button>
             </Box>
-
-            <TextField
-              fullWidth
-              label="Email"
-              type="email"
-              size="small"
-              required
-              value={form.email}
-              onChange={set("email")}
-              error={!!errors.email}
-              helperText={errors.email}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
-            />
-            <TextField
-              fullWidth
-              label="Password"
-              type="password"
-              size="small"
-              required
-              value={form.password}
-              onChange={set("password")}
-              error={!!errors.password}
-              helperText={errors.password}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
-            />
-            <TextField
-              fullWidth
-              label="Confirm Password"
-              type="password"
-              size="small"
-              required
-              value={form.confirm}
-              onChange={set("confirm")}
-              error={!!errors.confirm}
-              helperText={errors.confirm}
-              sx={{ "& .MuiOutlinedInput-root": { borderRadius: "10px" } }}
-            />
-
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disableElevation
-              disabled={loading}
-              sx={{
-                bgcolor: "#78350f",
-                color: "#fef9ee",
-                borderRadius: "10px",
-                textTransform: "none",
-                fontWeight: 600,
-                py: 1.3,
-                mt: 0.5,
-                "&:hover": { bgcolor: "#92400e" },
-              }}
-            >
-              {loading ? (
-                <CircularProgress size={20} sx={{ color: "white" }} />
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-          </Box>
+          )}
 
           <Typography
             sx={{
               textAlign: "center",
-              mt: 3,
+              mt: pendingVerification ? 2 : 3,
               fontSize: "0.83rem",
               color: "#78716c",
             }}
