@@ -32,6 +32,8 @@ export interface Product {
   isActive: boolean;
   images: ProductImage[];
   computedPrice: number | null;
+  avgRating?: number;
+  reviewCount?: number;
   createdAt: string;
   updatedAt: string;
 }

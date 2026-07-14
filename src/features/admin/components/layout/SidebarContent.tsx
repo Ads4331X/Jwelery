@@ -46,6 +46,11 @@ const navItems: Array<{ name: string; to: string; icon: ReactNode }> = [
     icon: <span className="text-[12px] font-bold">#</span>,
   },
   {
+    name: "Reviews",
+    to: "/admin/reviews",
+    icon: <span className="text-[12px] font-bold">★</span>,
+  },
+  {
     name: "Settings",
     to: "/admin/settings",
     icon: <SettingsIcon fontSize="small" />,

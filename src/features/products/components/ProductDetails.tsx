@@ -27,6 +27,7 @@ import type { Product } from "../types";
 import { METAL_LABELS } from "../types";
 import { AuthContext } from "../../auth/context/context";
 import { useCart } from "../../../hooks/useCart";
+import ProductReviews from "./ProductReviews";
 
 /* ─── payment button helper ─────────────────────────── */
 interface PayBtnProps {
@@ -306,6 +307,33 @@ export default function ProductDetail() {
               {product.name}
             </Typography>
 
+            {/* Rating summary */}
+            {product.reviewCount != null && product.reviewCount > 0 && (
+              <Box className="flex items-center gap-1.5 mb-4">
+                <Box className="flex text-amber-500">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <svg
+                      key={i}
+                      className={`w-4 h-4 ${
+                        i < Math.round(product.avgRating || 0)
+                          ? "fill-current"
+                          : "fill-stone-200"
+                      }`}
+                      viewBox="0 0 24 24"
+                    >
+                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                  ))}
+                </Box>
+                <Typography className="!text-sm !text-stone-600 !font-medium">
+                  {product.avgRating}
+                </Typography>
+                <Typography className="!text-sm !text-stone-400">
+                  ({product.reviewCount} reviews)
+                </Typography>
+              </Box>
+            )}
+
             {/* Gold accent */}
             <Box
               className="h-[2px] w-12 rounded-sm mb-5"
@@ -489,6 +517,8 @@ export default function ProductDetail() {
             </Box>
           </Box>
         </Box>
+
+        <ProductReviews productId={product.id} />
       </Box>
 
       <Footer />

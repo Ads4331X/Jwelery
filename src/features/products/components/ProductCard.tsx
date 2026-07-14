@@ -67,6 +67,20 @@ export default function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </Typography>
 
+        {product.reviewCount != null && product.reviewCount > 0 && (
+          <Box className="flex items-center gap-1 -mt-1 mb-1">
+            <svg
+              className="w-3.5 h-3.5 text-amber-500 fill-current"
+              viewBox="0 0 24 24"
+            >
+              <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+            </svg>
+            <Typography className="!text-[0.7rem] !text-stone-600 !font-medium">
+              {product.avgRating} <span className="text-stone-400 font-normal">({product.reviewCount})</span>
+            </Typography>
+          </Box>
+        )}
+
         <Box className="flex items-center gap-1.5 flex-wrap mt-auto">
           <Chip
             label={METAL_LABELS[product.metalType]}
