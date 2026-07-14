@@ -366,7 +366,8 @@ export default function AdminOrders() {
                     Items
                   </Typography>
                   <Box className="flex flex-col gap-2">
-                    {selectedOrder.items.map((it, idx) => (
+                    {(selectedOrder.items ?? []).map((it, idx) => (
+
                       <Box
                         key={`${it.productId ?? it.name}-${idx}`}
                         className="flex items-center justify-between gap-3"

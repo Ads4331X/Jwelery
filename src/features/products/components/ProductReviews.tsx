@@ -1,16 +1,15 @@
-import { useState, useEffect, useContext } from "react";
+import { useCallback, useState, useEffect, useContext } from "react";
 import {
   Box,
   Typography,
   Pagination,
   CircularProgress,
-  Button,
   TextField,
   Rating,
   Alert,
   IconButton,
 } from "@mui/material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
 import EditOutlinedIcon from "@mui/icons-material/EditOutlined";
 import {
   getProductReviews,
@@ -23,12 +22,14 @@ import { AuthContext } from "../../auth/context/context";
 import { NavLink } from "react-router-dom";
 
 export default function ProductReviews({ productId }: { productId: string }) {
-  const { user } = useContext(AuthContext);
+  const auth = useContext(AuthContext);
+  const user = auth?.user ?? null;
   const [reviews, setReviews] = useState<Review[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const [page, setPage] = useState(1);
+
   const [totalPages, setTotalPages] = useState(1);
   const [canReview, setCanReview] = useState(false);
 
@@ -41,22 +42,29 @@ export default function ProductReviews({ productId }: { productId: string }) {
   // Edit state
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const fetchReviews = async (p = 1) => {
-    setLoading(true);
-    const res = await getProductReviews(productId, p, 5);
-    if (res.error) {
-      setError(res.error);
-    } else if (res.data) {
-      setReviews(res.data.reviews);
-      setTotalPages(res.data.totalPages);
-      setCanReview(res.data.canReview ?? false);
-    }
-    setLoading(false);
-  };
+  const fetchReviews = useCallback(
+    async (p = 1) => {
+      setLoading(true);
+
+      const res = await getProductReviews(productId, p, 5);
+      if (res.error) {
+        setError(res.error);
+      } else if (res.data) {
+        setError(null);
+        setReviews(res.data.reviews || []);
+        setTotalPages(res.data.totalPages || 1);
+        setCanReview(res.data.canReview ?? false);
+      }
+      setLoading(false);
+    },
+    [productId],
+  );
 
   useEffect(() => {
-    fetchReviews(page);
-  }, [productId, page]);
+    void (async () => {
+      await fetchReviews(page);
+    })();
+  }, [page, fetchReviews]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -124,6 +132,11 @@ export default function ProductReviews({ productId }: { productId: string }) {
       </Typography>
 
       {/* Review Form */}
+      {error && (
+        <Alert severity="error" className="!mb-4 !rounded-xl">
+          {error}
+        </Alert>
+      )}
       {user ? (
         canReview || editingId ? (
           <Box className="bg-white p-6 rounded-2xl border border-amber-900/10 mb-10 shadow-sm">
@@ -170,7 +183,9 @@ export default function ProductReviews({ productId }: { productId: string }) {
                   type="submit"
                   disabled={submitting || !rating}
                   className="px-6 py-2.5 rounded-xl text-sm font-semibold text-white transition-all duration-200 disabled:opacity-50"
-                  style={{ background: "linear-gradient(135deg, #92400e, #b45309)" }}
+                  style={{
+                    background: "linear-gradient(135deg, #92400e, #b45309)",
+                  }}
                 >
                   {submitting ? "Submitting..." : "Submit Review"}
                 </button>
@@ -196,7 +211,10 @@ export default function ProductReviews({ productId }: { productId: string }) {
       ) : (
         <Box className="bg-stone-50 p-6 rounded-2xl border border-stone-200 mb-10">
           <Typography className="!text-stone-500 !text-sm !text-center">
-            <NavLink to="/login" className="text-amber-700 underline font-semibold">
+            <NavLink
+              to="/login"
+              className="text-amber-700 underline font-semibold"
+            >
               Sign in
             </NavLink>{" "}
             and purchase this item to leave a review.
@@ -238,10 +256,17 @@ export default function ProductReviews({ productId }: { productId: string }) {
                 {user && user.id === review.userId && (
                   <Box className="flex gap-1">
                     <IconButton size="small" onClick={() => startEdit(review)}>
-                      <EditOutlinedIcon sx={{ fontSize: 16, color: "#78716c" }} />
+                      <EditOutlinedIcon
+                        sx={{ fontSize: 16, color: "#78716c" }}
+                      />
                     </IconButton>
-                    <IconButton size="small" onClick={() => handleDelete(review.id)}>
-                      <DeleteOutlineIcon sx={{ fontSize: 16, color: "#ef4444" }} />
+                    <IconButton
+                      size="small"
+                      onClick={() => handleDelete(review.id)}
+                    >
+                      <DeleteOutlinedIcon
+                        sx={{ fontSize: 16, color: "#ef4444" }}
+                      />
                     </IconButton>
                   </Box>
                 )}

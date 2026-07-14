@@ -16,8 +16,12 @@ import {
   Rating,
   CircularProgress,
 } from "@mui/material";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
-import { getAdminReviews, deleteAdminReview, type Review } from "../../../../services/reviewsApi";
+import DeleteOutlinedIcon from "@mui/icons-material/DeleteOutlined";
+import {
+  getAdminReviews,
+  deleteAdminReview,
+  type Review,
+} from "../../../../services/reviewsApi";
 import ConfirmDialog from "../../../../components/shared/ConfirmDialog";
 
 export default function AdminReviews() {
@@ -29,7 +33,6 @@ export default function AdminReviews() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState(false);
 
   const fetchReviews = async (p = 1) => {
     setLoading(true);
@@ -37,21 +40,22 @@ export default function AdminReviews() {
     if (res.error) {
       setError(res.error);
     } else if (res.data) {
-      setReviews(res.data.reviews);
-      setTotalPages(res.data.totalPages);
+      setReviews(res.data.reviews || []);
+      setTotalPages(res.data.totalPages || 1);
     }
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchReviews(page);
+    void (async () => {
+      await fetchReviews(page);
+    })();
   }, [page]);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
-    setDeleting(true);
     const res = await deleteAdminReview(deleteTarget);
-    setDeleting(false);
+
     if (res.error) {
       alert(res.error);
     } else {
@@ -81,19 +85,36 @@ export default function AdminReviews() {
             <Alert severity="error">{error}</Alert>
           ) : reviews.length === 0 ? (
             <Box className="py-10 text-center">
-              <Typography className="text-stone-400">No reviews found.</Typography>
+              <Typography className="text-stone-400">
+                No reviews found.
+              </Typography>
             </Box>
           ) : (
             <TableContainer>
               <Table size="medium">
                 <TableHead>
                   <TableRow>
-                    <TableCell className="font-semibold text-stone-600">Reviewer</TableCell>
-                    <TableCell className="font-semibold text-stone-600">Product</TableCell>
-                    <TableCell className="font-semibold text-stone-600">Rating</TableCell>
-                    <TableCell className="font-semibold text-stone-600">Comment</TableCell>
-                    <TableCell className="font-semibold text-stone-600">Date</TableCell>
-                    <TableCell align="right" className="font-semibold text-stone-600">Actions</TableCell>
+                    <TableCell className="font-semibold text-stone-600">
+                      Reviewer
+                    </TableCell>
+                    <TableCell className="font-semibold text-stone-600">
+                      Product
+                    </TableCell>
+                    <TableCell className="font-semibold text-stone-600">
+                      Rating
+                    </TableCell>
+                    <TableCell className="font-semibold text-stone-600">
+                      Comment
+                    </TableCell>
+                    <TableCell className="font-semibold text-stone-600">
+                      Date
+                    </TableCell>
+                    <TableCell
+                      align="right"
+                      className="font-semibold text-stone-600"
+                    >
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -111,14 +132,23 @@ export default function AdminReviews() {
                         {r.product?.name}
                       </TableCell>
                       <TableCell>
-                        <Rating value={r.rating} readOnly size="small" sx={{ color: "#f59e0b" }} />
+                        <Rating
+                          value={r.rating}
+                          readOnly
+                          size="small"
+                          sx={{ color: "#f59e0b" }}
+                        />
                       </TableCell>
                       <TableCell>
                         <Typography
                           className="text-sm text-stone-600 line-clamp-2 max-w-xs"
                           title={r.comment || ""}
                         >
-                          {r.comment || <span className="text-stone-300 italic">No comment</span>}
+                          {r.comment || (
+                            <span className="text-stone-300 italic">
+                              No comment
+                            </span>
+                          )}
                         </Typography>
                       </TableCell>
                       <TableCell className="text-sm text-stone-500">
@@ -130,7 +160,9 @@ export default function AdminReviews() {
                           onClick={() => setDeleteTarget(r.id)}
                           title="Delete Review"
                         >
-                          <DeleteOutlineIcon sx={{ color: "#ef4444", fontSize: 20 }} />
+                          <DeleteOutlinedIcon
+                            sx={{ color: "#ef4444", fontSize: 20 }}
+                          />
                         </IconButton>
                       </TableCell>
                     </TableRow>
@@ -165,13 +197,12 @@ export default function AdminReviews() {
       <ConfirmDialog
         open={deleteTarget !== null}
         title="Delete Review"
-        message="Are you sure you want to permanently delete this review? This action cannot be undone."
+        description="Are you sure you want to permanently delete this review? This action cannot be undone."
         confirmText="Delete"
         cancelText="Cancel"
         onConfirm={handleDelete}
-        onCancel={() => setDeleteTarget(null)}
-        isDestructive
-        loading={deleting}
+        onClose={() => setDeleteTarget(null)}
+        danger
       />
     </Box>
   );

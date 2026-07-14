@@ -1,6 +1,6 @@
 import { API_BASE_URL } from "../config/appConfig";
 import { authHeaders, getToken } from "./authApi";
-import { getAdminToken, adminAuthHeaders } from "./adminAuthApi";
+import { getAdminToken, adminAuthHeaders } from "./adminApi";
 
 const API_BASE = API_BASE_URL;
 
