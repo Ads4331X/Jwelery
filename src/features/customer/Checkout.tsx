@@ -23,6 +23,7 @@ import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import { createOrder, type OrderItemCreate } from "../../services/ordersApi";
 import { getAddresses, type SavedAddress } from "../../services/addressesApi";
+import { EsewaPaymentForm } from "./components/EsewaPaymentForm";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -107,7 +108,7 @@ export default function Checkout() {
     deliveryNote: "",
   });
 
-  // Only COD is supported in this pass.
+  // COD and eSewa are available.
   const [payment, setPayment] = useState<PaymentMethod>("cod");
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -537,33 +538,37 @@ export default function Checkout() {
                   sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                 >
                   {PAYMENT_OPTIONS.map((opt) => {
-                    const disabled = opt.value !== "cod";
-
                     return (
                       <Box
                         key={opt.value}
                         onClick={() => {
-                          if (!disabled) setPayment(opt.value);
+                          if (opt.value !== "esewa" && opt.value !== "cod")
+                            return;
+                          setPayment(opt.value);
                         }}
                         className={[
                           "flex items-center gap-3 px-4 py-3.5 rounded-[14px] border transition-all duration-200",
-                          disabled
+                          opt.value !== "esewa" && opt.value !== "cod"
                             ? "cursor-not-allowed opacity-60 border-amber-900/10 bg-white"
                             : "cursor-pointer",
                           payment === opt.value
                             ? "border-amber-600 bg-amber-50/60"
-                            : disabled
+                            : opt.value !== "esewa" && opt.value !== "cod"
                               ? ""
                               : "border-amber-900/10 hover:border-amber-900/25",
                         ].join(" ")}
                       >
                         <FormControlLabel
                           value={opt.value}
-                          disabled={disabled}
+                          disabled={
+                            opt.value !== "esewa" && opt.value !== "cod"
+                          }
                           control={
                             <Radio
                               size="small"
-                              disabled={disabled}
+                              disabled={
+                                opt.value !== "esewa" && opt.value !== "cod"
+                              }
                               sx={{
                                 color: "#b45309",
                                 "&.Mui-checked": { color: "#b45309" },
@@ -593,7 +598,7 @@ export default function Checkout() {
                             >
                               {opt.label}
                             </Typography>
-                            {disabled ? (
+                            {opt.value === "khalti" ? (
                               <Box
                                 sx={{
                                   fontSize: "0.62rem",
@@ -635,17 +640,21 @@ export default function Checkout() {
 
             {/* Place order — shown below on mobile */}
             <Box sx={{ display: { xs: "block", lg: "none" } }}>
-              <button
-                type="button"
-                onClick={handlePlaceClick}
-                disabled={!canPlace || placing}
-                className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                style={{
-                  background: "linear-gradient(135deg, #92400e, #b45309)",
-                }}
-              >
-                {placing ? "Placing order..." : "Place Order"}
-              </button>
+              {payment === "esewa" ? (
+                <EsewaPaymentForm amount={subtotal} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePlaceClick}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #92400e, #b45309)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Place Order"}
+                </button>
+              )}
             </Box>
           </Box>
 
@@ -736,17 +745,21 @@ export default function Checkout() {
 
             {/* Place order — desktop */}
             <Box sx={{ display: { xs: "none", lg: "block" } }}>
-              <button
-                type="button"
-                onClick={handlePlaceClick}
-                disabled={!canPlace || placing}
-                className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-                style={{
-                  background: "linear-gradient(135deg, #92400e, #b45309)",
-                }}
-              >
-                {placing ? "Placing order..." : "Place Order"}
-              </button>
+              {payment === "esewa" ? (
+                <EsewaPaymentForm amount={subtotal} />
+              ) : (
+                <button
+                  type="button"
+                  onClick={handlePlaceClick}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #92400e, #b45309)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Place Order"}
+                </button>
+              )}
             </Box>
 
             {/* Trust */}
