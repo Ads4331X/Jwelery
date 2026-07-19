@@ -30,7 +30,8 @@ const QUICK_CATEGORIES = [
 export default function Products() {
   usePageMeta({
     title: "Shop Gold & Silver Jewellery | Anand Jewellers",
-    description: "Browse handcrafted gold and silver jewellery from Anand Jewellers, Nepal. View collections, prices, and product details online.",
+    description:
+      "Browse handcrafted gold and silver jewellery from Anand Jewellers, Nepal. View collections, prices, and product details online.",
   });
 
   const theme = useTheme();
@@ -44,9 +45,19 @@ export default function Products() {
       .split(",")
       .map((c) => c.trim())
       .filter((c) => c.length > 0 && c.toLowerCase() !== "all");
+
+    // Price filters are currently client-only; accept URL params if present.
+    const parseNullableNumber = (v: string | null): number | null => {
+      if (!v) return null;
+      const n = Number(v);
+      return Number.isFinite(n) ? n : null;
+    };
+
     return {
       metal: metal === "" ? "All" : metal,
       categories,
+      priceMin: parseNullableNumber(searchParams.get("priceMin")),
+      priceMax: parseNullableNumber(searchParams.get("priceMax")),
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -90,6 +101,8 @@ export default function Products() {
       if (next.metal && next.metal !== "All") params.set("metal", next.metal);
       if (next.categories.length > 0)
         params.set("categories", next.categories.join(","));
+      if (next.priceMin != null) params.set("priceMin", String(next.priceMin));
+      if (next.priceMax != null) params.set("priceMax", String(next.priceMax));
       setSearchParams(params, { replace: true });
     },
     [setSearchParams, searchTerm],
@@ -108,7 +121,12 @@ export default function Products() {
   );
 
   const clearFilters = useCallback(() => {
-    const cleared: Filters = { metal: "All", categories: [] };
+    const cleared: Filters = {
+      metal: "All",
+      categories: [],
+      priceMin: null,
+      priceMax: null,
+    };
     setFilters(cleared);
     syncToUrl(cleared);
     setPage(1);
@@ -135,7 +153,10 @@ export default function Products() {
   };
 
   const activeFilterCount =
-    (filters.metal !== "All" ? 1 : 0) + filters.categories.length;
+    (filters.metal !== "All" ? 1 : 0) +
+    filters.categories.length +
+    (filters.priceMin != null ? 1 : 0) +
+    (filters.priceMax != null ? 1 : 0);
 
   const filteredProducts = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -162,7 +183,27 @@ export default function Products() {
           categoryName.toLowerCase().includes(cat.toLowerCase()),
         );
 
-      return p.isActive && matchesSearch && matchesMetal && matchesCategory;
+      const price = p.computedPrice;
+
+      const matchesPriceMin =
+        filters.priceMin == null ||
+        (price != null && price >= filters.priceMin);
+
+      const matchesPriceMax =
+        filters.priceMax == null ||
+        (price != null && price <= filters.priceMax);
+
+      // Explicitly handle computedPrice === null:
+      // if a min/max filter is active, we exclude null-priced items (Option A).
+      const matchesPrice = matchesPriceMin && matchesPriceMax;
+
+      return (
+        p.isActive &&
+        matchesSearch &&
+        matchesMetal &&
+        matchesCategory &&
+        matchesPrice
+      );
     });
   }, [products, searchTerm, filters]);
 
@@ -302,6 +343,18 @@ export default function Products() {
                     }
                   />
                 ))}
+                {filters.priceMin != null && (
+                  <ActiveFilterPill
+                    label={`Min Rs ${filters.priceMin.toLocaleString("en-NP")}`}
+                    onRemove={() => handleFilterChange("priceMin", null)}
+                  />
+                )}
+                {filters.priceMax != null && (
+                  <ActiveFilterPill
+                    label={`Max Rs ${filters.priceMax.toLocaleString("en-NP")}`}
+                    onRemove={() => handleFilterChange("priceMax", null)}
+                  />
+                )}
                 <button
                   type="button"
                   onClick={clearFilters}
