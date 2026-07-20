@@ -83,18 +83,24 @@ function authMaybeHeaders(): Record<string, string> {
 export async function createOrder(
   items: OrderItemCreate[],
   address: ShippingAddress,
+  addressId?: string,
 ): Promise<{
   data: { orderNumber?: string; id?: string } | null;
   error: string | null;
 }> {
   try {
+    const body: Record<string, unknown> = { items, address };
+    if (addressId) {
+      body.addressId = addressId;
+    }
+
     const res = await fetch(`${API_BASE}/api/customer/orders`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         ...authMaybeHeaders(),
       },
-      body: JSON.stringify({ items, address }),
+      body: JSON.stringify(body),
     });
 
     const json = await safeJson<CreateOrderResponse>(res);

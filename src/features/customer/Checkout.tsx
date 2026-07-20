@@ -216,13 +216,24 @@ export default function Checkout() {
         qty: it.qty,
       }));
 
-      const res = await createOrder(payloadItems, {
-        fullName: selectedShippingAddress.fullName,
-        phone: selectedShippingAddress.phone,
-        streetAddress: selectedShippingAddress.streetAddress,
-        city: selectedShippingAddress.city,
-        deliveryNote: selectedShippingAddress.deliveryNote,
-      });
+      let res;
+      if (!useNewAddress && selectedSavedId) {
+        // Reuse saved address — send addressId instead of raw address fields
+        res = await createOrder(
+          payloadItems,
+          selectedShippingAddress,
+          selectedSavedId,
+        );
+      } else {
+        // Manual address — keep existing behavior
+        res = await createOrder(payloadItems, {
+          fullName: selectedShippingAddress.fullName,
+          phone: selectedShippingAddress.phone,
+          streetAddress: selectedShippingAddress.streetAddress,
+          city: selectedShippingAddress.city,
+          deliveryNote: selectedShippingAddress.deliveryNote,
+        });
+      }
 
       if (res.error) {
         setPlaceErr(res.error);
