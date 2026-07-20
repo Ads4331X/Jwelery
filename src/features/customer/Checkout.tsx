@@ -1,5 +1,6 @@
 import {
   Box,
+  Button,
   Divider,
   FormControlLabel,
   Radio,
@@ -22,7 +23,12 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import { createOrder, type OrderItemCreate } from "../../services/ordersApi";
-import { getAddresses, type SavedAddress } from "../../services/addressesApi";
+import {
+  getAddresses,
+  updateAddress,
+  deleteAddress,
+  type SavedAddress,
+} from "../../services/addressesApi";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -93,11 +99,25 @@ export default function Checkout() {
   const { items, totalPrice, clearCart, totalItems } = useCart();
 
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
-  const [savedLoading, setSavedLoading] = useState(false);
-  void savedLoading;
 
   const [useNewAddress, setUseNewAddress] = useState(true);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
+
+  // Inline edit state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({
+    fullName: "",
+    phone: "",
+    street: "",
+    city: "",
+  });
+  const [editSaving, setEditSaving] = useState(false);
+  const [editErr, setEditErr] = useState<string | null>(null);
+
+  // Delete state
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [deleteDeleting, setDeleteDeleting] = useState(false);
 
   const [manualAddress, setManualAddress] = useState<ShippingAddress>({
     fullName: "",
@@ -152,6 +172,26 @@ export default function Checkout() {
     [items],
   );
 
+  // Display-only dedup: group by normalized content, show only one card per group
+  const dedupedAddresses = useMemo(() => {
+    const seen = new Map<string, SavedAddress>();
+    for (const addr of savedAddresses) {
+      const norm = (s: string) =>
+        (s ?? "").trim().toLowerCase().replace(/\s+/g, " ");
+      const key = [
+        norm(addr.fullName),
+        norm(addr.phone),
+        norm(addr.street),
+        norm(addr.city),
+      ].join("|");
+      // Prefer keeping the one with isDefault, else keep the first encountered
+      if (!seen.has(key) || addr.isDefault) {
+        seen.set(key, addr);
+      }
+    }
+    return Array.from(seen.values());
+  }, [savedAddresses]);
+
   const validate = (): string | null => {
     if (items.length === 0) return "Your cart is empty.";
     if (!selectedShippingAddress.fullName.trim())
@@ -164,11 +204,108 @@ export default function Checkout() {
     return null;
   };
 
+  // ── Inline edit handlers ──────────────────────────────────────────────
+
+  const startEdit = (a: SavedAddress) => {
+    setEditErr(null);
+    setEditForm({
+      fullName: a.fullName,
+      phone: a.phone,
+      street: a.street,
+      city: a.city,
+    });
+    setEditingId(a.id);
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+    setEditForm({ fullName: "", phone: "", street: "", city: "" });
+    setEditErr(null);
+  };
+
+  const handleEditSave = async () => {
+    if (!editingId) return;
+    setEditErr(null);
+    if (
+      !editForm.fullName.trim() ||
+      !editForm.phone.trim() ||
+      !editForm.street.trim() ||
+      !editForm.city.trim()
+    ) {
+      setEditErr("All fields are required.");
+      return;
+    }
+    setEditSaving(true);
+    try {
+      const res = await updateAddress(editingId, {
+        fullName: editForm.fullName.trim(),
+        phone: editForm.phone.trim(),
+        street: editForm.street.trim(),
+        city: editForm.city.trim(),
+      });
+      if (res.error) {
+        setEditErr(res.error);
+        return;
+      }
+      // Refresh the addresses list
+      const refreshed = await getAddresses();
+      if (refreshed.data) setSavedAddresses(refreshed.data);
+      cancelEdit();
+    } catch {
+      setEditErr("Could not save. Try again.");
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
+  // ── Delete handlers ──────────────────────────────────────────────────
+
+  const confirmDelete = (id: string) => {
+    setDeleteTargetId(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleteTargetId) return;
+    setDeleteDeleting(true);
+    try {
+      const res = await deleteAddress(deleteTargetId);
+      if (res.error) {
+        setEditErr(res.error);
+        return;
+      }
+      setDeleteConfirmOpen(false);
+
+      // Refresh addresses
+      const refreshed = await getAddresses();
+      const list = refreshed.data ?? [];
+      setSavedAddresses(list);
+
+      // If the deleted address was the currently-selected one, fall back
+      if (!useNewAddress && selectedSavedId === deleteTargetId) {
+        // Dedup for selection fallback too
+        const deduped = list.length > 0 ? list : [];
+        if (deduped.length > 0) {
+          setSelectedSavedId(deduped[0].id);
+          setUseNewAddress(false);
+        } else {
+          setSelectedSavedId(null);
+          setUseNewAddress(true);
+        }
+      }
+
+      setDeleteTargetId(null);
+    } catch {
+      setEditErr("Could not delete. Try again.");
+    } finally {
+      setDeleteDeleting(false);
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     async function load() {
-      setSavedLoading(true);
       try {
         const res = await getAddresses();
         if (!mounted) return;
@@ -186,8 +323,8 @@ export default function Checkout() {
           setUseNewAddress(true);
           setSelectedSavedId(null);
         }
-      } finally {
-        if (mounted) setSavedLoading(false);
+      } catch {
+        // silently fail — user can still type a manual address
       }
     }
 
@@ -361,74 +498,230 @@ export default function Checkout() {
                         gap: 1.5,
                       }}
                     >
-                      {savedAddresses.map((a) => (
-                        <Box
-                          key={a.id}
-                          className={[
-                            "flex items-start gap-3 px-3 py-2.5 rounded-[14px] border transition-all duration-200",
-                            !useNewAddress && selectedSavedId === a.id
-                              ? "border-amber-600 bg-amber-50/60"
-                              : "border-amber-900/10 hover:border-amber-900/25",
-                          ].join(" ")}
-                        >
-                          <FormControlLabel
-                            value={a.id}
-                            control={
-                              <Radio
-                                size="small"
-                                sx={{ color: "#b45309", p: 0 }}
-                              />
-                            }
-                            label=""
-                            sx={{ m: 0, alignItems: "flex-start" }}
-                          />
+                      {dedupedAddresses.map((a) => {
+                        const isEditing = editingId === a.id;
 
-                          <Box className="flex-1">
-                            <Typography
+                        if (isEditing) {
+                          // ── Inline edit form ──────────────────────────────
+                          return (
+                            <Box
+                              key={a.id}
                               sx={{
-                                fontWeight: 700,
-                                fontSize: "0.85rem",
-                                color: "#1c1917",
+                                border: "2px solid #b45309",
+                                borderRadius: "16px",
+                                p: 2,
+                                background: "#fff",
                               }}
                             >
-                              {a.fullName}
-                            </Typography>
-                            <Typography
-                              sx={{
-                                fontSize: "0.72rem",
-                                color: "#78716c",
-                                mt: 0.2,
-                              }}
-                            >
-                              {a.phone}
-                            </Typography>
-                            <Typography
-                              sx={{ fontSize: "0.72rem", color: "#78716c" }}
-                            >
-                              {a.street}, {a.city}
-                            </Typography>
-                            {a.isDefault ? (
                               <Box
                                 sx={{
-                                  mt: 0.6,
-                                  display: "inline-flex",
-                                  fontSize: "0.62rem",
-                                  fontWeight: 800,
-                                  letterSpacing: "0.06em",
-                                  color: "#b45309",
-                                  border: "1px solid rgba(180,83,9,0.18)",
-                                  borderRadius: "999px",
-                                  px: 1,
-                                  py: "2px",
-                                  background: "rgba(180,83,9,0.06)",
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  gap: 1.5,
                                 }}
                               >
-                                DEFAULT
+                                <TextField
+                                  label="Full name"
+                                  size="small"
+                                  value={editForm.fullName}
+                                  onChange={(e) =>
+                                    setEditForm((p) => ({
+                                      ...p,
+                                      fullName: e.target.value,
+                                    }))
+                                  }
+                                  sx={fieldSx()}
+                                />
+                                <TextField
+                                  label="Phone"
+                                  size="small"
+                                  value={editForm.phone}
+                                  onChange={(e) =>
+                                    setEditForm((p) => ({
+                                      ...p,
+                                      phone: e.target.value,
+                                    }))
+                                  }
+                                  sx={fieldSx()}
+                                />
+                                <TextField
+                                  label="Street"
+                                  size="small"
+                                  value={editForm.street}
+                                  onChange={(e) =>
+                                    setEditForm((p) => ({
+                                      ...p,
+                                      street: e.target.value,
+                                    }))
+                                  }
+                                  sx={fieldSx()}
+                                />
+                                <TextField
+                                  label="City"
+                                  size="small"
+                                  value={editForm.city}
+                                  onChange={(e) =>
+                                    setEditForm((p) => ({
+                                      ...p,
+                                      city: e.target.value,
+                                    }))
+                                  }
+                                  sx={fieldSx()}
+                                />
+                                {editErr ? (
+                                  <Typography
+                                    sx={{
+                                      color: "error.main",
+                                      fontSize: "0.78rem",
+                                    }}
+                                  >
+                                    {editErr}
+                                  </Typography>
+                                ) : null}
+                                <Box sx={{ display: "flex", gap: 1 }}>
+                                  <Button
+                                    onClick={handleEditSave}
+                                    disabled={editSaving}
+                                    variant="contained"
+                                    size="small"
+                                    sx={{
+                                      flex: 1,
+                                      bgcolor: "#b45309",
+                                      "&:hover": { bgcolor: "#92400e" },
+                                      borderRadius: "10px",
+                                      fontWeight: 700,
+                                      textTransform: "uppercase",
+                                    }}
+                                  >
+                                    {editSaving ? "Saving..." : "Save"}
+                                  </Button>
+                                  <Button
+                                    onClick={cancelEdit}
+                                    disabled={editSaving}
+                                    variant="outlined"
+                                    size="small"
+                                    sx={{
+                                      flex: 1,
+                                      borderColor: "rgba(180,83,9,0.25)",
+                                      color: "#b45309",
+                                      borderRadius: "10px",
+                                      fontWeight: 700,
+                                      textTransform: "uppercase",
+                                    }}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </Box>
                               </Box>
-                            ) : null}
+                            </Box>
+                          );
+                        }
+
+                        // ── Display card ──────────────────────────────
+                        return (
+                          <Box
+                            key={a.id}
+                            className={[
+                              "flex items-start gap-3 px-3 py-2.5 rounded-[14px] border transition-all duration-200",
+                              !useNewAddress && selectedSavedId === a.id
+                                ? "border-amber-600 bg-amber-50/60"
+                                : "border-amber-900/10 hover:border-amber-900/25",
+                            ].join(" ")}
+                          >
+                            <FormControlLabel
+                              value={a.id}
+                              control={
+                                <Radio
+                                  size="small"
+                                  sx={{ color: "#b45309", p: 0 }}
+                                />
+                              }
+                              label=""
+                              sx={{ m: 0, alignItems: "flex-start" }}
+                            />
+
+                            <Box className="flex-1">
+                              <Typography
+                                sx={{
+                                  fontWeight: 700,
+                                  fontSize: "0.85rem",
+                                  color: "#1c1917",
+                                }}
+                              >
+                                {a.fullName}
+                              </Typography>
+                              <Typography
+                                sx={{
+                                  fontSize: "0.72rem",
+                                  color: "#78716c",
+                                  mt: 0.2,
+                                }}
+                              >
+                                {a.phone}
+                              </Typography>
+                              <Typography
+                                sx={{ fontSize: "0.72rem", color: "#78716c" }}
+                              >
+                                {a.street}, {a.city}
+                              </Typography>
+                              {a.isDefault ? (
+                                <Box
+                                  sx={{
+                                    mt: 0.6,
+                                    display: "inline-flex",
+                                    fontSize: "0.62rem",
+                                    fontWeight: 800,
+                                    letterSpacing: "0.06em",
+                                    color: "#b45309",
+                                    border: "1px solid rgba(180,83,9,0.18)",
+                                    borderRadius: "999px",
+                                    px: 1,
+                                    py: "2px",
+                                    background: "rgba(180,83,9,0.06)",
+                                  }}
+                                >
+                                  DEFAULT
+                                </Box>
+                              ) : null}
+                              {/* Inline action buttons */}
+                              <Box sx={{ display: "flex", gap: 1, mt: 1 }}>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    startEdit(a);
+                                  }}
+                                  className="text-xs font-bold uppercase tracking-wider cursor-pointer"
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    padding: 0,
+                                    color: "#b45309",
+                                  }}
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    confirmDelete(a.id);
+                                  }}
+                                  className="text-xs font-bold uppercase tracking-wider cursor-pointer"
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    padding: 0,
+                                    color: "#dc2626",
+                                  }}
+                                >
+                                  Delete
+                                </button>
+                              </Box>
+                            </Box>
                           </Box>
-                        </Box>
-                      ))}
+                        );
+                      })}
 
                       <Box
                         className={[
@@ -835,6 +1128,16 @@ export default function Checkout() {
         danger
         onClose={() => setConfirmOpen(false)}
         onConfirm={handleConfirm}
+      />
+
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        title="Delete address?"
+        description="This address will be permanently removed from your saved addresses."
+        confirmText={deleteDeleting ? "Deleting..." : "Delete"}
+        danger
+        onClose={() => setDeleteConfirmOpen(false)}
+        onConfirm={handleDelete}
       />
     </Box>
   );
