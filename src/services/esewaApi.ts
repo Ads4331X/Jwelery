@@ -5,11 +5,8 @@ const API_BASE = API_BASE_URL;
 export type EsewaInitiateResponse = {
   success?: boolean;
   error?: string;
-  data?: {
-    action: string;
-    method: "POST";
-    formFields: Record<string, string>;
-  };
+  gatewayUrl?: string;
+  fields?: Record<string, string>;
 };
 
 export async function initiateEsewaPayment(orderId: string): Promise<{
@@ -28,16 +25,12 @@ export async function initiateEsewaPayment(orderId: string): Promise<{
     .json()
     .catch(() => null)) as EsewaInitiateResponse | null;
 
-  if (!res.ok || !json?.success || !json.data?.formFields) {
-    throw new Error(
-      json?.error ??
-        json?.data?.formFields?.error ??
-        `eSewa initiate failed (${res.status})`,
-    );
+  if (!res.ok || !json?.success || !json.gatewayUrl || !json.fields) {
+    throw new Error(json?.error ?? `eSewa initiate failed (${res.status})`);
   }
 
   return {
-    action: json.data.action,
-    fields: json.data.formFields,
+    action: json.gatewayUrl,
+    fields: json.fields,
   };
 }

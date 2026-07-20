@@ -7,6 +7,8 @@ import ProductDetail from "./features/products/components/ProductDetails.tsx";
 import { AdminAuthProvider } from "./features/auth/context/AdminAuthProvider.tsx";
 import Checkout from "./features/customer/Checkout";
 import EsewaCheckoutRedirect from "./features/customer/EsewaCheckoutRedirect";
+import EsewaSuccess from "./features/customer/EsewaSuccess";
+import EsewaFailure from "./features/customer/EsewaFailure";
 
 // ── Public ────────────────────────────────────────────────────
 const Products = lazy(() => import("./features/products/Products"));
@@ -93,6 +95,14 @@ function App() {
               <Route
                 path="/checkout/esewa"
                 element={<EsewaCheckoutRedirect />}
+              />
+              <Route
+                path="/checkout/esewa/success"
+                element={<EsewaSuccess />}
+              />
+              <Route
+                path="/checkout/esewa/failure"
+                element={<EsewaFailure />}
               />
 
               {/* ── Admin auth ──────────────────────────────── */}
