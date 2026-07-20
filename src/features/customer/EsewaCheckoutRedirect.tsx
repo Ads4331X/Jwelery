@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import { EsewaPaymentForm } from "./components/EsewaPaymentForm";
@@ -13,11 +13,7 @@ export default function EsewaCheckoutRedirect() {
 
   const state = (location.state ?? {}) as LocationState;
   const orderId = useMemo(() => state.orderId ?? "", [state.orderId]);
-  const [missing, setMissing] = useState(!orderId);
-
-  useEffect(() => {
-    setMissing(!orderId);
-  }, [orderId]);
+  const missing = !orderId;
 
   if (missing) {
     return (

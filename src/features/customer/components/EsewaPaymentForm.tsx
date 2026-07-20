@@ -48,6 +48,16 @@ export const EsewaPaymentForm = ({ orderId }: Props) => {
         const { action, fields } = await initiateEsewaPayment(trigger);
         if (cancelled) return;
 
+        // Stash pending txn info before redirecting, so the success/failure
+        // pages can recover it even if eSewa doesn't send back a data blob.
+        sessionStorage.setItem(
+          "esewa_pending_txn",
+          JSON.stringify({
+            transaction_uuid: fields.transaction_uuid,
+            orderId: trigger,
+          }),
+        );
+
         const form = buildAutoForm({ action, fields });
         form.submit();
 

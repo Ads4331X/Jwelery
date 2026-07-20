@@ -11,6 +11,11 @@ type FailureResult = {
   transactionUuid?: string;
 };
 
+type PendingTxn = {
+  transaction_uuid: string;
+  orderId: string;
+};
+
 function decodeTransactionUuid(dataParam: string | null): string | null {
   if (!dataParam) return null;
   try {
@@ -22,14 +27,31 @@ function decodeTransactionUuid(dataParam: string | null): string | null {
   }
 }
 
+function readPendingTxn(): PendingTxn | null {
+  try {
+    const raw = sessionStorage.getItem("esewa_pending_txn");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.transaction_uuid && parsed?.orderId) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingTxn(): void {
+  sessionStorage.removeItem("esewa_pending_txn");
+}
+
 export default function EsewaFailure() {
   const [searchParams] = useSearchParams();
   const dataParam = searchParams.get("data");
 
   const transactionUuid = decodeTransactionUuid(dataParam);
+  const [pendingTxn] = useState<PendingTxn | null>(readPendingTxn);
 
   const [result, setResult] = useState<FailureResult>(() => {
-    if (!dataParam) {
+    if (!dataParam && !pendingTxn) {
       return {
         loading: false,
         success: false,
@@ -44,39 +66,81 @@ export default function EsewaFailure() {
   });
 
   useEffect(() => {
-    if (!dataParam) return;
-
     let cancelled = false;
-    const encodedData = encodeURIComponent(dataParam);
 
     async function recordFailure() {
       try {
-        const res = await fetch(
-          `${API_BASE}/esewa/failure?data=${encodedData}`,
-        );
-        const json = await res.json().catch(() => null);
+        let res: Response;
+        let json: Record<string, unknown> | null;
 
-        if (cancelled) return;
+        if (dataParam) {
+          // eSewa sent back a data blob — use the existing flow
+          const encodedData = encodeURIComponent(dataParam);
+          res = await fetch(`${API_BASE}/esewa/failure?data=${encodedData}`);
+          json = await res.json().catch(() => null);
 
-        if (res.ok && json?.success) {
-          setResult({
-            loading: false,
-            success: true,
-            message:
-              json.message ?? "Payment failed. Your order has been cancelled.",
-            transactionUuid:
-              json.transaction_uuid ?? transactionUuid ?? undefined,
+          if (cancelled) return;
+
+          if (res.ok && json?.success) {
+            setResult({
+              loading: false,
+              success: true,
+              message:
+                (json.message as string) ??
+                "Payment failed. Your order has been cancelled.",
+              transactionUuid:
+                (json.transaction_uuid as string) ??
+                transactionUuid ??
+                undefined,
+            });
+          } else {
+            setResult({
+              loading: false,
+              success: false,
+              message:
+                (json?.message as string) ??
+                "Could not update payment status. Please contact support.",
+              transactionUuid: transactionUuid ?? undefined,
+            });
+          }
+
+          clearPendingTxn();
+        } else if (pendingTxn) {
+          // No data blob from eSewa — use sessionStorage fallback
+          res = await fetch(`${API_BASE}/esewa/failure/manual`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              transaction_uuid: pendingTxn.transaction_uuid,
+            }),
           });
-        } else {
-          setResult({
-            loading: false,
-            success: false,
-            message:
-              json?.message ??
-              "Could not update payment status. Please contact support.",
-            transactionUuid: transactionUuid ?? undefined,
-          });
+          json = await res.json().catch(() => null);
+
+          if (cancelled) return;
+
+          if (res.ok && json?.success) {
+            setResult({
+              loading: false,
+              success: true,
+              message:
+                (json.message as string) ??
+                "Payment cancelled. Your order has been cancelled.",
+              transactionUuid: pendingTxn.transaction_uuid,
+            });
+          } else {
+            setResult({
+              loading: false,
+              success: false,
+              message:
+                (json?.message as string) ??
+                "Could not update payment status. Please contact support.",
+              transactionUuid: pendingTxn.transaction_uuid,
+            });
+          }
+
+          clearPendingTxn();
         }
+        // else: no data and no pending txn — handled by initial state
       } catch {
         if (cancelled) return;
         setResult({
@@ -88,12 +152,15 @@ export default function EsewaFailure() {
       }
     }
 
-    void recordFailure();
+    // Only run if we have something to record
+    if (dataParam || pendingTxn) {
+      void recordFailure();
+    }
 
     return () => {
       cancelled = true;
     };
-  }, [dataParam, transactionUuid]);
+  }, [dataParam, transactionUuid, pendingTxn]);
 
   if (result.loading) {
     return (

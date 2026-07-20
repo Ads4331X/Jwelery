@@ -11,6 +11,11 @@ type VerifyResult = {
   transactionUuid?: string;
 };
 
+type PendingTxn = {
+  transaction_uuid: string;
+  orderId: string;
+};
+
 function decodeEsewaData(data: string): Record<string, string> | null {
   try {
     const decoded = atob(data);
@@ -20,16 +25,46 @@ function decodeEsewaData(data: string): Record<string, string> | null {
   }
 }
 
+function readPendingTxn(): PendingTxn | null {
+  try {
+    const raw = sessionStorage.getItem("esewa_pending_txn");
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed?.transaction_uuid && parsed?.orderId) return parsed;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+function clearPendingTxn(): void {
+  sessionStorage.removeItem("esewa_pending_txn");
+}
+
 export default function EsewaSuccess() {
   const [searchParams] = useSearchParams();
   const dataParam = searchParams.get("data");
 
+  const [pendingTxn] = useState<PendingTxn | null>(readPendingTxn);
+
   const [result, setResult] = useState<VerifyResult>(() => {
-    if (!dataParam) {
+    if (!dataParam && !pendingTxn) {
       return {
         loading: false,
         success: false,
         message: "Missing payment verification data.",
+      };
+    }
+    if (!dataParam && pendingTxn) {
+      // No signed data blob — can't confirm payment succeeded.
+      // Show a helpful message instead of a dead end.
+      clearPendingTxn();
+      return {
+        loading: false,
+        success: false,
+        message:
+          "No verification data received from eSewa. Please check your order status in My Orders.",
+        transactionUuid: pendingTxn.transaction_uuid,
       };
     }
     return {
@@ -54,23 +89,28 @@ export default function EsewaSuccess() {
 
         if (cancelled) return;
 
+        // Clear sessionStorage since we've recorded the outcome
+        clearPendingTxn();
+
         if (res.ok && json?.success) {
           setResult({
             loading: false,
             success: true,
-            message: json.message ?? "Payment Successful!",
+            message: (json.message as string) ?? "Payment Successful!",
             transactionUuid: txnUuid,
           });
         } else {
           setResult({
             loading: false,
             success: false,
-            message: json?.message ?? "Payment verification failed.",
+            message:
+              (json?.message as string) ?? "Payment verification failed.",
             transactionUuid: txnUuid,
           });
         }
       } catch {
         if (cancelled) return;
+        clearPendingTxn();
         setResult({
           loading: false,
           success: false,
