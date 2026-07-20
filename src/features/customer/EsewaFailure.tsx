@@ -1,4 +1,15 @@
+import { useEffect, useState } from "react";
 import { useSearchParams, Link } from "react-router-dom";
+import { API_BASE_URL } from "../../config/appConfig";
+
+const API_BASE = API_BASE_URL;
+
+type FailureResult = {
+  loading: boolean;
+  success: boolean;
+  message: string;
+  transactionUuid?: string;
+};
 
 function decodeTransactionUuid(dataParam: string | null): string | null {
   if (!dataParam) return null;
@@ -16,6 +27,86 @@ export default function EsewaFailure() {
   const dataParam = searchParams.get("data");
 
   const transactionUuid = decodeTransactionUuid(dataParam);
+
+  const [result, setResult] = useState<FailureResult>(() => {
+    if (!dataParam) {
+      return {
+        loading: false,
+        success: false,
+        message: "Missing payment data. Your order may be incomplete.",
+      };
+    }
+    return {
+      loading: true,
+      success: false,
+      message: "Recording payment failure...",
+    };
+  });
+
+  useEffect(() => {
+    if (!dataParam) return;
+
+    let cancelled = false;
+    const encodedData = encodeURIComponent(dataParam);
+
+    async function recordFailure() {
+      try {
+        const res = await fetch(
+          `${API_BASE}/esewa/failure?data=${encodedData}`,
+        );
+        const json = await res.json().catch(() => null);
+
+        if (cancelled) return;
+
+        if (res.ok && json?.success) {
+          setResult({
+            loading: false,
+            success: true,
+            message:
+              json.message ?? "Payment failed. Your order has been cancelled.",
+            transactionUuid:
+              json.transaction_uuid ?? transactionUuid ?? undefined,
+          });
+        } else {
+          setResult({
+            loading: false,
+            success: false,
+            message:
+              json?.message ??
+              "Could not update payment status. Please contact support.",
+            transactionUuid: transactionUuid ?? undefined,
+          });
+        }
+      } catch {
+        if (cancelled) return;
+        setResult({
+          loading: false,
+          success: false,
+          message: "Could not connect to server. Please contact support.",
+          transactionUuid: transactionUuid ?? undefined,
+        });
+      }
+    }
+
+    void recordFailure();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [dataParam, transactionUuid]);
+
+  if (result.loading) {
+    return (
+      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
+        <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-700 mx-auto mb-4" />
+          <p className="text-amber-900/70 text-sm">
+            Recording payment failure...
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
@@ -40,13 +131,11 @@ export default function EsewaFailure() {
         <h1 className="text-2xl font-bold text-red-700 mb-2">
           Payment Cancelled / Failed
         </h1>
-        <p className="text-amber-900/70 text-sm mb-4">
-          Your eSewa payment was not completed. Your order has not been charged.
-        </p>
+        <p className="text-amber-900/70 text-sm mb-4">{result.message}</p>
 
-        {transactionUuid ? (
+        {result.transactionUuid ? (
           <p className="text-xs text-amber-900/50 mb-6 break-all bg-amber-50 p-3 rounded-lg">
-            Transaction ref: {transactionUuid}
+            Transaction ref: {result.transactionUuid}
           </p>
         ) : null}
 
