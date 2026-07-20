@@ -23,7 +23,6 @@ import { useCart } from "../../hooks/useCart";
 import ConfirmDialog from "../../components/shared/ConfirmDialog";
 import { createOrder, type OrderItemCreate } from "../../services/ordersApi";
 import { getAddresses, type SavedAddress } from "../../services/addressesApi";
-import { EsewaPaymentForm } from "./components/EsewaPaymentForm";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -227,6 +226,20 @@ export default function Checkout() {
 
       if (res.error) {
         setPlaceErr(res.error);
+        return;
+      }
+
+      // If eSewa is selected, keep user on this page while eSewa form
+      // auto-submits and redirects to eSewa.
+      if (payment === "esewa") {
+        clearCart();
+        setConfirmOpen(false);
+        // Trigger form submission by mounting EsewaPaymentForm with orderId.
+        // We do this by navigating to a lightweight route that renders the form.
+        // For now, just pass the order id via location state.
+        navigate("/checkout/esewa", {
+          state: { orderId: res.data?.id ?? null },
+        });
         return;
       }
 
@@ -641,7 +654,17 @@ export default function Checkout() {
             {/* Place order — shown below on mobile */}
             <Box sx={{ display: { xs: "block", lg: "none" } }}>
               {payment === "esewa" ? (
-                <EsewaPaymentForm amount={subtotal} />
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Pay with eSewa"}
+                </button>
               ) : (
                 <button
                   type="button"
@@ -746,7 +769,17 @@ export default function Checkout() {
             {/* Place order — desktop */}
             <Box sx={{ display: { xs: "none", lg: "block" } }}>
               {payment === "esewa" ? (
-                <EsewaPaymentForm amount={subtotal} />
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #4CAF50, #2E7D32)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Pay with eSewa"}
+                </button>
               ) : (
                 <button
                   type="button"

@@ -6,6 +6,7 @@ import ScrollToTop from "./components/shared/ScrollToTop";
 import ProductDetail from "./features/products/components/ProductDetails.tsx";
 import { AdminAuthProvider } from "./features/auth/context/AdminAuthProvider.tsx";
 import Checkout from "./features/customer/Checkout";
+import EsewaCheckoutRedirect from "./features/customer/EsewaCheckoutRedirect";
 
 // ── Public ────────────────────────────────────────────────────
 const Products = lazy(() => import("./features/products/Products"));
@@ -88,6 +89,10 @@ function App() {
                     <Checkout />
                   </CustomerRoute>
                 }
+              />
+              <Route
+                path="/checkout/esewa"
+                element={<EsewaCheckoutRedirect />}
               />
 
               {/* ── Admin auth ──────────────────────────────── */}
