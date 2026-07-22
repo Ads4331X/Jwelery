@@ -235,8 +235,14 @@ export default function EsewaSuccess() {
             Retry Checkout
           </Link>
           <Link
+            to="/products"
+            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center mt-1"
+          >
+            Continue Shopping
+          </Link>
+          <Link
             to="/contact"
-            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors"
+            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center"
           >
             Contact Support
           </Link>
