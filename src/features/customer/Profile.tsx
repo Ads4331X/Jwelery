@@ -197,11 +197,11 @@ export default function Profile() {
         <Box className="flex items-start justify-between gap-4 mb-6">
           <button
             type="button"
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-amber-900/60 hover:text-amber-700 text-sm font-medium tracking-wide transition-colors duration-200 cursor-pointer"
           >
             <ArrowBackIcon sx={{ fontSize: 16 }} />
-            Back
+            Back to Home
           </button>
 
           <Box className="flex items-center gap-3">

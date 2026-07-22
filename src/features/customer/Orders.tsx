@@ -118,11 +118,11 @@ export default function Orders() {
         {/* Back */}
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/")}
           className="flex items-center gap-2 text-amber-900/60 hover:text-amber-700 text-sm font-medium tracking-wide mb-8 transition-colors duration-200 cursor-pointer"
         >
           <ArrowBackIcon sx={{ fontSize: 16 }} />
-          Back
+          Back to Home
         </button>
 
         {/* Page title */}

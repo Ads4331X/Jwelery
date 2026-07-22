@@ -1,19 +1,16 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography, CircularProgress, Link } from "@mui/material";
+import CancelOutlinedIcon from "@mui/icons-material/Cancel";
 import { API_BASE_URL } from "../../config/appConfig";
 
 const API_BASE = API_BASE_URL;
 
 type FailureResult = {
   loading: boolean;
-  success: boolean;
   message: string;
   transactionUuid?: string;
-};
-
-type PendingTxn = {
-  transaction_uuid: string;
-  orderId: string;
 };
 
 function decodeTransactionUuid(dataParam: string | null): string | null {
@@ -27,12 +24,16 @@ function decodeTransactionUuid(dataParam: string | null): string | null {
   }
 }
 
+type PendingTxn = {
+  transaction_uuid: string;
+};
+
 function readPendingTxn(): PendingTxn | null {
   try {
     const raw = sessionStorage.getItem("esewa_pending_txn");
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (parsed?.transaction_uuid && parsed?.orderId) return parsed;
+    if (parsed?.transaction_uuid) return parsed;
     return null;
   } catch {
     return null;
@@ -47,20 +48,21 @@ export default function EsewaFailure() {
   const [searchParams] = useSearchParams();
   const dataParam = searchParams.get("data");
 
-  const transactionUuid = decodeTransactionUuid(dataParam);
-  const [pendingTxn] = useState<PendingTxn | null>(readPendingTxn);
+  const transactionUuid =
+    decodeTransactionUuid(dataParam) ??
+    readPendingTxn()?.transaction_uuid ??
+    null;
 
   const [result, setResult] = useState<FailureResult>(() => {
-    if (!dataParam && !pendingTxn) {
+    if (!dataParam && !readPendingTxn()) {
       return {
         loading: false,
-        success: false,
-        message: "Missing payment data. Your order may be incomplete.",
+        message:
+          "Payment was cancelled or failed. No order was created. Your cart is unchanged.",
       };
     }
     return {
       loading: true,
-      success: false,
       message: "Recording payment failure...",
     };
   });
@@ -70,166 +72,193 @@ export default function EsewaFailure() {
 
     async function recordFailure() {
       try {
-        let res: Response;
-        let json: Record<string, unknown> | null;
-
         if (dataParam) {
-          // eSewa sent back a data blob — use the existing flow
           const encodedData = encodeURIComponent(dataParam);
-          res = await fetch(`${API_BASE}/esewa/failure?data=${encodedData}`);
-          json = await res.json().catch(() => null);
-
-          if (cancelled) return;
-
-          if (res.ok && json?.success && ((json?.updated as number) ?? 0) > 0) {
-            setResult({
-              loading: false,
-              success: true,
-              message:
-                (json.message as string) ??
-                "Payment failed. Your order has been cancelled.",
-              transactionUuid:
-                (json.transaction_uuid as string) ??
-                transactionUuid ??
-                undefined,
-            });
-          } else {
-            setResult({
-              loading: false,
-              success: false,
-              message:
-                (json?.message as string) ??
-                "Could not update payment status. Please contact support.",
-              transactionUuid: transactionUuid ?? undefined,
+          await fetch(`${API_BASE}/api/esewa/failure?data=${encodedData}`);
+        } else {
+          const pendingTxn = readPendingTxn();
+          if (pendingTxn?.transaction_uuid) {
+            await fetch(`${API_BASE}/api/esewa/failure/manual`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                transaction_uuid: pendingTxn.transaction_uuid,
+              }),
             });
           }
-
-          clearPendingTxn();
-        } else if (pendingTxn) {
-          // No data blob from eSewa — use sessionStorage fallback
-          res = await fetch(`${API_BASE}/esewa/failure/manual`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              transaction_uuid: pendingTxn.transaction_uuid,
-            }),
-          });
-          json = await res.json().catch(() => null);
-
-          if (cancelled) return;
-
-          if (res.ok && json?.success && ((json?.updated as number) ?? 0) > 0) {
-            setResult({
-              loading: false,
-              success: true,
-              message:
-                (json.message as string) ??
-                "Payment cancelled. Your order has been cancelled.",
-              transactionUuid: pendingTxn.transaction_uuid,
-            });
-          } else {
-            setResult({
-              loading: false,
-              success: false,
-              message:
-                (json?.message as string) ??
-                "Could not update payment status. Please contact support.",
-              transactionUuid: pendingTxn.transaction_uuid,
-            });
-          }
-
-          clearPendingTxn();
         }
-        // else: no data and no pending txn — handled by initial state
-      } catch {
+
         if (cancelled) return;
+        clearPendingTxn();
+
         setResult({
           loading: false,
-          success: false,
-          message: "Could not connect to server. Please contact support.",
+          message:
+            "Payment was cancelled or failed. No order was created. Your cart is unchanged.",
+          transactionUuid: transactionUuid ?? undefined,
+        });
+      } catch {
+        if (cancelled) return;
+        clearPendingTxn();
+        setResult({
+          loading: false,
+          message:
+            "Payment was cancelled or failed. No order was created. Your cart is unchanged.",
           transactionUuid: transactionUuid ?? undefined,
         });
       }
     }
 
-    // Only run if we have something to record
-    if (dataParam || pendingTxn) {
-      void recordFailure();
-    }
+    void recordFailure();
 
     return () => {
       cancelled = true;
     };
-  }, [dataParam, transactionUuid, pendingTxn]);
+  }, [dataParam, transactionUuid]);
 
   if (result.loading) {
     return (
-      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-        <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-700 mx-auto mb-4" />
-          <p className="text-amber-900/70 text-sm">
+      <Box
+        className="min-h-screen bg-[#fafaf7]"
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <Box
+          sx={{
+            bgcolor: "white",
+            borderRadius: "20px",
+            border: "1px solid rgba(180,83,9,0.08)",
+            p: 8,
+            maxWidth: 448,
+            width: 1,
+            textAlign: "center",
+          }}
+        >
+          <CircularProgress
+            size={40}
+            sx={{ color: "#b45309", mb: 4, mx: "auto", display: "block" }}
+          />
+          <Typography
+            sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem" }}
+          >
             Recording payment failure...
-          </p>
-        </div>
-      </div>
+          </Typography>
+        </Box>
+      </Box>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-      <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
-        {/* Failure icon */}
-        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-8 h-8 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        </div>
+    <Box
+      className="min-h-screen bg-[#fafaf7]"
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <Box
+        sx={{
+          bgcolor: "white",
+          borderRadius: "20px",
+          border: "1px solid rgba(180,83,9,0.08)",
+          p: 8,
+          maxWidth: 448,
+          width: 1,
+          textAlign: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            bgcolor: "rgba(239,68,68,0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 4,
+          }}
+        >
+          <CancelOutlinedIcon sx={{ fontSize: 32, color: "error.main" }} />
+        </Box>
 
-        <h1 className="text-2xl font-bold text-red-700 mb-2">
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, color: "error.dark", mb: 2 }}
+        >
           Payment Cancelled / Failed
-        </h1>
-        <p className="text-amber-900/70 text-sm mb-4">{result.message}</p>
+        </Typography>
+        <Typography
+          sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem", mb: 4 }}
+        >
+          {result.message}
+        </Typography>
 
         {result.transactionUuid ? (
-          <p className="text-xs text-amber-900/50 mb-6 break-all bg-amber-50 p-3 rounded-lg">
+          <Typography
+            sx={{
+              fontSize: "0.75rem",
+              color: "rgba(180,83,9,0.5)",
+              mb: 6,
+              wordBreak: "break-all",
+              bgcolor: "rgba(180,83,9,0.04)",
+              p: 3,
+              borderRadius: "12px",
+            }}
+          >
             Transaction ref: {result.transactionUuid}
-          </p>
+          </Typography>
         ) : null}
 
-        <div className="flex flex-col gap-3">
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Link
+            component={RouterLink}
             to="/checkout"
-            className="w-full py-3 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 text-center"
-            style={{
+            sx={{
+              width: 1,
+              py: 3,
+              borderRadius: "9999px",
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.16em",
+              color: "white",
+              textAlign: "center",
+              textDecoration: "none",
               background: "linear-gradient(135deg, #92400e, #b45309)",
+              "&:hover": { opacity: 0.9 },
             }}
           >
             Retry Checkout
           </Link>
           <Link
+            component={RouterLink}
             to="/products"
-            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center mt-1"
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgb(180,83,9)",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+              textAlign: "center",
+              mt: 2,
+              "&:hover": { color: "rgb(120,53,15)" },
+            }}
           >
             Continue Shopping
           </Link>
           <Link
+            component={RouterLink}
             to="/contact"
-            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center"
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgb(180,83,9)",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+              textAlign: "center",
+              "&:hover": { color: "rgb(120,53,15)" },
+            }}
           >
             Contact Support
           </Link>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

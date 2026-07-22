@@ -29,6 +29,7 @@ import {
   deleteAddress,
   type SavedAddress,
 } from "../../services/addressesApi";
+import { initiateEsewaPayment } from "../../services/esewaApi";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -344,25 +345,110 @@ export default function Checkout() {
     setConfirmOpen(true);
   };
 
+  /** Build and auto-submit a form to eSewa gateway */
+  const buildAutoSubmitForm = (
+    action: string,
+    fields: Record<string, string>,
+  ) => {
+    const form = document.createElement("form");
+    form.method = "POST";
+    form.action = action;
+    form.style.display = "none";
+
+    for (const [k, v] of Object.entries(fields)) {
+      const input = document.createElement("input");
+      input.type = "hidden";
+      input.name = k;
+      input.value = v;
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+  };
+
   const handleConfirm = async () => {
     setPlacing(true);
     setPlaceErr(null);
+    setConfirmOpen(false);
+
     try {
       const payloadItems: OrderItemCreate[] = items.map((it) => ({
         productId: it.product.id,
         qty: it.qty,
       }));
 
+      if (payment === "esewa") {
+        // ── eSewa flow: DO NOT create order yet ─────────────────────
+        // Instead, initiate payment with cart items + address.
+        // Backend will validate stock and create a PendingPayment.
+        // Only after successful eSewa verification will the order be created.
+
+        const initiatePayload: {
+          items: { productId: string; qty: number }[];
+          address?: {
+            fullName: string;
+            phone: string;
+            streetAddress: string;
+            city: string;
+            deliveryNote?: string;
+          };
+          addressId?: string;
+        } = {
+          items: payloadItems,
+        };
+
+        if (!useNewAddress && selectedSavedId) {
+          initiatePayload.addressId = selectedSavedId;
+        } else {
+          initiatePayload.address = {
+            fullName: selectedShippingAddress.fullName,
+            phone: selectedShippingAddress.phone,
+            streetAddress: selectedShippingAddress.streetAddress,
+            city: selectedShippingAddress.city,
+            deliveryNote: selectedShippingAddress.deliveryNote,
+          };
+        }
+
+        try {
+          const { action, fields } =
+            await initiateEsewaPayment(initiatePayload);
+
+          // Stash pending txn info so success/failure pages can recover it
+          sessionStorage.setItem(
+            "esewa_pending_txn",
+            JSON.stringify({
+              transaction_uuid: fields.transaction_uuid,
+            }),
+          );
+
+          // Auto-submit form to eSewa (this will navigate away)
+          buildAutoSubmitForm(action, fields);
+        } catch (initErr) {
+          setPlaceErr(
+            initErr instanceof Error
+              ? initErr.message
+              : "Failed to initiate eSewa payment. Please try again.",
+          );
+          setPlacing(false);
+          return;
+        }
+
+        // Note: we don't set placing=false here because the page will navigate away.
+        // If form submission fails silently (popup blocker etc.), the user stays here.
+        setPlacing(false);
+        return;
+      }
+
+      // ── COD flow: create order immediately (unchanged) ───────────
       let res;
       if (!useNewAddress && selectedSavedId) {
-        // Reuse saved address — send addressId instead of raw address fields
         res = await createOrder(
           payloadItems,
           selectedShippingAddress,
           selectedSavedId,
         );
       } else {
-        // Manual address — keep existing behavior
         res = await createOrder(payloadItems, {
           fullName: selectedShippingAddress.fullName,
           phone: selectedShippingAddress.phone,
@@ -377,27 +463,12 @@ export default function Checkout() {
         return;
       }
 
-      // If eSewa is selected, keep user on this page while eSewa form
-      // auto-submits and redirects to eSewa.
-      if (payment === "esewa") {
-        clearCart();
-        setConfirmOpen(false);
-        // Trigger form submission by mounting EsewaPaymentForm with orderId.
-        // We do this by navigating to a lightweight route that renders the form.
-        // For now, just pass the order id via location state.
-        navigate("/checkout/esewa", {
-          state: { orderId: res.data?.id ?? null },
-        });
-        return;
-      }
-
       clearCart();
       navigate("/orders");
     } catch {
       setPlaceErr("Could not place order right now. Try again later.");
     } finally {
       setPlacing(false);
-      setConfirmOpen(false);
     }
   };
 
@@ -411,7 +482,7 @@ export default function Checkout() {
         {/* Back */}
         <button
           type="button"
-          onClick={() => navigate('/cart')}
+          onClick={() => navigate("/cart")}
           className="flex items-center gap-2 text-amber-900/60 hover:text-amber-700 text-sm font-medium tracking-wide mb-8 transition-colors duration-200 cursor-pointer"
         >
           <ArrowBackIcon sx={{ fontSize: 16 }} />

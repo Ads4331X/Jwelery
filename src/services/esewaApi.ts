@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config/appConfig";
+import { authHeaders } from "./authApi";
 
 const API_BASE = API_BASE_URL;
 
@@ -9,16 +10,32 @@ export type EsewaInitiateResponse = {
   fields?: Record<string, string>;
 };
 
-export async function initiateEsewaPayment(orderId: string): Promise<{
+export type EsewaInitiatePayload = {
+  items: { productId: string; qty: number }[];
+  address?: {
+    fullName: string;
+    phone: string;
+    streetAddress: string;
+    city: string;
+    deliveryNote?: string;
+  };
+  addressId?: string;
+};
+
+export async function initiateEsewaPayment(
+  payload: EsewaInitiatePayload,
+): Promise<{
   fields: Record<string, string>;
   action: string;
 }> {
-  const res = await fetch(`${API_BASE}/esewa/initiate`, {
+  const res = await fetch(`${API_BASE}/api/esewa/initiate`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      ...authHeaders(),
     },
-    body: JSON.stringify({ orderId }),
+    credentials: "include",
+    body: JSON.stringify(payload),
   });
 
   const json = (await res

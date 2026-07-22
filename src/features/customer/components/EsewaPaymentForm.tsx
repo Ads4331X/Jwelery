@@ -1,100 +1,45 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useEffect, useCallback } from "react";
 
-import { initiateEsewaPayment } from "../../../services/esewaApi";
+/**
+ * Legacy payment form — the /checkout/esewa route now redirects to /checkout
+ * directly. This component is kept for any lingering references.
+ */
+export const EsewaPaymentForm = () => {
+  const navigate = useNavigate();
 
-type Props = {
-  /** Backend created order id */
-  orderId: string;
-};
-
-type EsewaForm = {
-  action: string;
-  fields: Record<string, string>;
-};
-
-function buildAutoForm({ action, fields }: EsewaForm) {
-  const form = document.createElement("form");
-  form.method = "POST";
-  form.action = action;
-  form.style.display = "none";
-
-  for (const [k, v] of Object.entries(fields)) {
-    const input = document.createElement("input");
-    input.type = "hidden";
-    input.name = k;
-    input.value = v;
-    form.appendChild(input);
-  }
-
-  document.body.appendChild(form);
-  return form;
-}
-
-export const EsewaPaymentForm = ({ orderId }: Props) => {
-  const [submitting, setSubmitting] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-  const hasInitiated = useRef(false);
-
-  const trigger = useMemo(() => orderId, [orderId]);
+  const redirect = useCallback(() => {
+    navigate("/checkout", { replace: true });
+  }, [navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-
-    async function run() {
-      if (!trigger) return;
-      if (hasInitiated.current) return;
-      hasInitiated.current = true;
-      
-      setSubmitting(true);
-      setErr(null);
-
-      try {
-        const { action, fields } = await initiateEsewaPayment(trigger);
-        if (cancelled) return;
-
-        // Stash pending txn info before redirecting, so the success/failure
-        // pages can recover it even if eSewa doesn't send back a data blob.
-        sessionStorage.setItem(
-          "esewa_pending_txn",
-          JSON.stringify({
-            transaction_uuid: fields.transaction_uuid,
-            orderId: trigger,
-          }),
-        );
-
-        const form = buildAutoForm({ action, fields });
-        form.submit();
-
-        // The page will navigate away.
-        // In case popups/blockers prevent submission, keep UI sane.
-        setSubmitting(false);
-      } catch (e) {
-        console.error("eSewa initiate error:", e);
-        if (cancelled) return;
-        setSubmitting(false);
-        setErr(e instanceof Error ? e.message : "Failed to initiate eSewa");
-      }
-    }
-
-    void run();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [trigger]);
+    redirect();
+  }, [redirect]);
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      <h2 className="text-xl font-semibold mb-2 text-green-600">
-        Pay with eSewa
-      </h2>
-      <p className="text-sm text-amber-900/60 mb-3">Redirecting to eSewa...</p>
-
-      {err ? <div className="text-red-600 text-sm">{err}</div> : null}
-
-      {submitting && !err ? (
-        <div className="text-sm text-gray-600">Please wait...</div>
-      ) : null}
-    </div>
+    <Box
+      className="min-h-screen bg-[#fafaf7]"
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <Box
+        sx={{
+          bgcolor: "white",
+          borderRadius: "20px",
+          border: "1px solid rgba(180,83,9,0.08)",
+          p: 8,
+          maxWidth: 448,
+          width: 1,
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: "rgb(120,53,15)", mb: 2 }}
+        >
+          Redirecting to Checkout...
+        </Typography>
+      </Box>
+    </Box>
   );
 };

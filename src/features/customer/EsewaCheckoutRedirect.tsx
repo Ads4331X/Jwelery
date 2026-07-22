@@ -1,39 +1,42 @@
-import { useMemo } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Box, Typography } from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
-import { EsewaPaymentForm } from "./components/EsewaPaymentForm";
-
-type LocationState = {
-  orderId?: string | null;
-};
-
+/**
+ * Fallback page — shown if someone navigates to /checkout/esewa directly.
+ * Auto-redirects to /checkout.
+ */
 export default function EsewaCheckoutRedirect() {
-  const location = useLocation();
   const navigate = useNavigate();
 
-  const state = (location.state ?? {}) as LocationState;
-  const orderId = useMemo(() => state.orderId ?? "", [state.orderId]);
-  const missing = !orderId;
+  useEffect(() => {
+    // Auto-redirect to the main checkout page
+    navigate("/checkout", { replace: true });
+  }, [navigate]);
 
-  if (missing) {
-    return (
-      <div className="p-6 max-w-lg mx-auto">
-        <h2 className="text-lg font-semibold text-red-600 mb-2">
-          Missing order reference
-        </h2>
-        <p className="text-sm text-amber-900/70">
-          Please go back and try again.
-        </p>
-        <button
-          className="mt-4 px-4 py-2 rounded bg-amber-700 text-white"
-          onClick={() => navigate("/checkout")}
-          type="button"
+  return (
+    <Box
+      className="min-h-screen bg-[#fafaf7]"
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <Box
+        sx={{
+          bgcolor: "white",
+          borderRadius: "20px",
+          border: "1px solid rgba(180,83,9,0.08)",
+          p: 8,
+          maxWidth: 448,
+          width: 1,
+          textAlign: "center",
+        }}
+      >
+        <Typography
+          variant="h6"
+          sx={{ fontWeight: 600, color: "rgb(120,53,15)", mb: 2 }}
         >
-          Back to Checkout
-        </button>
-      </div>
-    );
-  }
-
-  return <EsewaPaymentForm orderId={orderId} />;
+          Redirecting to Checkout...
+        </Typography>
+      </Box>
+    </Box>
+  );
 }

@@ -246,7 +246,7 @@ export default function ProductDetail() {
         {/* Back + Breadcrumb — unified header row */}
         <Box className="flex items-center gap-1 mb-8 -ml-2">
           <IconButton
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/products")}
             size="small"
             className="!text-amber-900/50 hover:!text-amber-800 hover:!bg-amber-50 !rounded-full !mr-1"
           >

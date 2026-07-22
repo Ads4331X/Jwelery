@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
+import { Box, Typography, CircularProgress, Link } from "@mui/material";
+import CheckCircleIcon from "@mui/icons-material/CheckCircle";
+import ReportProblemOutlinedIcon from "@mui/icons-material/ReportProblemOutlined";
 import { API_BASE_URL } from "../../config/appConfig";
+import { useCart } from "../../hooks/useCart";
 
 const API_BASE = API_BASE_URL;
 
@@ -9,29 +14,13 @@ type VerifyResult = {
   success: boolean;
   message: string;
   transactionUuid?: string;
-};
-
-type PendingTxn = {
-  transaction_uuid: string;
-  orderId: string;
+  orderNumber?: string;
 };
 
 function decodeEsewaData(data: string): Record<string, string> | null {
   try {
     const decoded = atob(data);
     return JSON.parse(decoded);
-  } catch {
-    return null;
-  }
-}
-
-function readPendingTxn(): PendingTxn | null {
-  try {
-    const raw = sessionStorage.getItem("esewa_pending_txn");
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (parsed?.transaction_uuid && parsed?.orderId) return parsed;
-    return null;
   } catch {
     return null;
   }
@@ -44,27 +33,14 @@ function clearPendingTxn(): void {
 export default function EsewaSuccess() {
   const [searchParams] = useSearchParams();
   const dataParam = searchParams.get("data");
-
-  const [pendingTxn] = useState<PendingTxn | null>(readPendingTxn);
+  const { clearCart } = useCart();
 
   const [result, setResult] = useState<VerifyResult>(() => {
-    if (!dataParam && !pendingTxn) {
+    if (!dataParam) {
       return {
         loading: false,
         success: false,
         message: "Missing payment verification data.",
-      };
-    }
-    if (!dataParam && pendingTxn) {
-      // No signed data blob — can't confirm payment succeeded.
-      // Show a helpful message instead of a dead end.
-      clearPendingTxn();
-      return {
-        loading: false,
-        success: false,
-        message:
-          "No verification data received from eSewa. Please check your order status in My Orders.",
-        transactionUuid: pendingTxn.transaction_uuid,
       };
     }
     return {
@@ -73,6 +49,8 @@ export default function EsewaSuccess() {
       message: "Verifying payment...",
     };
   });
+
+  const [cartCleared, setCartCleared] = useState(false);
 
   useEffect(() => {
     if (!dataParam) return;
@@ -84,20 +62,27 @@ export default function EsewaSuccess() {
 
     async function verify() {
       try {
-        const res = await fetch(`${API_BASE}/esewa/verify?data=${encodedData}`);
+        const res = await fetch(
+          `${API_BASE}/api/esewa/verify?data=${encodedData}`,
+        );
         const json = await res.json().catch(() => null);
 
         if (cancelled) return;
 
-        // Clear sessionStorage since we've recorded the outcome
         clearPendingTxn();
 
         if (res.ok && json?.success) {
+          if (!cartCleared) {
+            clearCart();
+            setCartCleared(true);
+          }
+
           setResult({
             loading: false,
             success: true,
             message: (json.message as string) ?? "Payment Successful!",
             transactionUuid: txnUuid,
+            orderNumber: (json.data?.orderNumber as string) ?? undefined,
           });
         } else {
           setResult({
@@ -125,129 +110,273 @@ export default function EsewaSuccess() {
     return () => {
       cancelled = true;
     };
-  }, [dataParam]);
+  }, [dataParam, clearCart, cartCleared]);
 
   if (result.loading) {
     return (
-      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-        <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
-          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-700 mx-auto mb-4" />
-          <p className="text-amber-900/70 text-sm">Verifying your payment...</p>
-        </div>
-      </div>
+      <Box
+        className="min-h-screen bg-[#fafaf7]"
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <Box
+          sx={{
+            bgcolor: "white",
+            borderRadius: "20px",
+            border: "1px solid rgba(180,83,9,0.08)",
+            p: 8,
+            maxWidth: 448,
+            width: 1,
+            textAlign: "center",
+          }}
+        >
+          <CircularProgress
+            size={40}
+            sx={{ color: "#b45309", mb: 4, mx: "auto", display: "block" }}
+          />
+          <Typography
+            sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem" }}
+          >
+            Verifying your payment...
+          </Typography>
+        </Box>
+      </Box>
     );
   }
 
   if (result.success) {
     return (
-      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-        <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
-          {/* Success icon */}
-          <div className="w-16 h-16 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
-            <svg
-              className="w-8 h-8 text-green-600"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 13l4 4L19 7"
-              />
-            </svg>
-          </div>
+      <Box
+        className="min-h-screen bg-[#fafaf7]"
+        sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+      >
+        <Box
+          sx={{
+            bgcolor: "white",
+            borderRadius: "20px",
+            border: "1px solid rgba(180,83,9,0.08)",
+            p: 8,
+            maxWidth: 448,
+            width: 1,
+            textAlign: "center",
+          }}
+        >
+          <Box
+            sx={{
+              width: 64,
+              height: 64,
+              borderRadius: "50%",
+              bgcolor: "rgba(34,197,94,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              mx: "auto",
+              mb: 4,
+            }}
+          >
+            <CheckCircleIcon sx={{ fontSize: 32, color: "success.main" }} />
+          </Box>
 
-          <h1 className="text-2xl font-bold text-green-700 mb-2">
+          <Typography
+            variant="h5"
+            sx={{ fontWeight: 700, color: "success.dark", mb: 2 }}
+          >
             Payment Successful!
-          </h1>
-          <p className="text-amber-900/70 text-sm mb-4">{result.message}</p>
+          </Typography>
+          <Typography
+            sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem", mb: 4 }}
+          >
+            {result.message}
+          </Typography>
+
+          {result.orderNumber && (
+            <Typography
+              sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem", mb: 4 }}
+            >
+              Order #
+              <Typography
+                component="span"
+                sx={{ fontWeight: 700, fontSize: "0.875rem" }}
+              >
+                {result.orderNumber}
+              </Typography>{" "}
+              has been placed successfully.
+            </Typography>
+          )}
 
           {result.transactionUuid ? (
-            <p className="text-xs text-amber-900/50 mb-6 break-all bg-amber-50 p-3 rounded-lg">
+            <Typography
+              sx={{
+                fontSize: "0.75rem",
+                color: "rgba(180,83,9,0.5)",
+                mb: 6,
+                wordBreak: "break-all",
+                bgcolor: "rgba(180,83,9,0.04)",
+                p: 3,
+                borderRadius: "12px",
+              }}
+            >
               Transaction ref: {result.transactionUuid}
-            </p>
+            </Typography>
           ) : null}
 
-          <div className="flex flex-col gap-3">
+          <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <Link
+              component={RouterLink}
               to="/orders"
-              className="w-full py-3 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 text-center"
-              style={{
+              sx={{
+                width: 1,
+                py: 3,
+                borderRadius: "9999px",
+                fontSize: "0.875rem",
+                fontWeight: 700,
+                textTransform: "uppercase",
+                letterSpacing: "0.16em",
+                color: "white",
+                textAlign: "center",
+                textDecoration: "none",
                 background: "linear-gradient(135deg, #92400e, #b45309)",
+                "&:hover": { opacity: 0.9 },
               }}
             >
               View My Orders
             </Link>
             <Link
+              component={RouterLink}
               to="/products"
-              className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors"
+              sx={{
+                fontSize: "0.875rem",
+                color: "rgb(180,83,9)",
+                textDecoration: "underline",
+                textUnderlineOffset: 2,
+                textAlign: "center",
+                "&:hover": { color: "rgb(120,53,15)" },
+              }}
             >
               Continue Shopping
             </Link>
-          </div>
-        </div>
-      </div>
+          </Box>
+        </Box>
+      </Box>
     );
   }
 
-  // Failure case (verify failed)
+  // Verification failure case
   return (
-    <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-      <div className="bg-white rounded-[20px] border border-amber-900/[0.08] p-8 max-w-md w-full text-center">
-        {/* Warning icon */}
-        <div className="w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
-          <svg
-            className="w-8 h-8 text-red-600"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"
-            />
-          </svg>
-        </div>
+    <Box
+      className="min-h-screen bg-[#fafaf7]"
+      sx={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+    >
+      <Box
+        sx={{
+          bgcolor: "white",
+          borderRadius: "20px",
+          border: "1px solid rgba(180,83,9,0.08)",
+          p: 8,
+          maxWidth: 448,
+          width: 1,
+          textAlign: "center",
+        }}
+      >
+        <Box
+          sx={{
+            width: 64,
+            height: 64,
+            borderRadius: "50%",
+            bgcolor: "rgba(239,68,68,0.1)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            mx: "auto",
+            mb: 4,
+          }}
+        >
+          <ReportProblemOutlinedIcon
+            sx={{ fontSize: 32, color: "error.main" }}
+          />
+        </Box>
 
-        <h1 className="text-2xl font-bold text-red-700 mb-2">
-          Payment Verification Failed
-        </h1>
-        <p className="text-amber-900/70 text-sm mb-6">{result.message}</p>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 700, color: "error.dark", mb: 2 }}
+        >
+          {result.message.toLowerCase().includes("already completed")
+            ? "Payment Already Completed"
+            : "Payment Verification Failed"}
+        </Typography>
+        <Typography
+          sx={{ color: "rgba(180,83,9,0.7)", fontSize: "0.875rem", mb: 6 }}
+        >
+          {result.message}
+        </Typography>
 
         {result.transactionUuid ? (
-          <p className="text-xs text-amber-900/50 mb-6 break-all bg-amber-50 p-3 rounded-lg">
+          <Typography
+            sx={{
+              fontSize: "0.75rem",
+              color: "rgba(180,83,9,0.5)",
+              mb: 6,
+              wordBreak: "break-all",
+              bgcolor: "rgba(180,83,9,0.04)",
+              p: 3,
+              borderRadius: "12px",
+            }}
+          >
             Transaction ref: {result.transactionUuid}
-          </p>
+          </Typography>
         ) : null}
 
-        <div className="flex flex-col gap-3">
+        <Box sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <Link
+            component={RouterLink}
             to="/checkout"
-            className="w-full py-3 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 text-center"
-            style={{
+            sx={{
+              width: 1,
+              py: 3,
+              borderRadius: "9999px",
+              fontSize: "0.875rem",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.16em",
+              color: "white",
+              textAlign: "center",
+              textDecoration: "none",
               background: "linear-gradient(135deg, #92400e, #b45309)",
+              "&:hover": { opacity: 0.9 },
             }}
           >
             Retry Checkout
           </Link>
           <Link
+            component={RouterLink}
             to="/products"
-            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center mt-1"
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgb(180,83,9)",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+              textAlign: "center",
+              mt: 2,
+              "&:hover": { color: "rgb(120,53,15)" },
+            }}
           >
             Continue Shopping
           </Link>
           <Link
+            component={RouterLink}
             to="/contact"
-            className="text-sm text-amber-700 underline underline-offset-2 hover:text-amber-900 transition-colors text-center"
+            sx={{
+              fontSize: "0.875rem",
+              color: "rgb(180,83,9)",
+              textDecoration: "underline",
+              textUnderlineOffset: 2,
+              textAlign: "center",
+              "&:hover": { color: "rgb(120,53,15)" },
+            }}
           >
             Contact Support
           </Link>
-        </div>
-      </div>
-    </div>
+        </Box>
+      </Box>
+    </Box>
   );
 }

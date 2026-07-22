@@ -53,11 +53,11 @@ export default function Cart() {
         {/* Back button */}
         <button
           type="button"
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/products")}
           className="flex items-center gap-2 text-amber-900/60 hover:text-amber-700 text-sm font-medium tracking-wide mb-8 transition-colors duration-200 cursor-pointer"
         >
           <ArrowBackIcon sx={{ fontSize: 16 }} />
-          Back
+          Back to Collection
         </button>
 
         {/* Page title */}
@@ -372,7 +372,9 @@ export default function Cart() {
                 type="button"
                 onClick={() => {
                   if (!auth?.user) {
-                    navigate("/login", { state: { from: { pathname: "/cart" } } });
+                    navigate("/login", {
+                      state: { from: { pathname: "/cart" } },
+                    });
                   } else {
                     navigate("/checkout");
                   }
