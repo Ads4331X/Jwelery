@@ -81,7 +81,7 @@ export default function EsewaFailure() {
 
           if (cancelled) return;
 
-          if (res.ok && json?.success) {
+          if (res.ok && json?.success && ((json?.updated as number) ?? 0) > 0) {
             setResult({
               loading: false,
               success: true,
@@ -118,7 +118,7 @@ export default function EsewaFailure() {
 
           if (cancelled) return;
 
-          if (res.ok && json?.success) {
+          if (res.ok && json?.success && ((json?.updated as number) ?? 0) > 0) {
             setResult({
               loading: false,
               success: true,

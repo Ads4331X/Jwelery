@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 
 import { initiateEsewaPayment } from "../../../services/esewaApi";
 
@@ -33,6 +33,7 @@ function buildAutoForm({ action, fields }: EsewaForm) {
 export const EsewaPaymentForm = ({ orderId }: Props) => {
   const [submitting, setSubmitting] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const hasInitiated = useRef(false);
 
   const trigger = useMemo(() => orderId, [orderId]);
 
@@ -41,6 +42,9 @@ export const EsewaPaymentForm = ({ orderId }: Props) => {
 
     async function run() {
       if (!trigger) return;
+      if (hasInitiated.current) return;
+      hasInitiated.current = true;
+      
       setSubmitting(true);
       setErr(null);
 
