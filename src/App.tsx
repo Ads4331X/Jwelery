@@ -9,6 +9,7 @@ import Checkout from "./features/customer/Checkout";
 import EsewaCheckoutRedirect from "./features/customer/EsewaCheckoutRedirect";
 import EsewaSuccess from "./features/customer/EsewaSuccess";
 import EsewaFailure from "./features/customer/EsewaFailure";
+import KhaltiCallback from "./features/customer/KhaltiCallback";
 
 // ── Public ────────────────────────────────────────────────────
 const Products = lazy(() => import("./features/products/Products"));
@@ -103,6 +104,10 @@ function App() {
               <Route
                 path="/checkout/esewa/failure"
                 element={<EsewaFailure />}
+              />
+              <Route
+                path="/checkout/khalti/callback"
+                element={<KhaltiCallback />}
               />
 
               {/* ── Admin auth ──────────────────────────────── */}

@@ -2,6 +2,11 @@
 const DEFAULT_LOCAL_BACKEND_URL = "http://localhost:5000";
 
 const getCurrentOrigin = () => {
+  // In development, default to the Express backend directly on port 5000
+  // unless VITE_API_URL is explicitly set (e.g. for Vite proxy usage)
+  if (import.meta.env.DEV && !import.meta.env.VITE_API_URL) {
+    return DEFAULT_LOCAL_BACKEND_URL;
+  }
   if (typeof window !== "undefined" && window.location?.origin) {
     return window.location.origin;
   }
@@ -36,7 +41,8 @@ const normalizeBaseUrl = (value: string | undefined, fallback: string) => {
 
 /**
  * Base URL of your backend API.
- * - Dev: defaults to same-origin so Vite can proxy /api requests to the backend.
+ * - Dev: defaults to http://localhost:5000 so frontend calls Express directly.
+ *        Override with VITE_API_URL to use Vite's proxy (same-origin).
  * - Prod: defaults to same-origin (works out of the box if your API is
  *   proxied behind the same domain, e.g. via vercel.json rewrites or an
  *   .htaccess proxy on cPanel). Override with VITE_API_URL if your API

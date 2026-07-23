@@ -30,6 +30,7 @@ import {
   type SavedAddress,
 } from "../../services/addressesApi";
 import { initiateEsewaPayment } from "../../services/esewaApi";
+import { initiateKhaltiPayment } from "../../services/khaltiApi";
 
 type PaymentMethod = "esewa" | "khalti" | "cod";
 
@@ -378,13 +379,9 @@ export default function Checkout() {
         qty: it.qty,
       }));
 
-      if (payment === "esewa") {
-        // ── eSewa flow: DO NOT create order yet ─────────────────────
-        // Instead, initiate payment with cart items + address.
-        // Backend will validate stock and create a PendingPayment.
-        // Only after successful eSewa verification will the order be created.
-
-        const initiatePayload: {
+      // ── Shared: build initiate payload for online payments ────────
+      const buildInitiatePayload = () => {
+        const payload: {
           items: { productId: string; qty: number }[];
           address?: {
             fullName: string;
@@ -399,9 +396,9 @@ export default function Checkout() {
         };
 
         if (!useNewAddress && selectedSavedId) {
-          initiatePayload.addressId = selectedSavedId;
+          payload.addressId = selectedSavedId;
         } else {
-          initiatePayload.address = {
+          payload.address = {
             fullName: selectedShippingAddress.fullName,
             phone: selectedShippingAddress.phone,
             streetAddress: selectedShippingAddress.streetAddress,
@@ -409,6 +406,17 @@ export default function Checkout() {
             deliveryNote: selectedShippingAddress.deliveryNote,
           };
         }
+
+        return payload;
+      };
+
+      if (payment === "esewa") {
+        // ── eSewa flow: DO NOT create order yet ─────────────────────
+        // Instead, initiate payment with cart items + address.
+        // Backend will validate stock and create a PendingPayment.
+        // Only after successful eSewa verification will the order be created.
+
+        const initiatePayload = buildInitiatePayload();
 
         try {
           const { action, fields } =
@@ -436,6 +444,41 @@ export default function Checkout() {
 
         // Note: we don't set placing=false here because the page will navigate away.
         // If form submission fails silently (popup blocker etc.), the user stays here.
+        setPlacing(false);
+        return;
+      }
+
+      if (payment === "khalti") {
+        // ── Khalti flow: DO NOT create order yet ────────────────────
+        // Instead, initiate payment with cart items + address.
+        // Backend will validate stock and create a PendingPayment.
+        // Only after successful Khalti verification will the order be created.
+
+        const initiatePayload = buildInitiatePayload();
+
+        try {
+          const { payment_url, pidx } =
+            await initiateKhaltiPayment(initiatePayload);
+
+          // Stash pending txn info in case callback doesn't carry everything
+          sessionStorage.setItem(
+            "khalti_pending_txn",
+            JSON.stringify({ pidx }),
+          );
+
+          // Direct redirect to Khalti — no form building needed
+          window.location.href = payment_url;
+        } catch (initErr) {
+          setPlaceErr(
+            initErr instanceof Error
+              ? initErr.message
+              : "Failed to initiate Khalti payment. Please try again.",
+          );
+          setPlacing(false);
+          return;
+        }
+
+        // Note: we don't set placing=false here because the page will navigate away.
         setPlacing(false);
         return;
       }
@@ -926,37 +969,36 @@ export default function Checkout() {
                   sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}
                 >
                   {PAYMENT_OPTIONS.map((opt) => {
+                    const isDisabled =
+                      opt.value !== "esewa" &&
+                      opt.value !== "khalti" &&
+                      opt.value !== "cod";
                     return (
                       <Box
                         key={opt.value}
                         onClick={() => {
-                          if (opt.value !== "esewa" && opt.value !== "cod")
-                            return;
+                          if (isDisabled) return;
                           setPayment(opt.value);
                         }}
                         className={[
                           "flex items-center gap-3 px-4 py-3.5 rounded-[14px] border transition-all duration-200",
-                          opt.value !== "esewa" && opt.value !== "cod"
+                          isDisabled
                             ? "cursor-not-allowed opacity-60 border-amber-900/10 bg-white"
                             : "cursor-pointer",
                           payment === opt.value
                             ? "border-amber-600 bg-amber-50/60"
-                            : opt.value !== "esewa" && opt.value !== "cod"
+                            : isDisabled
                               ? ""
                               : "border-amber-900/10 hover:border-amber-900/25",
                         ].join(" ")}
                       >
                         <FormControlLabel
                           value={opt.value}
-                          disabled={
-                            opt.value !== "esewa" && opt.value !== "cod"
-                          }
+                          disabled={isDisabled}
                           control={
                             <Radio
                               size="small"
-                              disabled={
-                                opt.value !== "esewa" && opt.value !== "cod"
-                              }
+                              disabled={isDisabled}
                               sx={{
                                 color: "#b45309",
                                 "&.Mui-checked": { color: "#b45309" },
@@ -986,23 +1028,6 @@ export default function Checkout() {
                             >
                               {opt.label}
                             </Typography>
-                            {opt.value === "khalti" ? (
-                              <Box
-                                sx={{
-                                  fontSize: "0.62rem",
-                                  fontWeight: 800,
-                                  letterSpacing: "0.06em",
-                                  color: "#b45309",
-                                  border: "1px solid rgba(180,83,9,0.18)",
-                                  borderRadius: "999px",
-                                  px: 1,
-                                  py: "2px",
-                                  background: "rgba(180,83,9,0.06)",
-                                }}
-                              >
-                                Coming soon
-                              </Box>
-                            ) : null}
                           </Box>
 
                           <Typography
@@ -1039,6 +1064,18 @@ export default function Checkout() {
                   }}
                 >
                   {placing ? "Placing order..." : "Pay with eSewa"}
+                </button>
+              ) : payment === "khalti" ? (
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #5C2D91, #3B1F6E)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Pay with Khalti"}
                 </button>
               ) : (
                 <button
@@ -1154,6 +1191,18 @@ export default function Checkout() {
                   }}
                 >
                   {placing ? "Placing order..." : "Pay with eSewa"}
+                </button>
+              ) : payment === "khalti" ? (
+                <button
+                  type="button"
+                  onClick={handleConfirm}
+                  disabled={!canPlace || placing}
+                  className="w-full py-4 rounded-full text-sm font-bold uppercase tracking-widest text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                  style={{
+                    background: "linear-gradient(135deg, #5C2D91, #3B1F6E)",
+                  }}
+                >
+                  {placing ? "Placing order..." : "Pay with Khalti"}
                 </button>
               ) : (
                 <button
