@@ -86,7 +86,7 @@ export default function Footer() {
               <Box
                 component="img"
                 src={logo}
-                alt="Anand Jewellers"
+                alt="Ecommerce Store"
                 className="h-14 w-auto object-contain shrink-0"
               />
               <Typography
@@ -102,7 +102,7 @@ export default function Footer() {
                   whiteSpace: "nowrap",
                 }}
               >
-                Anand Jewellers
+                Ecommerce Store
               </Typography>
             </Box>
             <Typography
@@ -114,10 +114,8 @@ export default function Footer() {
                 textAlign: "left",
               }}
             >
-              Anand Jewellers, established in 2003, specializes in handcrafted
-              24K and 22K gold jewellery. Combining premium materials, expert
-              craftsmanship, and timeless designs, we offer unique collections
-              that blend tradition with modern elegance.
+              We offer premium quality products with great customer service.
+              Shop with confidence and enjoy a seamless online shopping experience.
             </Typography>
           </Box>
 
@@ -218,7 +216,7 @@ export default function Footer() {
           }}
         >
           <Typography sx={{ fontSize: "0.8rem", color: "rgba(0,0,0,0.45)" }}>
-            © {new Date().getFullYear()} Anand Jewellers. All rights reserved.
+            © {new Date().getFullYear()} Ecommerce Store. All rights reserved.
           </Typography>
           <Typography
             sx={{

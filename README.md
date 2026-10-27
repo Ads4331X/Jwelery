@@ -1,10 +1,10 @@
-# Anand Jewellers
+# Ecommerce Store
 
-A professional jewelry storefront and admin management system for showcasing and selling gold, silver, and exquisite jewelry products.
+A professional ecommerce storefront and admin management system for showcasing and selling products online.
 
 ## Project Overview
 
-Anand Jewellers is a comprehensive web application designed for a jewelry business. It provides a high-end shopping experience for customers to explore jewelry collections and a powerful administrative dashboard for the business owner to manage inventory, update metal rates, and handle customer enquiries.
+This ecommerce platform provides a high-end shopping experience for customers to explore collections and a powerful administrative dashboard for managing inventory, orders, and more.
 
 ## Features
 

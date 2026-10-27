@@ -135,7 +135,7 @@ export default function Orders() {
               fontSize: "0.65rem",
             }}
           >
-            Anand Jewellers
+            Ecommerce Store
           </Typography>
           <Typography
             component="h1"
@@ -316,7 +316,7 @@ export default function Orders() {
                               />
                             ) : it.productId ? (
                               <img
-                                src={`https://anandjewellers.s3.amazonaws.com/products/${it.productId}.jpg`}
+                                src={it.productImageUrl || (it.productId ? `/uploads/products-image/${it.productId}.jpg` : undefined)}
                                 alt={it.name}
                                 className="w-full h-full object-cover"
                                 onError={(e) => {

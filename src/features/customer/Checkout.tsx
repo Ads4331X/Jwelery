@@ -542,7 +542,7 @@ export default function Checkout() {
               fontSize: "0.65rem",
             }}
           >
-            Anand Jewellers
+            Ecommerce Store
           </Typography>
           <Typography
             component="h1"

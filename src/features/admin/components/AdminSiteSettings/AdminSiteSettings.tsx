@@ -60,7 +60,7 @@ const FIELD_CONFIG: {
     key: "email",
     label: "Email Address",
     icon: <EmailOutlinedIcon fontSize="small" className="text-amber-700" />,
-    placeholder: "e.g. anand.jewellers.np@gmail.com",
+    placeholder: "e.g. test@example.com",
   },
   {
     key: "phone",

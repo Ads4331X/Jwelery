@@ -9,10 +9,10 @@ export const SETTINGS_DEFAULTS: Omit<SiteSettings, "id" | "updated_at"> = {
   address: "Sukra Path, Kathmandu",
   maps_url:
     "https://www.google.com/maps?ll=27.705353,85.309351&z=15&t=m&hl=en&gl=NP&mapclient=embed&cid=14685289598650988311",
-  email: "anand.jewellers.np@gmail.com",
-  phone: "01-5347461",
-  facebook_url: "https://www.facebook.com/Anand.Jewellers.np",
-  instagram_url: "https://www.instagram.com/anand.jewellers.np/?hl=en",
+  email: "test@example.com",
+  phone: "01-0000000",
+  facebook_url: "https://www.facebook.com/test",
+  instagram_url: "https://www.instagram.com/test/?hl=en",
 };
 
 export function useSiteSettings() {

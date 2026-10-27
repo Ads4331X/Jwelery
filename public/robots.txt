@@ -4,4 +4,4 @@ Disallow: /admin/
 Disallow: /checkout
 Disallow: /profile
 
-Sitemap: https://anandjewellers.com/sitemap.xml
+Sitemap: https://ecommerce-store.com/sitemap.xml

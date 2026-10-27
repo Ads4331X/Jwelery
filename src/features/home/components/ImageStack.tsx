@@ -6,10 +6,10 @@ import ourstory2 from "../../../assets/images/our-story/ourstory2.jpeg";
 import ourstory3 from "../../../assets/images/our-story/ourstory3.jpeg";
 
 const IMAGES = [
-  { src: ourstory1, alt: "Gold jewellery craftsmanship at Anand Jewellers" },
-  { src: ourstory2, alt: "Handcrafted necklace detail" },
-  { src: ourstory3, alt: "Traditional Nepali jewellery design" },
-  { src: ourstory4, alt: "Anand Jewellers showroom collection" },
+  { src: ourstory1, alt: "Quality product craftsmanship" },
+  { src: ourstory2, alt: "Product detail showcase" },
+  { src: ourstory3, alt: "Premium product design" },
+  { src: ourstory4, alt: "Store collection showcase" },
 ];
 
 export function ImageStack() {

@@ -70,7 +70,7 @@ export default function Cart() {
               fontSize: "0.65rem",
             }}
           >
-            Anand Jewellers
+            Ecommerce Store
           </Typography>
           <Box className="flex items-baseline gap-3 mt-1">
             <Typography

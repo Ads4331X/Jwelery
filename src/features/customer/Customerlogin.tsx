@@ -105,7 +105,7 @@ export default function CustomerLogin() {
                 fontSize: "0.65rem",
               }}
             >
-              Anand Jewellers
+              Ecommerce Store
             </Typography>
             <Typography
               variant="h5"

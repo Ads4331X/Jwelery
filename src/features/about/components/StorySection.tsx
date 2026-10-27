@@ -85,7 +85,7 @@ export function OurStory() {
               }}
             >
               Every item is chosen to celebrate artistry and heritage while
-              supporting local makers. Established in 2003, Anand Jewellers has
+              supporting quality products. Established in 2024, we have
               spent over two decades building trust one piece at a time.
             </Typography>
 

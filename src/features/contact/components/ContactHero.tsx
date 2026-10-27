@@ -5,7 +5,7 @@ import { PageHero } from "../../../components/shared/hero/PageHero";
 export function ContactHero() {
   return (
     <PageHero
-      label="Anand Jewellers"
+      label="Ecommerce Store"
       title={
         <>
           Contact{" "}

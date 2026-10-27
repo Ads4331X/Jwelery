@@ -54,7 +54,7 @@ export function ProductsHero() {
 
   return (
     <PageHero
-      label="Anand Jewellers"
+      label="Ecommerce Store"
       title={
         <>
           Our{" "}
@@ -63,7 +63,7 @@ export function ProductsHero() {
           </Box>
         </>
       }
-      subtitle="Handcrafted 24 karat and 22 karat gold jewellery, each piece a celebration of Nepal's heritage and timeless artistry."
+      subtitle="Premium quality products, each item selected for quality and style."
     />
   );
 }

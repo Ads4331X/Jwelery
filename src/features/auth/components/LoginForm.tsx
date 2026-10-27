@@ -48,7 +48,7 @@ export default function LoginForm({
             variant="h5"
             className="font-semibold text-stone-800 mt-1"
           >
-            Anand Jewellers
+            Ecommerce Store
           </Typography>
         </Box>
 

@@ -73,7 +73,7 @@ export function Hero() {
           </Typography>
 
           <Typography className="mx-auto mb-6 max-w-xs text-sm leading-7 text-white/75">
-            Handcrafted 24 karat and 22 karat gold jewellery, created with the
+            Premium quality products, created with the
             highest quality materials and skilled craftsmen, offering timeless
             elegance and personalized designs for every occasion.
           </Typography>

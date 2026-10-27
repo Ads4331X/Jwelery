@@ -47,15 +47,15 @@ export default function Header() {
             <Box
               component="img"
               src={logo}
-              alt="Anand Jewellers"
+              alt="Ecommerce Store"
               className="h-8 sm:h-10 w-auto"
             />
             <Box className="hidden sm:block leading-none">
               <span className="block text-sm font-bold text-stone-900 tracking-tight">
-                Anand Jewellers
+                Ecommerce Store
               </span>
               <span className="block text-[9px] text-amber-600 tracking-[0.22em] uppercase mt-0.5">
-                Since 2003
+                Since 2024
               </span>
             </Box>
           </NavLink>

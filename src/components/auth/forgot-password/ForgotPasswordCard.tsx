@@ -63,7 +63,7 @@ export default function ForgotPasswordCard({
 }: Props) {
   const isAdmin = panel === "admin";
   const accent = isAdmin ? "#0f172a" : "#b45309";
-  const title = isAdmin ? "Admin Panel" : "Anand Jewellers";
+  const title = isAdmin ? "Admin Panel" : "Ecommerce Store";
 
   const subtitle = (() => {
     if (isAdmin) {

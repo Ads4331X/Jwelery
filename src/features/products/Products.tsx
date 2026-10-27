@@ -29,9 +29,9 @@ const QUICK_CATEGORIES = [
 
 export default function Products() {
   usePageMeta({
-    title: "Shop Gold & Silver Jewellery | Anand Jewellers",
+    title: "Shop Products | Ecommerce Store",
     description:
-      "Browse handcrafted gold and silver jewellery from Anand Jewellers, Nepal. View collections, prices, and product details online.",
+      "Browse quality products from our online store. View collections, prices, and product details online.",
   });
 
   const theme = useTheme();
